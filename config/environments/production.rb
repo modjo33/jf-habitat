@@ -15,14 +15,17 @@ Rails.application.configure do
   # Turn on fragment caching in view templates.
   config.action_controller.perform_caching = true
 
+  # Sur Scalingo (buildpack, pas de nginx), Rails doit servir les assets précompilés.
+  config.public_file_server.enabled = ENV.fetch("RAILS_SERVE_STATIC_FILES", "true").present?
+
   # Cache assets for far-future expiry since they are all digest stamped.
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  # Uploads stockés sur Cloudinary (disque Scalingo éphémère, voir config/storage.yml).
+  config.active_storage.service = :cloudinary
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true
@@ -81,10 +84,12 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Hosts autorisés — APP_HOST = domaine principal, ALT_HOSTS = liste séparée par virgules
+  # Hosts autorisés — APP_HOST = domaine principal, ALT_HOSTS = liste séparée par virgules.
+  # On autorise aussi les sous-domaines Scalingo (.scalingo.io) pour que l'app soit
+  # accessible via l'URL temporaire dès le 1er déploiement, avant la config DNS.
   primary_host = ENV.fetch("APP_HOST", "jfhabitat.fr")
   alt_hosts    = ENV.fetch("ALT_HOSTS", "").split(",").map(&:strip).reject(&:empty?)
-  config.hosts = [ primary_host, "www.#{primary_host}", *alt_hosts ]
+  config.hosts = [ primary_host, "www.#{primary_host}", /.*\.scalingo\.io\z/, *alt_hosts ]
 
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }

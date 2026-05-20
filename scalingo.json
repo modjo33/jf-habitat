@@ -1,0 +1,21 @@
+{
+  "name": "JF Habitat",
+  "description": "Site vitrine + estimateur + back-office — artisan peinture / placo / parquet",
+  "addons": [
+    "postgresql"
+  ],
+  "env": {
+    "RAILS_ENV": { "value": "production" },
+    "RACK_ENV": { "value": "production" },
+    "RAILS_MASTER_KEY": { "required": true },
+    "RAILS_SERVE_STATIC_FILES": { "value": "true" },
+    "RAILS_LOG_TO_STDOUT": { "value": "true" },
+    "SOLID_QUEUE_IN_PUMA": { "value": "true" },
+    "CLOUDINARY_CLOUD_NAME": { "required": true },
+    "CLOUDINARY_API_KEY": { "required": true },
+    "CLOUDINARY_API_SECRET": { "required": true }
+  },
+  "scripts": {
+    "postdeploy": "bundle exec rails db:prepare"
+  }
+}

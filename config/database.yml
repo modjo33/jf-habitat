@@ -84,21 +84,23 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# Scalingo ne fournit qu'UNE base PostgreSQL (via DATABASE_URL / SCALINGO_POSTGRESQL_URL).
+# On NE réutilise PAS l'ancre &default ici : ses username/password/host (issus de
+# DB_* en dev) écraseraient ceux contenus dans l'URL. Les sous-bases Solid
+# (cache/queue/cable) pointent toutes sur la même base — leurs tables coexistent
+# sans conflit grâce aux préfixes solid_cache_/solid_queue_/solid_cable_.
 production:
   primary: &primary_production
-    <<: *default
-    database: jf_habitat_production
-    username: jf_habitat
-    password: <%= ENV["JF_HABITAT_DATABASE_PASSWORD"] %>
+    adapter: postgresql
+    encoding: unicode
+    max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    url: <%= ENV["DATABASE_URL"] || ENV["SCALINGO_POSTGRESQL_URL"] %>
   cache:
     <<: *primary_production
-    database: jf_habitat_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: jf_habitat_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: jf_habitat_production_cable
     migrations_paths: db/cable_migrate
