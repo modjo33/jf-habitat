@@ -1,0 +1,41 @@
+<%= form_with model: [:admin, tarif], class: "space-y-5" do |f| %>
+  <% if tarif.errors.any? %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <ul class="list-disc list-inside text-sm text-red-700">
+        <% tarif.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :prestation, class: "label-field" %>
+      <%= f.select :prestation, Tarif::PRESTATIONS.map { |k, v| [v[:label], k] }, { include_blank: "Choisir…" }, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :gamme, class: "label-field" %>
+      <%= f.select :gamme, Tarif::GAMMES.map { |k, v| [v[:label], k] }, { include_blank: "Choisir…" }, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :prix_m2, "Prix €/m²", class: "label-field" %>
+      <%= f.number_field :prix_m2, step: 0.01, class: "input-field" %>
+    </div>
+    <div class="flex items-end">
+      <label class="inline-flex items-center gap-2 cursor-pointer">
+        <%= f.check_box :actif, class: "w-4 h-4" %>
+        <span class="text-sm font-semibold text-ink">Actif</span>
+      </label>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :description, class: "label-field" %>
+      <%= f.text_area :description, rows: 3, class: "input-field" %>
+    </div>
+  </div>
+
+  <div class="flex gap-3">
+    <%= f.submit class: "btn-primary" %>
+    <%= link_to "Annuler", admin_tarifs_path, class: "btn-ghost" %>
+  </div>
+<% end %>

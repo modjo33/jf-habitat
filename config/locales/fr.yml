@@ -1,0 +1,131 @@
+fr:
+  date:
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d/%m"
+      long: "%d %B %Y"
+    day_names: [dimanche, lundi, mardi, mercredi, jeudi, vendredi, samedi]
+    abbr_day_names: [dim, lun, mar, mer, jeu, ven, sam]
+    month_names: [~, janvier, février, mars, avril, mai, juin, juillet, août, septembre, octobre, novembre, décembre]
+    abbr_month_names: [~, jan, fév, mar, avr, mai, juin, juil, août, sep, oct, nov, déc]
+    order:
+      - :day
+      - :month
+      - :year
+  time:
+    formats:
+      default: "%d/%m/%Y %H:%M"
+      short: "%d/%m %H:%M"
+      long: "%d %B %Y à %H:%M"
+  number:
+    currency:
+      format:
+        unit: "€"
+        format: "%n %u"
+        separator: ","
+        delimiter: " "
+        precision: 2
+
+  errors:
+    format: "%{attribute} : %{message}"
+    messages:
+      blank: "doit être renseigné(e)"
+      present: "doit être vide"
+      confirmation: "ne concorde pas"
+      accepted: "doit être accepté(e)"
+      invalid: "n'est pas valide"
+      taken: "est déjà utilisé(e)"
+      too_long:
+        one: "est trop long (pas plus d'un caractère)"
+        other: "est trop long (pas plus de %{count} caractères)"
+      too_short:
+        one: "est trop court (au moins un caractère)"
+        other: "est trop court (au moins %{count} caractères)"
+      wrong_length:
+        one: "ne fait pas la bonne longueur (doit comporter un seul caractère)"
+        other: "ne fait pas la bonne longueur (doit comporter %{count} caractères)"
+      not_a_number: "n'est pas un nombre"
+      not_an_integer: "n'est pas un nombre entier"
+      greater_than: "doit être supérieur à %{count}"
+      greater_than_or_equal_to: "doit être supérieur ou égal à %{count}"
+      equal_to: "doit être égal à %{count}"
+      less_than: "doit être inférieur à %{count}"
+      less_than_or_equal_to: "doit être inférieur ou égal à %{count}"
+      other_than: "doit être différent de %{count}"
+      odd: "doit être impair"
+      even: "doit être pair"
+      inclusion: "n'est pas inclus(e) dans la liste"
+      exclusion: "n'est pas disponible"
+
+  activerecord:
+    errors:
+      format: "%{attribute} : %{message}"
+      messages:
+        record_invalid: "La validation a échoué : %{errors}"
+        restrict_dependent_destroy:
+          has_one: "Impossible de supprimer : un %{record} en dépend"
+          has_many: "Impossible de supprimer : des %{record} en dépendent"
+      models:
+        estimation:
+          attributes:
+            nom:
+              blank: "est requis"
+            email:
+              blank: "est requis"
+              invalid: "n'a pas un format valide"
+            telephone:
+              blank: "est requis"
+              invalid: "doit être un numéro français valide (ex: 06 12 34 56 78)"
+        estimation_line:
+          attributes:
+            piece:
+              blank: "est requis"
+            prestation:
+              blank: "est requise"
+              inclusion: "n'est pas valide"
+            gamme:
+              blank: "est requise"
+              inclusion: "n'est pas valide"
+            surface:
+              blank: "est requise"
+              not_a_number: "doit être un nombre"
+              greater_than: "doit être supérieure à %{count} m²"
+              less_than: "doit être inférieure à %{count} m²"
+    models:
+      estimation:
+        one: "Estimation"
+        other: "Estimations"
+      estimation_line:
+        one: "Ligne d'estimation"
+        other: "Lignes d'estimation"
+      tarif:
+        one: "Tarif"
+        other: "Tarifs"
+    attributes:
+      estimation:
+        nom: "Nom"
+        email: "Email"
+        telephone: "Téléphone"
+        adresse: "Adresse"
+        code_postal: "Code postal"
+        ville: "Ville"
+        delai: "Délai"
+        message: "Message"
+        type_chantier: "Type de chantier"
+      estimation_line:
+        piece: "Pièce"
+        prestation: "Prestation"
+        gamme: "Gamme"
+        surface: "Surface"
+      tarif:
+        prestation: "Prestation"
+        gamme: "Gamme"
+        prix_m2: "Prix au m²"
+        description: "Description"
+        actif: "Actif"
+
+  helpers:
+    submit:
+      create: "Créer"
+      update: "Mettre à jour"
+      submit: "Enregistrer"

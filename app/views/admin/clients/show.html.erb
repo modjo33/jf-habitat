@@ -1,0 +1,128 @@
+<div class="mb-8">
+  <%= link_to "← Retour aux clients", admin_clients_path, class: "text-sm text-ink-light hover:text-ink" %>
+  <div class="mt-3 flex items-start justify-between flex-wrap gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="h-display text-4xl text-ink"><%= @client.nom %></h1>
+        <%= render "statut_badge", statut: @client.statut %>
+      </div>
+      <div class="mt-2 text-sm text-ink-light">
+        <%= @client.email %> · <%= @client.telephone %>
+        <% if @client.ville.present? %> · <%= @client.ville %><% end %>
+      </div>
+    </div>
+    <div class="text-right text-xs text-ink-light">
+      <div>Créé le <%= l(@client.created_at, format: :long) %></div>
+      <div>Dernière interaction : <%= time_ago_in_words(@client.derniere_interaction_at || @client.updated_at) %> ago</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-[1.4fr_1fr] gap-6">
+  <!-- COLONNE GAUCHE : notes + estimations -->
+  <div class="space-y-6">
+    <!-- AJOUT NOTE -->
+    <div class="card-premium p-6">
+      <h2 class="font-display text-xl text-ink mb-4">Nouvelle note</h2>
+      <%= form_with model: ClientNote.new, url: admin_client_notes_path(@client) do |f| %>
+        <%= f.text_area :body, rows: 3, placeholder: "Compte-rendu d'appel, retour visite, négociation, prochaine étape…", class: "input-field", required: true %>
+        <div class="mt-3 flex justify-end">
+          <%= f.submit "Ajouter la note", class: "btn-primary text-xs px-5 py-2.5" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- TIMELINE NOTES -->
+    <div class="card-premium p-6">
+      <h2 class="font-display text-xl text-ink mb-5">Historique des notes (<%= @notes.size %>)</h2>
+      <% if @notes.empty? %>
+        <div class="text-center py-10 text-ink-light text-sm">Aucune note pour l'instant.</div>
+      <% else %>
+        <div class="space-y-4">
+          <% @notes.each do |note| %>
+            <div class="border-l-2 border-accent pl-4 group">
+              <div class="flex items-baseline justify-between gap-3">
+                <div class="text-xs uppercase tracking-widest text-ink-light"><%= l(note.created_at, format: :long) %> · <%= note.auteur %></div>
+                <%= button_to "Supprimer", admin_client_note_path(@client, note), method: :delete, data: { turbo_confirm: "Supprimer cette note ?" }, class: "opacity-0 group-hover:opacity-100 text-xs text-red-600 hover:underline" %>
+              </div>
+              <div class="text-ink whitespace-pre-wrap mt-1.5"><%= note.body %></div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- ESTIMATIONS LIÉES -->
+    <div class="card-premium p-6">
+      <h2 class="font-display text-xl text-ink mb-5">Estimations (<%= @estimations.size %>)</h2>
+      <% if @estimations.empty? %>
+        <div class="text-center py-10 text-ink-light text-sm">Aucune estimation soumise.</div>
+      <% else %>
+        <div class="space-y-2">
+          <% @estimations.each do |e| %>
+            <%= link_to admin_estimation_path(e), class: "flex items-center justify-between gap-3 p-3 bg-sand rounded-lg border border-border-warm/40 hover:border-accent/40 transition" do %>
+              <div class="min-w-0">
+                <div class="font-mono text-xs text-accent font-semibold"><%= e.reference %></div>
+                <div class="text-xs text-ink-light"><%= e.type_chantier_label %> · <%= e.surface_totale %> m² · <%= e.estimation_lines.count %> ligne(s)</div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="font-display text-lg text-ink"><%= number_to_currency(e.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
+                <div class="text-[10px] uppercase tracking-widest text-ink-light"><%= l(e.created_at, format: :long) %></div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- COLONNE DROITE : édition fiche -->
+  <div class="space-y-6">
+    <div class="card-premium p-6">
+      <h2 class="font-display text-xl text-ink mb-5">Fiche client</h2>
+
+      <%= form_with model: @client, url: admin_client_path(@client), method: :patch, class: "space-y-4" do |f| %>
+        <div>
+          <%= f.label :statut, "Statut commercial", class: "label-field" %>
+          <%= f.select :statut, Client::STATUTS.map { |k, v| [v, k] }, {}, class: "input-field" %>
+        </div>
+
+        <div>
+          <%= f.label :prochaine_action, "Prochaine action", class: "label-field" %>
+          <%= f.text_field :prochaine_action, placeholder: "Rappeler · envoyer devis · visite chantier…", class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :prochaine_action_date, "Échéance", class: "label-field" %>
+          <%= f.date_field :prochaine_action_date, class: "input-field" %>
+        </div>
+
+        <div>
+          <%= f.label :notes_internes, "Notes permanentes", class: "label-field" %>
+          <%= f.text_area :notes_internes, rows: 4, class: "input-field", placeholder: "Préférences client, contraintes, parrain…" %>
+        </div>
+
+        <details class="pt-2">
+          <summary class="cursor-pointer text-sm text-ink-light hover:text-ink">Coordonnées</summary>
+          <div class="space-y-3 mt-3 pt-3 border-t border-border-warm/60">
+            <div><%= f.label :nom, class: "label-field" %><%= f.text_field :nom, class: "input-field" %></div>
+            <div><%= f.label :email, class: "label-field" %><%= f.email_field :email, class: "input-field" %></div>
+            <div><%= f.label :telephone, class: "label-field" %><%= f.telephone_field :telephone, class: "input-field" %></div>
+            <div><%= f.label :adresse, class: "label-field" %><%= f.text_field :adresse, class: "input-field" %></div>
+            <div class="grid grid-cols-3 gap-2">
+              <div><%= f.label :code_postal, "CP", class: "label-field" %><%= f.text_field :code_postal, class: "input-field" %></div>
+              <div class="col-span-2"><%= f.label :ville, class: "label-field" %><%= f.text_field :ville, class: "input-field" %></div>
+            </div>
+          </div>
+        </details>
+
+        <%= f.submit "Enregistrer", class: "btn-primary w-full text-xs" %>
+      <% end %>
+    </div>
+
+    <div class="card-premium p-6 bg-ink text-sand">
+      <div class="text-[11px] uppercase tracking-[0.18em] text-accent mb-2">Total devis émis</div>
+      <div class="font-display text-3xl"><%= number_to_currency(@client.total_devis_envoyes, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
+      <div class="text-xs text-sand/60 mt-1">cumul sur <%= @client.estimations.count %> estimation(s)</div>
+    </div>
+  </div>
+</div>

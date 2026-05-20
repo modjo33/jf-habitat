@@ -1,0 +1,258 @@
+<% content_for :title, "JF Habitat — Peinture, placo, parquet en France · Estimation gratuite en 2 min" %>
+<% content_for :description, "Artisan peintre, plaquiste et parqueteur. Estimation en ligne en 2 minutes : devis détaillé (HT, TVA, TTC + PDF) envoyé dès vos coordonnées renseignées. Sans engagement." %>
+
+<!-- ============================================================ HERO -->
+<section class="relative bg-sand overflow-hidden">
+  <div class="relative grid lg:grid-cols-[1.05fr_1fr] min-h-[88vh]">
+
+    <!-- COL GAUCHE — texte -->
+    <div class="relative z-10 flex items-center px-6 sm:px-10 lg:px-16 py-20 lg:py-0">
+      <div class="max-w-xl">
+        <div class="eyebrow mb-6"><%= site_text("home.hero.eyebrow", "Artisan · Peinture · Placo · Parquet") %></div>
+        <h1 class="h-display text-5xl sm:text-6xl lg:text-7xl text-ink mb-8">
+          <%= site_text("home.hero.title_line1", "L'intérieur qui vous ressemble,") %><br>
+          <em class="text-accent not-italic"><%= site_text("home.hero.title_line2", "par la main d'un artisan.") %></em>
+        </h1>
+        <p class="text-ink-soft text-lg leading-relaxed mb-10 max-w-lg">
+          <%= site_text("home.hero.body", "Trois métiers complémentaires, un seul interlocuteur. Des chantiers menés avec exigence, des finitions qui durent, un devis honnête — et une estimation en ligne en deux minutes pour vous projeter, sans engagement.") %>
+        </p>
+        <div class="flex flex-wrap gap-4 items-center">
+          <%= link_to "Estimer mes travaux", new_estimation_path, class: "btn-primary" %>
+          <%= link_to "Voir nos réalisations", realisations_path, class: "btn-ghost" %>
+        </div>
+
+        <!-- Bandeau confiance bas hero -->
+        <div class="mt-14 pt-8 border-t border-border-warm/60 grid grid-cols-3 gap-6 max-w-md">
+          <div>
+            <div class="font-display text-3xl text-ink">15<span class="text-accent">+</span></div>
+            <div class="text-xs uppercase tracking-widest text-ink-light mt-1">Ans d'expérience</div>
+          </div>
+          <div>
+            <div class="font-display text-3xl text-ink">200<span class="text-accent">+</span></div>
+            <div class="text-xs uppercase tracking-widest text-ink-light mt-1">Chantiers livrés</div>
+          </div>
+          <div>
+            <div class="font-display text-3xl text-ink">4,9<span class="text-accent">/5</span></div>
+            <div class="text-xs uppercase tracking-widest text-ink-light mt-1">Satisfaction</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COL DROITE — photo plein cadre -->
+    <div class="relative min-h-[55vh] lg:min-h-full">
+      <%= image_tag stock_photo_url(:hero_main, w: 1600, h: 1400),
+            alt: "Intérieur chaleureux réalisé par JF Habitat",
+            loading: "eager",
+            class: "absolute inset-0 w-full h-full object-cover" %>
+      <div class="absolute inset-0 bg-gradient-to-r from-sand/60 via-transparent to-transparent lg:from-sand/40"></div>
+
+      <!-- Badge flottant "tarifs 2026" -->
+      <div class="hidden lg:flex absolute bottom-10 right-10 items-center gap-3 bg-cream/95 backdrop-blur px-5 py-3 rounded-full shadow-premium">
+        <span class="w-2 h-2 bg-sauge rounded-full animate-pulse"></span>
+        <span class="text-xs font-semibold uppercase tracking-widest text-ink">Tarifs marché 2026 · à jour</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ INTRO / Manifesto -->
+<section class="py-28 bg-cream">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="grid lg:grid-cols-[1fr_1.3fr] gap-16 items-center">
+      <div>
+        <div class="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-premium">
+          <%= image_tag stock_photo_url(:intro_ambiance, w: 1200, h: 1500),
+                alt: "Salon rénové avec parquet et peinture haut de gamme",
+                loading: "lazy",
+                class: "w-full h-full object-cover" %>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow mb-5"><%= site_text("home.manifesto.eyebrow", "Notre manifeste") %></div>
+        <h2 class="h-display text-4xl lg:text-5xl text-ink mb-7">
+          <%= site_text("home.manifesto.title_part1", "La") %>
+          <em class="text-accent not-italic"><%= site_text("home.manifesto.title_accent", "finition") %></em>
+          <%= site_text("home.manifesto.title_part2", "fait toute la différence — et la finition, ça se voit dans les détails.") %>
+        </h2>
+        <div class="space-y-5 text-ink-soft text-base lg:text-lg leading-relaxed">
+          <p><%= site_text("home.manifesto.para1", "Une peinture qui dure, c'est d'abord un mur bien préparé. Un parquet qui résiste, c'est une pose sans compromis. Une cloison placo invisible, c'est trois passes de finition au lieu d'une.") %></p>
+          <p><%= site_text("home.manifesto.para2", "Chez JF Habitat, on ne fait pas de demi-mesure : on prend le temps qu'il faut, on ne sous-traite pas, on travaille avec des matériaux que l'on assume — et on tient le délai annoncé.") %></p>
+        </div>
+
+        <div class="mt-10 grid sm:grid-cols-2 gap-x-8 gap-y-5">
+          <% [
+            ["Garantie décennale", "Tous les chantiers couverts."],
+            ["Devis détaillé gratuit", "Sans engagement, sans frais cachés."],
+            ["Délais respectés", "Planning précis dès la signature."],
+            ["Matériaux premium", "Sélectionnés chez nos partenaires."]
+          ].each do |titre, desc| %>
+            <div class="flex gap-3">
+              <div class="shrink-0 w-1 bg-accent rounded-full"></div>
+              <div>
+                <div class="font-display text-lg text-ink"><%= titre %></div>
+                <div class="text-sm text-ink-light"><%= desc %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ NOS MÉTIERS (3 services avec photos) -->
+<section class="py-28 bg-sand">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <div class="eyebrow mb-4"><%= site_text("home.services.eyebrow", "Nos expertises") %></div>
+      <h2 class="h-display text-4xl lg:text-5xl text-ink mb-5">
+        <%= site_text("home.services.title", "Trois métiers, un seul artisan.") %>
+      </h2>
+      <p class="text-ink-soft text-lg"><%= site_text("home.services.subtitle", "Une prise en charge globale pour des chantiers parfaitement coordonnés, du gros œuvre aux finitions.") %></p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-7">
+      <% [
+        { title: "Peinture", img: :service_peinture, desc: "Murs, plafonds, boiseries — préparation soignée et finitions impeccables, du chantier neuf à la rénovation.", price: "dès 18 €/m²" },
+        { title: "Placo-plâtre", img: :service_placo, desc: "Cloisons BA13, doublages isolants, plafonds suspendus, isolation phonique et thermique sur mesure.", price: "dès 50 €/m²" },
+        { title: "Parquet", img: :service_parquet, desc: "Stratifié, contrecollé ou massif. Pose flottante, collée ou clouée, ponçage et vitrification.", price: "dès 30 €/m²" }
+      ].each do |service| %>
+        <article class="group bg-cream rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-all">
+          <div class="relative aspect-[4/3] overflow-hidden">
+            <%= image_tag stock_photo_url(service[:img], w: 900, h: 700),
+                  alt: "JF Habitat · #{service[:title]}",
+                  loading: "lazy",
+                  class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" %>
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent"></div>
+            <div class="absolute bottom-4 left-5 right-5 flex items-end justify-between">
+              <h3 class="font-display text-2xl text-cream tracking-tight"><%= service[:title] %></h3>
+              <span class="text-xs uppercase tracking-widest font-semibold bg-cream/90 text-ink px-3 py-1.5 rounded-full"><%= service[:price] %></span>
+            </div>
+          </div>
+          <div class="p-7">
+            <p class="text-ink-soft leading-relaxed text-sm"><%= service[:desc] %></p>
+            <%= link_to services_path, class: "mt-5 inline-flex items-center gap-2 text-accent font-semibold text-sm hover:gap-3 transition-all" do %>
+              En savoir plus
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ AMBIANCES (grille photo asymétrique) -->
+<section class="py-28 bg-cream">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+      <div class="max-w-xl">
+        <div class="eyebrow mb-4"><%= site_text("home.ambiances.eyebrow", "Ambiances") %></div>
+        <h2 class="h-display text-4xl lg:text-5xl text-ink">
+          <%= site_text("home.ambiances.title", "Des intérieurs qui se vivent.") %>
+        </h2>
+      </div>
+      <p class="text-ink-soft text-lg max-w-md">
+        <%= site_text("home.ambiances.body", "Chaque chantier est unique. Quelques exemples de finitions livrées, pour vous donner le ton.") %>
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div class="aspect-[3/4] rounded-2xl overflow-hidden md:row-span-2 md:aspect-auto">
+        <%= image_tag stock_photo_url(:ambiance_1, w: 800, h: 1200),
+              alt: "Salon avec parquet bois et déco contemporaine",
+              loading: "lazy",
+              class: "w-full h-full object-cover hover:scale-105 transition-transform duration-700" %>
+      </div>
+      <div class="aspect-square rounded-2xl overflow-hidden">
+        <%= image_tag stock_photo_url(:ambiance_2, w: 700, h: 700),
+              alt: "Intérieur épuré chaleureux",
+              loading: "lazy",
+              class: "w-full h-full object-cover hover:scale-105 transition-transform duration-700" %>
+      </div>
+      <div class="aspect-square rounded-2xl overflow-hidden">
+        <%= image_tag stock_photo_url(:ambiance_3, w: 700, h: 700),
+              alt: "Fauteuil et ambiance lumineuse",
+              loading: "lazy",
+              class: "w-full h-full object-cover hover:scale-105 transition-transform duration-700" %>
+      </div>
+      <div class="aspect-[2/1] rounded-2xl overflow-hidden col-span-2">
+        <%= image_tag stock_photo_url(:ambiance_4, w: 1400, h: 700),
+              alt: "Salon canapé beige détails textiles",
+              loading: "lazy",
+              class: "w-full h-full object-cover hover:scale-105 transition-transform duration-700" %>
+      </div>
+    </div>
+
+    <div class="text-center mt-12">
+      <%= link_to "Voir toutes les réalisations", realisations_path, class: "btn-ghost" %>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ESTIMATION CTA (bandeau bois sombre) -->
+<section class="relative py-28 bg-ink text-sand overflow-hidden">
+  <div class="absolute inset-0 opacity-25">
+    <%= image_tag stock_photo_url(:hero_detail, w: 2000, h: 1000),
+          alt: "",
+          loading: "lazy",
+          class: "w-full h-full object-cover" %>
+    <div class="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/60"></div>
+  </div>
+
+  <div class="relative max-w-5xl mx-auto px-6 lg:px-10 grid lg:grid-cols-[1.2fr_1fr] gap-12 items-center">
+    <div>
+      <div class="inline-block text-xs font-bold uppercase tracking-[0.18em] text-accent mb-5">Estimation en ligne</div>
+      <h2 class="h-display text-4xl lg:text-5xl mb-6 text-sand">
+        <%= site_text("home.estimation_cta.title", "Votre devis détaillé, en deux minutes.") %>
+      </h2>
+      <p class="text-sand/75 text-lg leading-relaxed mb-8 max-w-lg">
+        <%= site_text("home.estimation_cta.body", "Saisissez vos pièces, vos surfaces, la gamme souhaitée — puis vos coordonnées. Notre estimateur applique les coefficients régionaux, les options techniques et les remises grand chantier, et vous envoie votre devis détaillé (HT, TVA, TTC + PDF) dès la soumission.") %>
+      </p>
+      <%= link_to "Lancer mon estimation", new_estimation_path, class: "btn-primary" %>
+      <div class="mt-4 text-xs text-sand/60 uppercase tracking-widest">Gratuit · Sans engagement · Devis PDF</div>
+    </div>
+
+    <div class="space-y-3">
+      <% [
+        ["📐", "Dimensions exactes", "Saisie par surface ou L × l × H, déduction des portes / fenêtres"],
+        ["🎨", "3 gammes possibles", "Entrée, milieu, haut de gamme — chacune avec ses tarifs"],
+        ["📍", "Coefficient régional", "Paris intra-muros, petite/grande couronne, métropoles"],
+        ["💶", "Remises grand chantier", "−10 % au-delà de 100 m² · −15 % au-delà de 200 m²"]
+      ].each do |icon, label, desc| %>
+        <div class="flex gap-4 p-4 bg-sand/5 rounded-xl border border-sand/10 backdrop-blur-sm">
+          <div class="text-2xl shrink-0"><%= icon %></div>
+          <div>
+            <div class="font-display text-sand text-base"><%= label %></div>
+            <div class="text-sm text-sand/65 leading-snug"><%= desc %></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ TRUST FOOTER -->
+<section class="py-20 bg-sand">
+  <div class="max-w-6xl mx-auto px-6 lg:px-10">
+    <div class="grid md:grid-cols-4 gap-10 text-center">
+      <% [
+        { label: "Garantie décennale", desc: "Tous nos chantiers couverts" },
+        { label: "Devis gratuit", desc: "Sans engagement, sans frais cachés" },
+        { label: "Délais respectés", desc: "Planning précis dès la signature" },
+        { label: "Matériaux premium", desc: "Partenariats avec les meilleures marques" }
+      ].each do |item| %>
+        <div>
+          <div class="w-14 h-14 bg-sauge-soft border border-sauge/30 rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg class="w-6 h-6 text-sauge" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="font-display text-lg text-ink mb-1.5"><%= item[:label] %></div>
+          <div class="text-ink-light text-sm leading-relaxed"><%= item[:desc] %></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>

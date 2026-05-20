@@ -1,0 +1,12 @@
+<div class="mb-6">
+  <%= link_to admin_tarifs_path, class: "text-sm text-ink-light hover:text-ink" do %>
+    ← Retour aux tarifs
+  <% end %>
+  <h1 class="h-display text-4xl text-ink mt-2">Éditer le tarif</h1>
+</div>
+<div class="card-premium p-6 max-w-3xl">
+  <%= render "form", tarif: @tarif %>
+  <div class="mt-6 pt-6 border-t border-ink/10">
+    <%= button_to "Supprimer ce tarif", admin_tarif_path(@tarif), method: :delete, data: { turbo_confirm: "Supprimer ?" }, class: "text-sm text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg border border-red-200" %>
+  </div>
+</div>

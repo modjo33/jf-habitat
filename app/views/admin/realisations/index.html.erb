@@ -1,0 +1,47 @@
+<div class="mb-10 flex items-end justify-between flex-wrap gap-4">
+  <div>
+    <div class="eyebrow mb-2">Contenu</div>
+    <h1 class="h-display text-4xl text-ink">Galerie réalisations</h1>
+    <p class="text-ink-light mt-2 max-w-2xl">
+      Chaque réalisation apparaît sur la page <code class="text-xs">/realisations</code> du site.
+      <% if @fallback_active %>
+        <br><span class="text-accent font-semibold">Aucune réalisation en base — la galerie publique affiche les photos Unsplash par défaut.</span>
+        Ajoutez votre première réalisation pour la remplacer.
+      <% end %>
+    </p>
+  </div>
+  <%= link_to "+ Nouvelle réalisation", new_admin_realisation_path, class: "btn-primary text-xs px-5 py-2.5" %>
+</div>
+
+<% if @realisations.any? %>
+  <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+    <% @realisations.each do |r| %>
+      <div class="card-premium overflow-hidden">
+        <div class="relative aspect-[4/3] bg-sand-dark">
+          <% if r.photo.attached? %>
+            <%= image_tag r.photo_url(w: 600, h: 450), alt: r.legende, class: "w-full h-full object-cover" %>
+          <% else %>
+            <div class="absolute inset-0 flex items-center justify-center text-ink-light text-xs">Pas de photo</div>
+          <% end %>
+          <span class="absolute top-2 left-2 inline-block bg-ink/80 text-sand text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full"><%= r.metier_label %></span>
+          <% unless r.active %>
+            <span class="absolute top-2 right-2 inline-block bg-red-100 text-red-800 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">Masquée</span>
+          <% end %>
+        </div>
+        <div class="p-4">
+          <div class="text-sm text-ink truncate"><%= r.legende %></div>
+          <div class="text-[10px] uppercase tracking-widest text-ink-light mt-1">Position : <%= r.position %></div>
+          <div class="mt-3 flex gap-2">
+            <%= link_to "Modifier", edit_admin_realisation_path(r), class: "btn-secondary text-[11px] px-3 py-1.5 flex-1 text-center" %>
+            <%= button_to "✕", admin_realisation_path(r), method: :delete, data: { turbo_confirm: "Supprimer définitivement ?" }, class: "btn-ghost text-[11px] px-3 py-1.5 text-red-600 border-red-200" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card-premium p-10 text-center">
+    <div class="text-ink-light mb-5">Aucune réalisation pour l'instant.</div>
+    <%= link_to "Créer la première", new_admin_realisation_path, class: "btn-primary text-xs px-5 py-2.5" %>
+  </div>
+<% end %>

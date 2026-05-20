@@ -1,0 +1,21 @@
+<% unless cookies[:cookie_consent].in?(%w[granted denied]) %>
+  <div id="cookie-banner"
+       data-controller="cookie-consent"
+       class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-50 bg-white border border-ink/10 rounded-2xl shadow-2xl p-5">
+    <p class="text-sm text-ink/80 leading-relaxed mb-4">
+      Nous utilisons des cookies pour mesurer l'audience de notre site et améliorer votre expérience.
+      Vous pouvez accepter, refuser ou en savoir plus dans notre
+      <%= link_to "politique de confidentialité", politique_confidentialite_path, class: "underline hover:text-ink" %>.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <button data-action="cookie-consent#accept"
+              class="flex-1 bg-ink text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-ink-soft transition">
+        Accepter
+      </button>
+      <button data-action="cookie-consent#deny"
+              class="flex-1 bg-white border border-ink/15 text-ink text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-sand transition">
+        Refuser
+      </button>
+    </div>
+  </div>
+<% end %>

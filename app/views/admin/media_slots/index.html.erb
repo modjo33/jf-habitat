@@ -1,0 +1,49 @@
+<div class="mb-10">
+  <div class="eyebrow mb-2">Contenu</div>
+  <h1 class="h-display text-4xl text-ink">Photos par emplacement</h1>
+  <p class="text-ink-light mt-2 max-w-3xl">
+    Chaque emplacement du site affiche par défaut une photo Unsplash de démonstration.
+    Uploadez votre propre photo pour la remplacer — elle s'applique immédiatement côté public.
+    Cliquez sur « Retirer » pour revenir à la photo par défaut.
+  </p>
+</div>
+
+<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+  <% @slots.each do |slot| %>
+    <%
+      preview_url = slot.image.attached? ? slot.image_url(w: 800, h: 600) : stock_photo_url(slot.key, w: 800, h: 600)
+    %>
+    <div class="card-premium overflow-hidden">
+      <div class="relative aspect-[4/3] bg-sand-dark">
+        <%= image_tag preview_url, alt: slot.alt_text.presence || slot.key, class: "w-full h-full object-cover" %>
+        <% if slot.image.attached? %>
+          <span class="absolute top-3 left-3 inline-block bg-sauge text-ink text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">Photo perso</span>
+        <% else %>
+          <span class="absolute top-3 left-3 inline-block bg-ink/70 text-sand text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">Démo Unsplash</span>
+        <% end %>
+      </div>
+
+      <div class="p-5">
+        <code class="text-xs text-accent font-mono bg-accent-soft px-2 py-0.5 rounded inline-block mb-2"><%= slot.key %></code>
+        <p class="text-xs text-ink-light leading-snug mb-4 min-h-[2.5rem]"><%= slot.description %></p>
+
+        <%= form_with model: slot, url: admin_media_slot_path(slot), method: :patch, multipart: true, class: "space-y-3" do |f| %>
+          <div>
+            <%= f.label :image, "Remplacer par votre photo", class: "label-field text-xs" %>
+            <%= f.file_field :image, accept: "image/*", class: "block w-full text-xs text-ink-soft file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-ink file:text-sand hover:file:bg-ink-soft cursor-pointer" %>
+          </div>
+          <div>
+            <%= f.label :alt_text, "Texte alternatif (accessibilité/SEO)", class: "label-field text-xs" %>
+            <%= f.text_field :alt_text, placeholder: "Ex. Salon rénové, parquet chêne, peinture mate", class: "input-field text-xs py-2" %>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <%= f.submit "Enregistrer", class: "btn-primary text-[11px] px-4 py-2 flex-1" %>
+            <% if slot.image.attached? %>
+              <%= button_to "Retirer", remove_image_admin_media_slot_path(slot), method: :delete, data: { turbo_confirm: "Revenir à la photo Unsplash par défaut ?" }, class: "btn-ghost text-[11px] px-4 py-2" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

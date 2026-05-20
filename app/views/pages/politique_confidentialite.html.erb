@@ -1,0 +1,130 @@
+<% content_for :title, "Politique de confidentialité — JF Habitat" %>
+<% content_for :description, "Comment JF Habitat collecte, utilise et protège vos données personnelles, conformément au RGPD." %>
+
+<%
+  raison_sociale = ENV.fetch("LEGAL_COMPANY_NAME", "[À COMPLÉTER — raison sociale]")
+  email          = ENV.fetch("LEGAL_EMAIL",        "contact@jfhabitat.fr")
+  adresse        = ENV.fetch("LEGAL_ADDRESS",      "[À COMPLÉTER — adresse complète]")
+%>
+
+<section class="py-20 bg-white">
+  <div class="max-w-3xl mx-auto px-6 lg:px-10">
+    <h1 class="font-display text-4xl font-extrabold text-ink mb-10">Politique de confidentialité</h1>
+
+    <div class="space-y-10 text-ink-soft leading-relaxed">
+      <p>
+        Cette politique décrit comment <strong><%= raison_sociale %></strong> (ci-après « JF Habitat ») collecte, utilise et protège vos données personnelles,
+        conformément au Règlement (UE) 2016/679 (RGPD) et à la loi Informatique et Libertés.
+      </p>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">1. Responsable du traitement</h2>
+        <p>
+          <%= raison_sociale %><br>
+          <%= adresse %><br>
+          E-mail : <%= mail_to email %>
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">2. Données collectées</h2>
+        <ul class="list-disc list-inside space-y-1">
+          <li><strong>Identité et contact</strong> : nom, prénom, e-mail, téléphone, adresse postale</li>
+          <li><strong>Données projet</strong> : type de travaux, surfaces, photos uploadées, descriptions</li>
+          <li><strong>Données techniques</strong> : adresse IP, navigateur, pages visitées (via cookies de mesure d'audience, sous réserve de votre consentement)</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">3. Finalités et bases légales</h2>
+        <table class="w-full text-sm border-collapse">
+          <thead>
+            <tr class="border-b border-ink/10">
+              <th class="text-left py-2 font-semibold text-ink">Finalité</th>
+              <th class="text-left py-2 font-semibold text-ink">Base légale</th>
+              <th class="text-left py-2 font-semibold text-ink">Durée</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-ink/5">
+              <td class="py-2">Établissement de l'estimation et du devis</td>
+              <td class="py-2">Mesure précontractuelle</td>
+              <td class="py-2">3 ans</td>
+            </tr>
+            <tr class="border-b border-ink/5">
+              <td class="py-2">Réponse à votre demande de contact</td>
+              <td class="py-2">Mesure précontractuelle</td>
+              <td class="py-2">3 ans</td>
+            </tr>
+            <tr class="border-b border-ink/5">
+              <td class="py-2">Suivi commercial et facturation</td>
+              <td class="py-2">Exécution du contrat / obligation légale</td>
+              <td class="py-2">10 ans (comptabilité)</td>
+            </tr>
+            <tr class="border-b border-ink/5">
+              <td class="py-2">Mesure d'audience (Google Analytics, Meta Pixel)</td>
+              <td class="py-2">Consentement</td>
+              <td class="py-2">13 mois max</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">4. Destinataires</h2>
+        <p>Vos données sont destinées exclusivement à JF Habitat et à ses sous-traitants techniques :</p>
+        <ul class="list-disc list-inside space-y-1 mt-2">
+          <li><strong>Hébergeur</strong> : <%= ENV.fetch("HOSTING_PROVIDER", "[À COMPLÉTER]") %></li>
+          <li><strong>Envoi d'e-mails</strong> : Resend Inc. (USA — clauses contractuelles types)</li>
+          <li><strong>SMS</strong> : Twilio Inc. (USA — clauses contractuelles types)</li>
+          <li><strong>Mesure d'audience</strong> : Google Ireland Ltd, Meta Platforms Ireland Ltd</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">5. Transferts hors UE</h2>
+        <p>
+          Certains sous-traitants sont situés aux États-Unis. Ces transferts sont encadrés par les clauses contractuelles types
+          adoptées par la Commission européenne ou par leur certification au Data Privacy Framework.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">6. Vos droits</h2>
+        <p>Vous disposez des droits suivants sur vos données :</p>
+        <ul class="list-disc list-inside space-y-1 mt-2">
+          <li>Droit d'accès, de rectification, d'effacement</li>
+          <li>Droit à la limitation et à l'opposition au traitement</li>
+          <li>Droit à la portabilité de vos données</li>
+          <li>Droit de retirer votre consentement à tout moment</li>
+          <li>Droit d'introduire une réclamation auprès de la <%= link_to "CNIL", "https://www.cnil.fr", target: "_blank", rel: "noopener", class: "underline hover:text-ink" %></li>
+        </ul>
+        <p class="mt-3">
+          Pour exercer vos droits, contactez-nous à <%= mail_to email %> en justifiant de votre identité.
+          Nous répondrons dans un délai d'un mois maximum.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">7. Cookies</h2>
+        <p>
+          Le site utilise des cookies strictement nécessaires (session, sécurité) qui ne requièrent pas de consentement,
+          et des cookies de mesure d'audience qui ne sont déposés qu'après votre consentement explicite via le bandeau cookies.
+          Vous pouvez modifier vos préférences à tout moment en supprimant les cookies de votre navigateur.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">8. Sécurité</h2>
+        <p>
+          Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données :
+          chiffrement des connexions (HTTPS/TLS), accès restreint, sauvegardes régulières.
+        </p>
+      </div>
+
+      <p class="text-sm text-ink-soft/70 pt-6 border-t border-ink/5">
+        Dernière mise à jour : <%= I18n.l(Date.current, format: :long) rescue Date.current.strftime("%-d %B %Y") %>
+      </p>
+    </div>
+  </div>
+</section>

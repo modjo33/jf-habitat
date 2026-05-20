@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Watcher Tailwind tolérant WSL2 — le binaire embarqué par tailwindcss-ruby
+# ignore --watch sur certaines plateformes (WSL2 notamment). Polling 1 s sur
+# les fichiers susceptibles de contenir des classes utilitaires.
+
+set -e
+cd "$(dirname "$0")/.."
+
+WATCHED=(
+  "app/assets/tailwind/application.css"
+  "app/views"
+  "app/javascript"
+  "app/helpers"
+  "app/controllers"
+)
+
+build() {
+  bin/rails tailwindcss:build
+}
+
+last_mtime() {
+  find "${WATCHED[@]}" -type f \
+    \( -name '*.css' -o -name '*.erb' -o -name '*.html' -o -name '*.rb' -o -name '*.js' \) \
+    -printf '%T@\n' 2>/dev/null | sort -n | tail -1
+}
+
+build
+prev=$(last_mtime)
+echo "→ Tailwind watcher (polling 1 s, WSL2-safe) prêt."
+
+while true; do
+  sleep 1
+  curr=$(last_mtime)
+  if [ "$curr" != "$prev" ]; then
+    build
+    prev=$curr
+  fi
+done

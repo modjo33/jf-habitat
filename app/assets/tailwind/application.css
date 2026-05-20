@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette chaleureuse / artisanale — tons bois, terracotta, sauge, crème */
+  --color-ink: #2A2218;          /* espresso warm dark */
+  --color-ink-soft: #4A3F30;     /* walnut */
+  --color-ink-light: #7A6F5E;    /* taupe foncé */
+
+  --color-sand: #FAF5EE;         /* crème principal (fond) */
+  --color-sand-dark: #EDE3D2;    /* crème surface secondaire */
+  --color-cream: #FFFFFF;
+  --color-border-warm: #E0D4BE;  /* bordures discrètes */
+
+  --color-accent: #B85C38;       /* terracotta clay */
+  --color-accent-dark: #92492C;
+  --color-accent-soft: #F5E6DC;
+
+  --color-sauge: #8FA48C;        /* vert sauge muté */
+  --color-sauge-soft: #E6ECDE;
+
+  --color-gold: #B8945A;         /* laiton chaud */
+
+  --font-display: "Fraunces", "Cormorant Garamond", Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --shadow-card: 0 4px 24px -8px rgba(42, 34, 24, 0.08);
+  --shadow-card-hover: 0 16px 40px -12px rgba(42, 34, 24, 0.18);
+  --shadow-premium: 0 24px 60px -20px rgba(42, 34, 24, 0.28);
+
+  --animate-slide-in: slide-in 0.3s ease-out;
+  --animate-fade-up: fade-up 0.6s ease-out;
+  --animate-fade-in: fade-in 0.8s ease-out;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { font-feature-settings: "ss01", "ss02"; }
+
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-accent text-white px-7 py-3.5 rounded-full font-semibold font-body text-sm tracking-wide uppercase transition-all hover:bg-accent-dark hover:shadow-premium hover:-translate-y-0.5;
+    letter-spacing: 0.05em;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 bg-ink text-sand px-7 py-3.5 rounded-full font-semibold font-body text-sm tracking-wide uppercase transition-all hover:bg-ink-soft hover:-translate-y-0.5;
+    letter-spacing: 0.05em;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 bg-transparent border border-ink/20 text-ink px-7 py-3.5 rounded-full font-semibold font-body text-sm tracking-wide uppercase transition-all hover:border-ink/40 hover:bg-ink hover:text-sand;
+    letter-spacing: 0.05em;
+  }
+  .card-premium {
+    @apply bg-cream rounded-2xl border border-border-warm/60 shadow-card transition-all hover:shadow-card-hover;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 bg-cream border border-border-warm rounded-lg font-body text-ink placeholder:text-ink-light/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition;
+  }
+  .label-field {
+    @apply block text-sm font-semibold text-ink mb-1.5 font-body;
+    letter-spacing: 0.02em;
+  }
+
+  /* Eyebrow : petit label uppercase tracké, signature premium */
+  .eyebrow {
+    @apply inline-block text-xs font-bold uppercase text-accent;
+    letter-spacing: 0.18em;
+  }
+
+  /* Variantes de titres serif */
+  .h-display {
+    @apply font-display font-medium leading-[1.05];
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+}

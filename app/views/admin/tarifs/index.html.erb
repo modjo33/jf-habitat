@@ -1,0 +1,48 @@
+<div class="mb-10 flex items-end justify-between flex-wrap gap-4">
+  <div>
+    <div class="eyebrow mb-2">Catalogue</div>
+    <h1 class="h-display text-4xl text-ink">Tarifs</h1>
+    <p class="text-ink-light mt-2">Grille de prix appliquée aux estimations clients.</p>
+  </div>
+  <%= link_to "+ Nouveau tarif", new_admin_tarif_path, class: "btn-primary text-xs px-5 py-2.5" %>
+</div>
+
+<% @by_categorie.each do |categorie, tarifs| %>
+  <div class="card-premium p-7 mb-6">
+    <h2 class="font-display text-2xl text-ink mb-5 capitalize"><%= categorie %></h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+            <th class="py-3 font-semibold">Prestation</th>
+            <th class="py-3 font-semibold">Gamme</th>
+            <th class="py-3 font-semibold">Prix €/m²</th>
+            <th class="py-3 font-semibold">Description</th>
+            <th class="py-3 font-semibold">Actif</th>
+            <th class="py-3 font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% tarifs.each do |t| %>
+            <tr class="border-b border-border-warm/40 hover:bg-sand transition">
+              <td class="py-3 font-semibold text-ink"><%= t.prestation_label %></td>
+              <td class="py-3"><%= t.gamme_label %></td>
+              <td class="py-3 font-display text-lg text-ink"><%= number_to_currency(t.prix_m2, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></td>
+              <td class="py-3 text-ink-soft text-xs max-w-md truncate"><%= t.description %></td>
+              <td class="py-3">
+                <% if t.actif %>
+                  <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full"></span>
+                <% else %>
+                  <span class="inline-block w-2 h-2 bg-gray-400 rounded-full"></span>
+                <% end %>
+              </td>
+              <td class="py-3 text-right">
+                <%= link_to "Éditer", edit_admin_tarif_path(t), class: "text-accent text-xs font-semibold hover:underline" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

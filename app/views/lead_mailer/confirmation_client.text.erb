@@ -1,0 +1,20 @@
+Bonjour <%= @estimation.nom %>,
+
+Nous avons bien reçu votre demande d'estimation.
+
+Référence : <%= @estimation.reference %>
+
+PRESTATIONS ESTIMÉES
+--------------------
+<% @estimation.estimation_lines.each do |line| -%>
+- <%= line.piece %> · <%= line.prestation_label %> (<%= line.gamme_label %>) · <%= line.surface %> m² · <%= number_with_precision(line.total, precision: 2) %> €
+<% end -%>
+
+TOTAL TTC ESTIMÉ : <%= number_with_precision(@estimation.total_ttc, precision: 2) %> €
+
+Nous vous recontactons sous 24h ouvrées pour affiner le devis.
+
+⚠️ Estimation indicative. Le devis définitif sera établi après visite sur place.
+
+À bientôt,
+L'équipe JF Habitat

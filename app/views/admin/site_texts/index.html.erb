@@ -1,0 +1,45 @@
+<div class="mb-10">
+  <div class="eyebrow mb-2">Contenu</div>
+  <h1 class="h-display text-4xl text-ink">Textes du site</h1>
+  <p class="text-ink-light mt-2 max-w-3xl">
+    Tous les textes éditables des pages publiques. Modifiez la valeur, cliquez sur « Enregistrer » de la ligne — le site se met à jour immédiatement (cache 5 min).
+  </p>
+</div>
+
+<%
+  groups = @texts.group_by { |t| t.key.split(".").first }
+  group_labels = {
+    "home"          => "Page d'accueil",
+    "services"      => "Page services",
+    "realisations"  => "Page réalisations",
+    "contact"       => "Page contact",
+    "estimation_new" => "Page estimation",
+    "footer"        => "Pied de page"
+  }
+%>
+
+<% groups.each do |group, texts| %>
+  <section class="mb-10">
+    <h2 class="font-display text-2xl text-ink mb-5 capitalize"><%= group_labels[group] || group %></h2>
+    <div class="space-y-3">
+      <% texts.each do |text| %>
+        <div class="card-premium p-5">
+          <%= form_with model: text, url: admin_site_text_path(text), method: :patch do |f| %>
+            <div class="flex items-baseline justify-between gap-3 mb-2">
+              <code class="text-xs text-accent font-mono bg-accent-soft px-2 py-0.5 rounded"><%= text.key %></code>
+              <%= f.submit "Enregistrer", class: "btn-secondary text-[11px] px-4 py-1.5 shrink-0" %>
+            </div>
+            <% if text.description.present? %>
+              <p class="text-xs text-ink-light mb-3"><%= text.description %></p>
+            <% end %>
+            <% if text.value.to_s.length > 80 || text.value.to_s.include?("\n") %>
+              <%= f.text_area :value, rows: 4, class: "input-field font-body text-sm" %>
+            <% else %>
+              <%= f.text_field :value, class: "input-field font-body text-sm" %>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+<% end %>

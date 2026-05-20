@@ -1,0 +1,188 @@
+<% content_for :title, "Estimation gratuite — JF Habitat" %>
+
+<section class="relative bg-ink overflow-hidden">
+  <div class="absolute inset-0 opacity-25">
+    <%= image_tag stock_photo_url(:estimation_hero, w: 2000, h: 800),
+          alt: "",
+          loading: "eager",
+          class: "w-full h-full object-cover" %>
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/50 to-ink"></div>
+  </div>
+  <div class="relative max-w-4xl mx-auto px-6 lg:px-10 pt-20 pb-32 text-center text-sand">
+    <div class="eyebrow text-accent mb-5"><%= site_text("estimation_new.hero.eyebrow", "Estimation en ligne") %></div>
+    <h1 class="h-display text-4xl lg:text-6xl text-sand mb-5">
+      <%= site_text("estimation_new.hero.title", "Construisons votre estimation.") %>
+    </h1>
+    <p class="text-sand/70 text-lg max-w-xl mx-auto"><%= site_text("estimation_new.hero.body", "Dimensions précises, options, déductions d'ouvertures. L'estimation s'ajuste en temps réel.") %></p>
+  </div>
+</section>
+
+<section class="-mt-16 pb-24">
+  <div class="max-w-6xl mx-auto px-6 lg:px-10">
+    <%= form_with model: @estimation, url: estimation_path, method: :post, multipart: true, data: { controller: "estimation", estimation_target: "form" }, class: "grid lg:grid-cols-3 gap-8" do |f| %>
+
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Type de chantier + Étage -->
+        <div class="card-premium p-6 lg:p-8">
+          <h2 class="font-display text-2xl font-bold text-ink mb-1">Votre chantier</h2>
+          <p class="text-ink-light text-sm mb-5">Informations générales.</p>
+
+          <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="label-field">Type de chantier</label>
+              <div class="grid grid-cols-2 gap-2">
+                <% Estimation::TYPES_CHANTIER.each do |key, label| %>
+                  <label class="relative cursor-pointer">
+                    <%= f.radio_button :type_chantier, key, class: "peer sr-only", checked: key == "renovation" %>
+                    <div class="p-3 border-2 border-ink/10 rounded-lg text-center transition peer-checked:border-accent peer-checked:bg-accent/5 hover:border-accent/40 text-sm font-semibold"><%= label %></div>
+                  </label>
+                <% end %>
+              </div>
+            </div>
+            <div>
+              <%= f.label :etage, "Étage", class: "label-field" %>
+              <%= f.number_field :etage, min: 0, max: 30, step: 1, placeholder: "0", class: "input-field", data: { action: "input->estimation#updatePreview" } %>
+            </div>
+          </div>
+
+          <div>
+            <label class="label-field">Accès au chantier</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="relative cursor-pointer">
+                <%= f.radio_button :ascenseur, "true", class: "peer sr-only", checked: true, data: { action: "change->estimation#updatePreview" } %>
+                <div class="p-3 border-2 border-ink/10 rounded-lg text-center transition peer-checked:border-accent peer-checked:bg-accent/5 text-sm font-semibold">Ascenseur ou RDC</div>
+              </label>
+              <label class="relative cursor-pointer">
+                <%= f.radio_button :ascenseur, "false", class: "peer sr-only", data: { action: "change->estimation#updatePreview" } %>
+                <div class="p-3 border-2 border-ink/10 rounded-lg text-center transition peer-checked:border-accent peer-checked:bg-accent/5 text-sm font-semibold">Escaliers uniquement</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pièces -->
+        <div class="card-premium p-6 lg:p-8" data-estimation-target="lines">
+          <div class="mb-5">
+            <h2 class="font-display text-2xl font-bold text-ink mb-1">Vos pièces & prestations</h2>
+            <p class="text-ink-light text-sm">Ajoutez une ligne par prestation et par pièce. Vous pouvez saisir directement la surface ou les dimensions L×l×H.</p>
+          </div>
+
+          <div id="lines-container" class="space-y-4">
+            <%= f.fields_for :estimation_lines do |line| %>
+              <%= render "line_fields", f: line %>
+            <% end %>
+          </div>
+
+          <template id="line-template">
+            <%= f.fields_for :estimation_lines, EstimationLine.new(mode_saisie: "surface", type_piece: "salon"), child_index: "NEW_RECORD" do |line| %>
+              <%= render "line_fields", f: line %>
+            <% end %>
+          </template>
+
+          <button type="button"
+                  data-action="estimation#addLine"
+                  class="mt-5 w-full py-3.5 border-2 border-dashed border-ink/15 rounded-xl text-ink-soft font-semibold hover:border-accent hover:text-accent transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            Ajouter une pièce / prestation
+          </button>
+        </div>
+
+        <!-- Photos -->
+        <div class="card-premium p-6 lg:p-8">
+          <h2 class="font-display text-2xl font-bold text-ink mb-1">Photos du chantier <span class="text-ink-light text-sm font-normal">(optionnel)</span></h2>
+          <p class="text-ink-light text-sm mb-5">Ajoutez des photos pour aider Johan à affiner son devis lors de la visite (max 10 Mo / photo, JPG/PNG/WEBP/HEIC).</p>
+          <%= f.file_field :photos, multiple: true, accept: "image/*", class: "block w-full text-sm text-ink-soft file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent-dark cursor-pointer" %>
+        </div>
+
+        <!-- Coordonnées -->
+        <div class="card-premium p-6 lg:p-8">
+          <div class="flex items-center gap-3 mb-1">
+            <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-display text-2xl font-bold text-ink">Vos coordonnées</h2>
+              <p class="text-ink-light text-sm">Nécessaires pour recevoir votre estimation détaillée.</p>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4 mt-5">
+            <div class="md:col-span-2">
+              <%= f.label :nom, "Nom complet *", class: "label-field" %>
+              <%= f.text_field :nom, required: true, placeholder: "Jean Dupont", class: "input-field", id: "estimation_nom" %>
+            </div>
+            <div>
+              <%= f.label :email, "Email *", class: "label-field" %>
+              <%= f.email_field :email, required: true, placeholder: "jean@exemple.fr", class: "input-field", id: "estimation_email" %>
+            </div>
+            <div>
+              <%= f.label :telephone, "Téléphone *", class: "label-field" %>
+              <%= f.telephone_field :telephone, required: true, placeholder: "06 12 34 56 78", class: "input-field", id: "estimation_telephone" %>
+            </div>
+            <div class="md:col-span-2">
+              <%= f.label :adresse, "Adresse du chantier", class: "label-field" %>
+              <%= f.text_field :adresse, placeholder: "12 rue des Lilas", class: "input-field" %>
+            </div>
+            <div>
+              <%= f.label :code_postal, "Code postal", class: "label-field" %>
+              <%= f.text_field :code_postal, placeholder: "63000", class: "input-field", data: { action: "input->estimation#updatePreview" } %>
+            </div>
+            <div>
+              <%= f.label :ville, "Ville", class: "label-field" %>
+              <%= f.text_field :ville, placeholder: "Clermont-Ferrand", class: "input-field" %>
+            </div>
+            <div class="md:col-span-2">
+              <%= f.label :delai, "Délai envisagé", class: "label-field" %>
+              <%= f.select :delai, Estimation::DELAIS.map { |k, v| [v, k] }, { include_blank: "Sélectionnez…" }, class: "input-field" %>
+            </div>
+            <div class="md:col-span-2">
+              <%= f.label :message, "Précisions (optionnel)", class: "label-field" %>
+              <%= f.text_area :message, rows: 3, placeholder: "État actuel, contraintes particulières…", class: "input-field" %>
+            </div>
+          </div>
+
+          <% if @estimation.errors.any? %>
+            <div class="mt-5 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div class="font-semibold text-red-800 mb-1">Merci de corriger :</div>
+              <ul class="list-disc list-inside text-sm text-red-700">
+                <% @estimation.errors.full_messages.each do |msg| %>
+                  <li><%= msg %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="mt-6 pt-6 border-t border-ink/5 text-xs text-ink-light leading-relaxed">
+            En soumettant ce formulaire, vous acceptez d'être recontacté par JF Habitat au sujet de votre estimation. Vos données ne sont jamais cédées à des tiers.
+          </div>
+        </div>
+      </div>
+
+      <!-- COLONNE RÉCAP -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-28 card-premium p-6 lg:p-7">
+          <div class="eyebrow mb-2">Votre sélection</div>
+          <h3 class="font-display text-xl text-ink mb-5">Récapitulatif</h3>
+
+          <div id="preview-summary" data-estimation-target="preview">
+            <%= render "preview", preview: { lines: [], surface_totale: 0, count: 0 } %>
+          </div>
+
+          <%= f.submit "Obtenir mon devis chiffré", class: "btn-primary w-full mt-6" %>
+
+          <div class="mt-4 flex items-center justify-center gap-1.5 text-xs text-ink-light text-center leading-snug">
+            <svg class="w-4 h-4 text-sauge shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Le total chiffré apparaît<br>après vos coordonnées
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</section>

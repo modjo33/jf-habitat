@@ -1,0 +1,57 @@
+<div class="mb-10 flex items-end justify-between flex-wrap gap-4">
+  <div>
+    <div class="eyebrow mb-2">Leads</div>
+    <h1 class="h-display text-4xl text-ink">Tous les leads</h1>
+    <p class="text-ink-light mt-2"><%= @estimations.count %> estimation(s) au total.</p>
+  </div>
+
+  <%= form_with url: admin_estimations_path, method: :get, class: "flex gap-2 items-center" do %>
+    <%= text_field_tag :q, @q, placeholder: "Rechercher…", class: "input-field text-sm py-2 max-w-xs" %>
+    <%= select_tag :statut,
+                   options_for_select([["Tous", ""]] + Estimation::STATUTS.map { |s| [s.tr("_", " ").capitalize, s] }, @statut),
+                   class: "input-field text-sm py-2" %>
+    <button type="submit" class="btn-secondary text-xs px-5 py-2.5">Filtrer</button>
+  <% end %>
+</div>
+
+<div class="card-premium overflow-hidden">
+  <% if @estimations.empty? %>
+    <div class="text-center py-16 text-ink-light">Aucun lead trouvé.</div>
+  <% else %>
+    <table class="w-full text-sm">
+      <thead class="bg-sand-dark/60">
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light">
+          <th class="px-4 py-3 font-semibold">Réf</th>
+          <th class="px-4 py-3 font-semibold">Client</th>
+          <th class="px-4 py-3 font-semibold">Contact</th>
+          <th class="px-4 py-3 font-semibold">Chantier</th>
+          <th class="px-4 py-3 font-semibold">Total TTC</th>
+          <th class="px-4 py-3 font-semibold">Statut</th>
+          <th class="px-4 py-3 font-semibold">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @estimations.each do |e| %>
+          <tr class="border-t border-border-warm/40 hover:bg-sand transition cursor-pointer"
+              data-controller="row-link"
+              data-row-link-url-value="<%= admin_estimation_path(e) %>"
+              data-action="click->row-link#go">
+            <td class="px-4 py-3 font-mono text-xs text-accent font-semibold"><%= e.reference %></td>
+            <td class="px-4 py-3">
+              <div class="font-semibold text-ink"><%= e.nom %></div>
+              <div class="text-xs text-ink-light"><%= e.ville %></div>
+            </td>
+            <td class="px-4 py-3 text-xs">
+              <div><%= e.email %></div>
+              <div class="text-ink-light"><%= e.telephone %></div>
+            </td>
+            <td class="px-4 py-3 text-ink-soft"><%= e.type_chantier_label %> · <%= e.delai_label %></td>
+            <td class="px-4 py-3 font-bold text-ink"><%= number_to_currency(e.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></td>
+            <td class="px-4 py-3"><%= render "statut_badge", statut: e.statut %></td>
+            <td class="px-4 py-3 text-xs text-ink-light"><%= e.created_at.strftime("%d/%m/%Y") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

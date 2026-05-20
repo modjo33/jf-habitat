@@ -1,0 +1,51 @@
+<% if preview[:lines].empty? %>
+  <div class="text-center py-10 text-ink-light text-sm">
+    <svg class="w-12 h-12 mx-auto text-ink-light/30 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    </svg>
+    Ajoutez une pièce pour commencer
+  </div>
+<% else %>
+  <div class="space-y-2.5 mb-5 max-h-64 overflow-y-auto pr-1">
+    <% preview[:lines].each do |line| %>
+      <div class="p-3 bg-sand rounded-lg text-sm border border-border-warm/50">
+        <div class="font-semibold text-ink truncate"><%= line[:piece] %></div>
+        <div class="text-xs text-ink-light truncate mt-0.5">
+          <%= line[:prestation_label] %> · <%= line[:gamme_label] %>
+        </div>
+        <div class="text-xs text-ink-light mt-1">
+          <span class="inline-block bg-sand-dark px-2 py-0.5 rounded-full font-semibold text-ink"><%= line[:surface] %> m²</span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Récap factuel sans euros -->
+  <div class="space-y-2 py-4 border-y border-border-warm/60 text-sm">
+    <div class="flex items-center justify-between">
+      <span class="text-ink-light">Pièces / prestations</span>
+      <span class="font-semibold text-ink"><%= preview[:lines].size %></span>
+    </div>
+    <div class="flex items-center justify-between">
+      <span class="text-ink-light">Surface totale</span>
+      <span class="font-semibold text-ink"><%= preview[:surface_totale] %> m²</span>
+    </div>
+  </div>
+
+  <!-- Gate : le devis chiffré arrive après les coordonnées -->
+  <div class="mt-5 p-5 bg-ink rounded-2xl text-sand text-center">
+    <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
+      <svg class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+      </svg>
+    </div>
+    <div class="font-display text-base leading-snug mb-1.5">
+      Votre devis détaillé<br>
+      <em class="text-accent not-italic">après vos coordonnées.</em>
+    </div>
+    <p class="text-xs text-sand/65 leading-relaxed">
+      Renseignez votre nom, email et téléphone ci-dessous — vous obtenez le total
+      chiffré (HT, TVA, TTC) et le PDF immédiatement.
+    </p>
+  </div>
+<% end %>

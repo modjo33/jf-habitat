@@ -1,0 +1,49 @@
+<%= form_with model: [:admin, realisation], multipart: true, class: "space-y-5" do |f| %>
+  <% if realisation.errors.any? %>
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <ul class="list-disc list-inside text-sm text-red-700">
+        <% realisation.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :photo, "Photo du chantier (JPG, PNG, WEBP, HEIC, AVIF · 10 Mo max)", class: "label-field" %>
+    <% if realisation.photo.attached? %>
+      <div class="mb-3 inline-block">
+        <%= image_tag realisation.photo_url(w: 400, h: 300), class: "rounded-xl border border-border-warm" %>
+      </div>
+    <% end %>
+    <%= f.file_field :photo, accept: "image/*", class: "block w-full text-sm text-ink-soft file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-ink file:text-sand hover:file:bg-ink-soft cursor-pointer" %>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :metier, "Métier", class: "label-field" %>
+      <%= f.select :metier, Realisation::METIERS.map { |m| [m.capitalize, m] }, { include_blank: "Choisir…" }, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :position, "Position (les plus petits chiffres en premier)", class: "label-field" %>
+      <%= f.number_field :position, class: "input-field" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :legende, "Légende (affichée au survol)", class: "label-field" %>
+    <%= f.text_field :legende, placeholder: "Ex. Parquet chêne contrecollé · salon 32 m²", class: "input-field" %>
+  </div>
+
+  <div>
+    <label class="inline-flex items-center gap-2 cursor-pointer">
+      <%= f.check_box :active, class: "w-4 h-4 accent-accent" %>
+      <span class="text-sm text-ink">Visible sur le site public</span>
+    </label>
+  </div>
+
+  <div class="flex gap-3 pt-2">
+    <%= f.submit class: "btn-primary text-xs px-5 py-2.5" %>
+    <%= link_to "Annuler", admin_realisations_path, class: "btn-ghost text-xs px-5 py-2.5" %>
+  </div>
+<% end %>

@@ -1,0 +1,68 @@
+<div class="mb-10">
+  <div class="eyebrow mb-2">Aperçu</div>
+  <h1 class="h-display text-4xl text-ink">Dashboard</h1>
+  <p class="text-ink-light mt-2">Vue d'ensemble de votre activité.</p>
+</div>
+
+<div class="grid md:grid-cols-4 gap-4 mb-10">
+  <% [
+    { label: "Total leads",    value: @total_leads,   accent: false },
+    { label: "Cette semaine",  value: @leads_semaine, accent: true },
+    { label: "Ce mois",        value: @leads_mois,    accent: false },
+    { label: "CA potentiel",   value: number_to_currency(@ca_potentiel, unit: "€", separator: ",", delimiter: " ", format: "%n %u"), accent: false }
+  ].each do |stat| %>
+    <div class="card-premium p-6 <%= 'bg-ink text-sand border-ink' if stat[:accent] %>">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] <%= stat[:accent] ? 'text-accent' : 'text-ink-light' %>">
+        <%= stat[:label] %>
+      </div>
+      <div class="font-display text-3xl mt-2 <%= stat[:accent] ? 'text-sand' : 'text-ink' %>">
+        <%= stat[:value] %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<div class="card-premium p-7">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="font-display text-2xl text-ink">Derniers leads</h2>
+    <%= link_to "Voir tous →", admin_estimations_path, class: "text-sm text-accent font-semibold hover:underline" %>
+  </div>
+
+  <% if @derniers_leads.empty? %>
+    <div class="text-center py-12 text-ink-light">Aucun lead pour le moment.</div>
+  <% else %>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+            <th class="py-3 font-semibold">Réf</th>
+            <th class="py-3 font-semibold">Client</th>
+            <th class="py-3 font-semibold">Téléphone</th>
+            <th class="py-3 font-semibold">Total TTC</th>
+            <th class="py-3 font-semibold">Statut</th>
+            <th class="py-3 font-semibold">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @derniers_leads.each do |lead| %>
+            <tr class="border-b border-border-warm/40 hover:bg-sand transition">
+              <td class="py-3">
+                <%= link_to lead.reference, admin_estimation_path(lead), class: "font-mono text-xs text-accent font-semibold hover:underline" %>
+              </td>
+              <td class="py-3">
+                <div class="font-semibold text-ink"><%= lead.nom %></div>
+                <div class="text-xs text-ink-light"><%= lead.email %></div>
+              </td>
+              <td class="py-3 text-ink-soft"><%= lead.telephone %></td>
+              <td class="py-3 font-semibold text-ink"><%= number_to_currency(lead.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></td>
+              <td class="py-3">
+                <%= render "admin/estimations/statut_badge", statut: lead.statut %>
+              </td>
+              <td class="py-3 text-xs text-ink-light"><%= lead.created_at.strftime("%d/%m %H:%M") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

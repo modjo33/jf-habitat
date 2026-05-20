@@ -1,0 +1,12 @@
+<%
+  color = case statut
+    when "nouveau"      then "bg-sauge-soft text-ink border-sauge/40"
+    when "contacte"     then "bg-amber-50 text-amber-800 border-amber-200"
+    when "rdv_pris"     then "bg-blue-50 text-blue-800 border-blue-200"
+    when "devis_envoye" then "bg-accent-soft text-accent-dark border-accent/30"
+    when "gagne"        then "bg-emerald-50 text-emerald-800 border-emerald-200"
+    when "perdu"        then "bg-red-50 text-red-800 border-red-200"
+    else                     "bg-sand-dark text-ink-soft border-border-warm"
+  end
+%>
+<span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border <%= color %>"><%= Client::STATUTS[statut] || statut %></span>

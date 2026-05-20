@@ -1,0 +1,82 @@
+<% content_for :title, "Mentions légales — JF Habitat" %>
+<% content_for :description, "Mentions légales de JF Habitat — informations sur l'éditeur, l'hébergeur et la propriété intellectuelle du site." %>
+
+<%
+  raison_sociale = ENV.fetch("LEGAL_COMPANY_NAME", "[À COMPLÉTER — raison sociale]")
+  forme_juridique = ENV.fetch("LEGAL_LEGAL_FORM", "[À COMPLÉTER — ex: Auto-entreprise, EURL, SARL]")
+  siret          = ENV.fetch("LEGAL_SIRET",        "[À COMPLÉTER — SIRET]")
+  adresse        = ENV.fetch("LEGAL_ADDRESS",      "[À COMPLÉTER — adresse complète]")
+  email          = ENV.fetch("LEGAL_EMAIL",        "contact@jfhabitat.fr")
+  telephone      = ENV.fetch("LEGAL_PHONE",        "[À COMPLÉTER — téléphone]")
+  director       = ENV.fetch("LEGAL_DIRECTOR",     "[À COMPLÉTER — nom directeur de publication]")
+  tva            = ENV.fetch("LEGAL_VAT",          "Non applicable, art. 293 B du CGI (franchise en base)")
+%>
+
+<section class="py-20 bg-white">
+  <div class="max-w-3xl mx-auto px-6 lg:px-10">
+    <h1 class="font-display text-4xl font-extrabold text-ink mb-10">Mentions légales</h1>
+
+    <div class="space-y-10 text-ink-soft leading-relaxed">
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">Éditeur du site</h2>
+        <p>
+          <strong><%= raison_sociale %></strong><br>
+          Forme juridique : <%= forme_juridique %><br>
+          SIRET : <%= siret %><br>
+          Adresse : <%= adresse %><br>
+          Téléphone : <%= telephone %><br>
+          E-mail : <%= mail_to email %><br>
+          TVA intracommunautaire : <%= tva %>
+        </p>
+        <p class="mt-3">Directeur de la publication : <%= director %></p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">Hébergement</h2>
+        <p>
+          Le site est hébergé par <strong><%= ENV.fetch("HOSTING_PROVIDER", "[À COMPLÉTER — hébergeur, ex: Hetzner Online GmbH]") %></strong><br>
+          Adresse : <%= ENV.fetch("HOSTING_ADDRESS", "[À COMPLÉTER — adresse hébergeur]") %><br>
+          Site web : <%= ENV.fetch("HOSTING_WEBSITE", "[À COMPLÉTER — site web hébergeur]") %>
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">Propriété intellectuelle</h2>
+        <p>
+          L'ensemble des éléments du site (textes, images, logos, photos, marques, logiciels) est protégé par le droit de la propriété intellectuelle.
+          Toute reproduction, représentation ou diffusion, totale ou partielle, est interdite sans autorisation écrite préalable de <%= raison_sociale %>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">Responsabilité</h2>
+        <p>
+          Les estimations de coûts présentées sur le site sont fournies à titre indicatif.
+          Elles ne constituent en aucun cas un devis contractuel et peuvent varier après visite technique sur place.
+          <%= raison_sociale %> ne pourra être tenu responsable des écarts entre l'estimation en ligne et le devis final.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">Données personnelles</h2>
+        <p>
+          Les modalités de collecte et de traitement de vos données personnelles sont détaillées dans notre
+          <%= link_to "politique de confidentialité", politique_confidentialite_path, class: "underline hover:text-ink" %>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">Médiateur de la consommation</h2>
+        <p>
+          Conformément à l'article L.616-1 du Code de la consommation, en cas de litige non résolu, vous pouvez saisir gratuitement le médiateur de la consommation :
+          <strong><%= ENV.fetch("MEDIATEUR_NAME", "[À COMPLÉTER — nom du médiateur, ex: CNPM Médiation]") %></strong>
+          — <%= ENV.fetch("MEDIATEUR_URL", "[À COMPLÉTER — site du médiateur]") %>
+        </p>
+      </div>
+
+      <p class="text-sm text-ink-soft/70 pt-6 border-t border-ink/5">
+        Dernière mise à jour : <%= I18n.l(Date.current, format: :long) rescue Date.current.strftime("%-d %B %Y") %>
+      </p>
+    </div>
+  </div>
+</section>

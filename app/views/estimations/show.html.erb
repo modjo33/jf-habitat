@@ -1,0 +1,153 @@
+<% content_for :title, "Votre estimation #{@estimation.reference} — JF Habitat" %>
+
+<section class="relative bg-ink text-sand overflow-hidden">
+  <div class="absolute inset-0 opacity-20">
+    <%= image_tag stock_photo_url(:hero_main, w: 2000, h: 800),
+          alt: "",
+          loading: "eager",
+          class: "w-full h-full object-cover" %>
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/50 via-ink/55 to-ink"></div>
+  </div>
+
+  <div class="relative max-w-4xl mx-auto px-6 lg:px-10 pt-20 pb-32 text-center">
+    <div class="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-7 shadow-premium">
+      <svg class="w-10 h-10 text-sand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+      </svg>
+    </div>
+    <h1 class="h-display text-4xl lg:text-5xl text-sand mb-5">
+      Merci <%= @estimation.nom.split(" ").first %>,<br>
+      <em class="text-accent not-italic">votre estimation est prête.</em>
+    </h1>
+    <p class="text-sand/75 text-lg max-w-xl mx-auto">Un récapitulatif vient de vous être envoyé par email. Nous vous recontactons sous 24h pour affiner le devis.</p>
+    <div class="mt-7 inline-flex items-center gap-3 bg-sand/10 backdrop-blur-sm px-5 py-2.5 rounded-full text-sm border border-sand/15">
+      <span class="text-sand/60 uppercase tracking-widest text-xs">Référence</span>
+      <span class="font-mono font-semibold text-sand"><%= @estimation.reference %></span>
+    </div>
+  </div>
+</section>
+
+<section class="-mt-24 pb-16">
+  <div class="max-w-4xl mx-auto px-6 lg:px-10">
+    <div class="card-premium p-8 lg:p-10">
+
+      <div class="flex items-start justify-between mb-8 pb-6 border-b border-ink/10">
+        <div>
+          <div class="text-xs uppercase tracking-widest text-ink-light font-semibold mb-2">Estimation</div>
+          <h2 class="font-display text-2xl font-bold text-ink">Récapitulatif de vos travaux</h2>
+          <div class="text-ink-light text-sm mt-1"><%= @estimation.type_chantier_label %> · <%= @estimation.surface_totale %> m² au total</div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs uppercase tracking-widest text-ink-light font-semibold mb-1">Total TTC</div>
+          <div class="font-display text-4xl font-extrabold text-accent">
+            <%= number_to_currency(@estimation.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3 mb-8">
+        <% @estimation.estimation_lines.each do |line| %>
+          <div class="p-4 bg-sand rounded-xl">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-ink"><%= line.piece %> · <%= line.prestation_label %></div>
+                  <div class="text-sm text-ink-light"><%= line.type_piece_label %> · <%= line.gamme_label %> · <%= line.surface %> m²</div>
+                  <% if line.options_actives.any? %>
+                    <div class="text-xs text-accent mt-1">+ <%= line.options_actives.join(" · ") %></div>
+                  <% end %>
+                </div>
+              </div>
+              <div class="font-display font-bold text-ink text-lg">
+                <%= number_to_currency(line.total, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="space-y-2 p-5 bg-sand rounded-xl">
+        <% sous_total = @estimation.estimation_lines.sum { |l| l.total } %>
+        <div class="flex justify-between text-sm">
+          <span class="text-ink-light">Sous-total prestations</span>
+          <span class="font-semibold text-ink"><%= number_to_currency(sous_total, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+        </div>
+        <% if @estimation.coef_region.to_d != 1.0 %>
+          <div class="flex justify-between text-xs text-ink-light">
+            <span><%= @estimation.coef_region_label %></span>
+            <span>× <%= @estimation.coef_region %></span>
+          </div>
+        <% end %>
+        <% if @estimation.coef_etage.to_d != 1.0 %>
+          <div class="flex justify-between text-xs text-ink-light">
+            <span><%= @estimation.coef_etage_label %></span>
+            <span>× <%= @estimation.coef_etage %></span>
+          </div>
+        <% end %>
+        <% if @estimation.remise_degressive.to_d > 0 %>
+          <div class="flex justify-between text-xs text-emerald-600 font-semibold">
+            <span>Remise dégressive (<%= (@estimation.remise_degressive * 100).to_i %>% · grand chantier)</span>
+            <span>-<%= (@estimation.remise_degressive * 100).to_i %>%</span>
+          </div>
+        <% end %>
+        <div class="flex justify-between text-sm pt-2 border-t border-ink/10">
+          <span class="text-ink-light">Total HT</span>
+          <span class="font-semibold text-ink"><%= number_to_currency(@estimation.total_ht, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-ink-light">TVA <%= @estimation.tva_taux %>%</span>
+          <span class="font-semibold text-ink"><%= number_to_currency((@estimation.total_ttc - @estimation.total_ht), unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+        </div>
+        <div class="flex items-baseline justify-between pt-3 border-t border-ink/15">
+          <span class="font-display font-bold text-ink text-lg">Total TTC</span>
+          <span class="font-display text-3xl font-extrabold text-ink">
+            <%= number_to_currency(@estimation.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
+          </span>
+        </div>
+      </div>
+
+      <% if @estimation.photos.attached? %>
+        <div class="mt-8">
+          <h3 class="font-display font-bold text-ink mb-3">Photos jointes (<%= @estimation.photos.count %>)</h3>
+          <div class="grid grid-cols-3 md:grid-cols-4 gap-2">
+            <% @estimation.photos.each do |photo| %>
+              <%= image_tag photo, class: "aspect-square object-cover rounded-lg" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <%= link_to estimation_path(reference: @estimation.reference, format: :pdf), target: "_blank", class: "btn-secondary text-sm" do %>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+          </svg>
+          Télécharger le PDF
+        <% end %>
+      </div>
+
+      <div class="mt-6 p-5 bg-accent/5 border border-accent/20 rounded-xl text-sm text-ink-soft leading-relaxed">
+        <strong class="text-ink">⚠️ Estimation indicative.</strong> Ce chiffrage est calculé automatiquement à partir des prestations, gammes, dimensions, options et coefficients sélectionnés. Le devis final sera établi après visite sur place.
+      </div>
+    </div>
+
+    <!-- Cal.com embed -->
+    <% cal_url = ENV["CAL_COM_URL"] %>
+    <% if cal_url.present? %>
+      <div class="card-premium p-6 lg:p-8 mt-8">
+        <h3 class="font-display text-xl font-bold text-ink mb-2">Prenez rendez-vous pour une visite technique</h3>
+        <p class="text-ink-soft text-sm mb-4">Le créneau le plus rapide pour affiner votre devis.</p>
+        <iframe src="<%= cal_url %>" class="w-full h-[640px] rounded-xl border border-ink/5" frameborder="0"></iframe>
+      </div>
+    <% end %>
+
+    <div class="text-center mt-10">
+      <%= link_to "Faire une nouvelle estimation", new_estimation_path, class: "btn-ghost" %>
+    </div>
+  </div>
+</section>

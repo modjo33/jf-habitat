@@ -1,0 +1,52 @@
+<%# Open Graph & Twitter Card %>
+<% page_title       = content_for?(:title)       ? content_for(:title)       : "JF Habitat — Estimation gratuite de vos travaux peinture, placo & parquet" %>
+<% page_description = content_for?(:description) ? content_for(:description) : "Estimez gratuitement vos travaux de peinture, placo et parquet. Saisie en 2 minutes, devis détaillé (HT, TVA, TTC + PDF) envoyé dès vos coordonnées renseignées." %>
+<% page_url         = request.original_url %>
+<% og_image         = content_for?(:og_image) ? content_for(:og_image) : "#{request.base_url}/og-image.png" %>
+
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="JF Habitat">
+<meta property="og:title"       content="<%= page_title %>">
+<meta property="og:description" content="<%= page_description %>">
+<meta property="og:url"         content="<%= page_url %>">
+<meta property="og:image"       content="<%= og_image %>">
+<meta property="og:locale"      content="fr_FR">
+
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="<%= page_title %>">
+<meta name="twitter:description" content="<%= page_description %>">
+<meta name="twitter:image"       content="<%= og_image %>">
+
+<link rel="canonical" href="<%= page_url.split('?').first %>">
+
+<%# Schema.org LocalBusiness — placeholders à remplacer avec infos Johan %>
+<script type="application/ld+json">
+<%= raw({
+  "@context": "https://schema.org",
+  "@type": "HomeAndConstructionBusiness",
+  "name": "JF Habitat",
+  "description": "Artisan peintre, plaquiste et parqueteur. Travaux de rénovation et construction neuve.",
+  "url": "https://jfhabitat.fr",
+  "telephone": ENV.fetch("BUSINESS_PHONE", "+33-X-XX-XX-XX-XX"),
+  "email": ENV.fetch("BUSINESS_EMAIL", "contact@jfhabitat.fr"),
+  "image": "#{request.base_url}/og-image.png",
+  "priceRange": "€€",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": ENV.fetch("BUSINESS_STREET", "À compléter"),
+    "addressLocality": ENV.fetch("BUSINESS_CITY", "À compléter"),
+    "postalCode": ENV.fetch("BUSINESS_POSTAL_CODE", "00000"),
+    "addressCountry": "FR"
+  },
+  "areaServed": ENV.fetch("BUSINESS_AREA", "France").split(",").map(&:strip),
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" ],
+      "opens": "08:00",
+      "closes": "18:00"
+    }
+  ],
+  "sameAs": [ ENV["FACEBOOK_URL"], ENV["INSTAGRAM_URL"], ENV["LINKEDIN_URL"] ].compact
+}.to_json) %>
+</script>

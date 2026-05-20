@@ -1,0 +1,9 @@
+<div class="mb-6">
+  <%= link_to admin_tarifs_path, class: "text-sm text-ink-light hover:text-ink" do %>
+    ← Retour aux tarifs
+  <% end %>
+  <h1 class="h-display text-4xl text-ink mt-2">Nouveau tarif</h1>
+</div>
+<div class="card-premium p-6 max-w-3xl">
+  <%= render "form", tarif: @tarif %>
+</div>

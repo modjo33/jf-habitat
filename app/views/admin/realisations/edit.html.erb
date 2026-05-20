@@ -1,0 +1,10 @@
+<div class="mb-6">
+  <%= link_to admin_realisations_path, class: "text-sm text-ink-light hover:text-ink" do %>
+    ← Retour à la galerie
+  <% end %>
+  <h1 class="h-display text-4xl text-ink mt-2">Modifier la réalisation</h1>
+</div>
+
+<div class="card-premium p-7 max-w-2xl">
+  <%= render "form", realisation: @realisation %>
+</div>

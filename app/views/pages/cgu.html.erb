@@ -1,0 +1,99 @@
+<% content_for :title, "Conditions générales d'utilisation — JF Habitat" %>
+<% content_for :description, "Conditions générales d'utilisation du site JF Habitat et du simulateur d'estimation en ligne." %>
+
+<%
+  raison_sociale = ENV.fetch("LEGAL_COMPANY_NAME", "[À COMPLÉTER — raison sociale]")
+  email          = ENV.fetch("LEGAL_EMAIL",        "contact@jfhabitat.fr")
+%>
+
+<section class="py-20 bg-white">
+  <div class="max-w-3xl mx-auto px-6 lg:px-10">
+    <h1 class="font-display text-4xl font-extrabold text-ink mb-10">Conditions générales d'utilisation</h1>
+
+    <div class="space-y-10 text-ink-soft leading-relaxed">
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">1. Objet</h2>
+        <p>
+          Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'utilisation du site jfhabitat.fr,
+          édité par <%= raison_sociale %>. L'utilisation du site implique l'acceptation pleine et entière de ces CGU.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">2. Services proposés</h2>
+        <p>
+          Le site permet aux utilisateurs de :
+        </p>
+        <ul class="list-disc list-inside space-y-1 mt-2">
+          <li>Obtenir une estimation indicative du coût de travaux de peinture, placo-plâtre et parquet</li>
+          <li>Joindre des photos de leur chantier pour aider à la préparation du devis</li>
+          <li>Demander un devis personnalisé</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">3. Valeur des estimations</h2>
+        <p>
+          Les estimations fournies par le simulateur sont calculées à partir de données moyennes et des informations renseignées par l'utilisateur.
+          Elles n'ont qu'une <strong>valeur indicative</strong> et ne constituent pas un devis contractuel.
+          Le devis définitif est établi après visite technique sur place et peut différer significativement de l'estimation initiale.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">4. Engagements de l'utilisateur</h2>
+        <p>L'utilisateur s'engage à :</p>
+        <ul class="list-disc list-inside space-y-1 mt-2">
+          <li>Fournir des informations exactes lors du remplissage du formulaire d'estimation</li>
+          <li>Ne télécharger que des photos dont il dispose des droits</li>
+          <li>Ne pas utiliser le site à des fins illicites ou frauduleuses</li>
+          <li>Ne pas perturber le fonctionnement du site (scraping, attaque, etc.)</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">5. Propriété intellectuelle</h2>
+        <p>
+          L'ensemble du contenu du site (textes, images, code, marque JF Habitat) est protégé.
+          Toute reproduction sans autorisation écrite préalable est interdite.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">6. Disponibilité</h2>
+        <p>
+          JF Habitat s'efforce d'assurer une disponibilité maximale du site, sans toutefois pouvoir la garantir.
+          Le site peut être interrompu pour des raisons de maintenance, de mise à jour ou en cas de force majeure.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">7. Données personnelles</h2>
+        <p>
+          Le traitement des données personnelles est décrit dans la
+          <%= link_to "politique de confidentialité", politique_confidentialite_path, class: "underline hover:text-ink" %>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">8. Loi applicable</h2>
+        <p>
+          Les présentes CGU sont soumises au droit français.
+          Tout litige relatif à leur interprétation ou à leur exécution relève des tribunaux français compétents,
+          sous réserve des dispositions impératives applicables aux consommateurs.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink mb-4">9. Contact</h2>
+        <p>
+          Pour toute question relative à ces CGU : <%= mail_to email %>
+        </p>
+      </div>
+
+      <p class="text-sm text-ink-soft/70 pt-6 border-t border-ink/5">
+        Dernière mise à jour : <%= I18n.l(Date.current, format: :long) rescue Date.current.strftime("%-d %B %Y") %>
+      </p>
+    </div>
+  </div>
+</section>

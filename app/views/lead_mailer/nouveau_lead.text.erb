@@ -1,0 +1,24 @@
+NOUVEAU LEAD JF HABITAT
+Référence : <%= @estimation.reference %>
+
+CLIENT
+------
+Nom       : <%= @estimation.nom %>
+Email     : <%= @estimation.email %>
+Téléphone : <%= @estimation.telephone %>
+<% if @estimation.adresse.present? %>Adresse   : <%= @estimation.adresse %>, <%= @estimation.code_postal %> <%= @estimation.ville %><% end %>
+Délai     : <%= @estimation.delai_label %>
+Chantier  : <%= @estimation.type_chantier_label %>
+
+<% if @estimation.message.present? %>MESSAGE
+-------
+<%= @estimation.message %>
+<% end %>
+
+PRESTATIONS
+-----------
+<% @estimation.estimation_lines.each do |line| -%>
+- <%= line.piece %> · <%= line.prestation_label %> (<%= line.gamme_label %>) · <%= line.surface %> m² · <%= number_with_precision(line.total, precision: 2) %> €
+<% end -%>
+
+TOTAL TTC : <%= number_with_precision(@estimation.total_ttc, precision: 2) %> €

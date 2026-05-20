@@ -1,0 +1,36 @@
+<div class="mb-10 flex items-end justify-between flex-wrap gap-4">
+  <div>
+    <div class="eyebrow mb-2">CRM · Pipeline</div>
+    <h1 class="h-display text-4xl text-ink">Vue Kanban</h1>
+    <p class="text-ink-light mt-2">Tous vos clients par étape commerciale.</p>
+  </div>
+  <%= link_to "Vue liste", admin_clients_path, class: "btn-ghost text-xs px-5 py-2.5" %>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+  <% @clients_by_statut.each do |statut, clients| %>
+    <div class="bg-sand-dark/40 rounded-2xl p-3 border border-border-warm/40">
+      <div class="flex items-center justify-between mb-3 px-2">
+        <div class="text-xs font-bold uppercase tracking-[0.12em] text-ink"><%= Client::STATUTS[statut] %></div>
+        <div class="text-xs text-ink-light"><%= clients.size %></div>
+      </div>
+      <div class="space-y-2 min-h-[120px]">
+        <% if clients.empty? %>
+          <div class="text-center text-xs text-ink-light/60 italic py-6">Aucun</div>
+        <% end %>
+        <% clients.each do |c| %>
+          <%= link_to admin_client_path(c), class: "block bg-cream rounded-xl p-3 border border-border-warm/60 hover:border-accent/40 hover:shadow-card transition" do %>
+            <div class="font-semibold text-ink text-sm truncate"><%= c.nom %></div>
+            <div class="text-[11px] text-ink-light truncate mt-0.5"><%= c.email %></div>
+            <div class="flex items-center justify-between mt-2 pt-2 border-t border-border-warm/40">
+              <span class="text-[10px] uppercase tracking-widest text-ink-light"><%= c.estimations.count %> estim.</span>
+              <% if c.a_relancer? %>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-accent">à relancer</span>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

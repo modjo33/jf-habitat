@@ -1,0 +1,83 @@
+<% content_for :title, "Nos services — Peinture, placo, parquet · JF Habitat" %>
+<% content_for :description, "Détail de nos prestations en peinture, placo-plâtre et parquet. Préparation, finitions, matériaux, savoir-faire artisanal." %>
+
+<!-- HERO -->
+<section class="relative bg-ink text-sand overflow-hidden">
+  <div class="absolute inset-0 opacity-30">
+    <%= image_tag stock_photo_url(:services_hero, w: 2200, h: 900),
+          alt: "",
+          loading: "eager",
+          class: "w-full h-full object-cover" %>
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/50 via-ink/40 to-ink"></div>
+  </div>
+  <div class="relative max-w-5xl mx-auto px-6 lg:px-10 py-28 lg:py-36 text-center">
+    <div class="eyebrow text-accent mb-5"><%= site_text("services.hero.eyebrow", "Prestations") %></div>
+    <h1 class="h-display text-5xl lg:text-7xl text-sand mb-7">
+      <%= site_text("services.hero.title", "Trois spécialités, une exigence commune.") %>
+    </h1>
+    <p class="text-sand/70 text-lg max-w-2xl mx-auto leading-relaxed">
+      <%= site_text("services.hero.body", "Tout ce qu'il faut pour rénover ou aménager un intérieur, géré par le même artisan — pas de sous-traitance, pas de coordination à faire, un seul interlocuteur du premier au dernier jour.") %>
+    </p>
+  </div>
+</section>
+
+<!-- 3 BLOCS SERVICES ALTERNÉS PHOTO/TEXTE -->
+<% [
+  { title: "Peinture", img: :service_peinture, price: "dès 18 €/m²", desc: "De la simple rafraîchissement à la décoration sur mesure, on travaille la peinture comme une matière vivante. Préparation minutieuse, choix des produits, application en plusieurs passes — la finition est notre signature.",
+    items: ["Murs intérieurs et extérieurs", "Plafonds", "Boiseries, menuiseries", "Préparation des supports (rebouchage, ponçage)", "Finitions mates, satinées, laquées"] },
+  { title: "Placo-plâtre", img: :service_placo, price: "dès 50 €/m²", desc: "Cloisons, doublages, plafonds suspendus — le placo est l'ossature invisible qui change tout. On soigne particulièrement les jonctions, les bandes et les finitions pour des surfaces parfaitement lisses, prêtes à recevoir leur revêtement.",
+    items: ["Cloisons BA13 standard ou phoniques", "Doublages isolants thermique/phonique", "Plafonds suspendus, faux plafonds", "Aménagements sur mesure (niches, têtes de lit)", "Plâtrerie traditionnelle"] },
+  { title: "Parquet", img: :service_parquet, price: "dès 30 €/m²", desc: "Stratifié, contrecollé ou massif — chaque essence et chaque mode de pose a son usage. On vous conseille selon vos pièces, votre budget et l'usage attendu. Pose, ponçage et vitrification, tout est fait par nos soins.",
+    items: ["Stratifié AC3 / AC4 / AC5", "Contrecollé chêne, autres essences", "Massif (chêne, hêtre, exotiques)", "Pose flottante, collée ou clouée", "Ponçage, vitrification, rénovation"] }
+].each_with_index do |service, idx| %>
+  <section class="<%= idx.even? ? 'bg-cream' : 'bg-sand' %> py-24 lg:py-32">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center <%= idx.odd? ? 'lg:[&>:first-child]:order-2' : '' %>">
+        <div class="relative aspect-[4/5] lg:aspect-[5/6] rounded-3xl overflow-hidden shadow-premium">
+          <%= image_tag stock_photo_url(service[:img], w: 1100, h: 1300),
+                alt: "JF Habitat · #{service[:title]}",
+                loading: "lazy",
+                class: "w-full h-full object-cover" %>
+        </div>
+        <div>
+          <div class="eyebrow mb-4"><%= "0#{idx + 1}" %> · Notre métier</div>
+          <h2 class="h-display text-4xl lg:text-5xl text-ink mb-6">
+            <%= service[:title] %>
+          </h2>
+          <p class="text-ink-soft text-lg leading-relaxed mb-8"><%= service[:desc] %></p>
+
+          <ul class="space-y-3 mb-9">
+            <% service[:items].each do |item| %>
+              <li class="flex items-start gap-3">
+                <svg class="w-5 h-5 mt-0.5 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                </svg>
+                <span class="text-ink"><%= item %></span>
+              </li>
+            <% end %>
+          </ul>
+
+          <div class="flex items-center gap-6 flex-wrap">
+            <%= link_to "Estimer ce poste", new_estimation_path, class: "btn-primary" %>
+            <div class="text-sm">
+              <span class="text-ink-light uppercase tracking-widest text-xs">À partir de</span>
+              <span class="font-display text-2xl text-accent ml-2"><%= service[:price] %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<% end %>
+
+<!-- CTA FINAL -->
+<section class="py-20 bg-ink text-sand">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <div class="eyebrow text-accent mb-4">Prêt à démarrer ?</div>
+    <h2 class="h-display text-3xl lg:text-4xl mb-5">
+      Vos travaux,<br>
+      <em class="text-accent not-italic">chiffrés en 2 minutes.</em>
+    </h2>
+    <%= link_to "Lancer mon estimation", new_estimation_path, class: "btn-primary" %>
+  </div>
+</section>

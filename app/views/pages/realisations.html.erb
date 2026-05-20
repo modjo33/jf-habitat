@@ -1,0 +1,92 @@
+<% content_for :title, "Réalisations — JF Habitat" %>
+<% content_for :description, "Galerie de nos chantiers de peinture, placo et parquet. Finitions soignées, ambiances chaleureuses, savoir-faire artisanal." %>
+
+<!-- ============================================================ HERO -->
+<section class="relative bg-ink text-sand overflow-hidden">
+  <div class="absolute inset-0 opacity-30">
+    <%= image_tag stock_photo_url(:hero_detail, w: 2200, h: 900),
+          alt: "",
+          loading: "eager",
+          class: "w-full h-full object-cover" %>
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/50 to-ink"></div>
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-6 lg:px-10 py-28 lg:py-36 text-center">
+    <div class="eyebrow text-accent mb-5"><%= site_text("realisations.hero.eyebrow", "Galerie · Sélection 2026") %></div>
+    <h1 class="h-display text-5xl lg:text-7xl text-sand max-w-3xl mx-auto mb-7">
+      <%= site_text("realisations.hero.title", "Quelques chantiers, beaucoup d'attention.") %>
+    </h1>
+    <p class="text-sand/70 text-lg max-w-2xl mx-auto leading-relaxed">
+      <%= site_text("realisations.hero.body", "Chaque projet est unique. Voici un aperçu de nos réalisations en peinture, placo et parquet — des finitions pensées dans le détail, des matériaux assumés, des clients satisfaits.") %>
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ FILTRES + GRILLE -->
+<section class="py-20 lg:py-28 bg-sand" data-controller="gallery">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <!-- Pills filtres -->
+    <div class="flex flex-wrap justify-center gap-2 mb-12">
+      <% [
+        ["tous", "Tous les chantiers"],
+        ["peinture", "Peinture"],
+        ["placo", "Placo-plâtre"],
+        ["parquet", "Parquet"]
+      ].each_with_index do |(key, label), idx| %>
+        <button type="button"
+                data-action="click->gallery#filter"
+                data-gallery-filter-param="<%= key %>"
+                data-gallery-target="pill"
+                class="<%= idx.zero? ? 'is-active' : '' %> px-5 py-2.5 rounded-full text-sm font-semibold transition-all border border-border-warm bg-cream text-ink-soft hover:border-accent hover:text-accent data-[active=true]:bg-ink data-[active=true]:text-sand data-[active=true]:border-ink">
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+
+    <!-- Grille masonry-like (CSS columns pour effet visuel asymétrique) -->
+    <div data-gallery-target="grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 lg:gap-5 [column-fill:_balance]">
+      <% gallery_items.each_with_index do |item, idx| %>
+        <%
+          # Variations d'aspect pour effet visuel masonry
+          aspect = ["aspect-[4/5]", "aspect-square", "aspect-[3/4]", "aspect-[4/3]"][idx % 4]
+        %>
+        <figure data-gallery-target="item"
+                data-metier="<%= item[:metier] %>"
+                class="break-inside-avoid mb-4 lg:mb-5 group relative overflow-hidden rounded-2xl bg-sand-dark transition-opacity">
+          <div class="relative <%= aspect %> overflow-hidden">
+            <%= image_tag item[:url],
+                  alt: item[:legende],
+                  loading: "lazy",
+                  class: "w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700" %>
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+          <figcaption class="absolute bottom-0 left-0 right-0 p-5 text-sand translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
+            <div class="text-xs uppercase tracking-widest text-accent font-bold mb-1.5"><%= item[:metier].capitalize %></div>
+            <div class="font-display text-base lg:text-lg leading-snug"><%= item[:legende] %></div>
+          </figcaption>
+        </figure>
+      <% end %>
+    </div>
+
+    <!-- État vide (caché par défaut) -->
+    <div data-gallery-target="empty" class="hidden text-center py-16 text-ink-light">
+      Aucune réalisation dans cette catégorie pour le moment.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CTA -->
+<section class="py-20 bg-cream border-t border-border-warm/60">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <div class="eyebrow mb-4">Et chez vous ?</div>
+    <h2 class="h-display text-3xl lg:text-4xl text-ink mb-5">
+      Un projet en tête ?<br>
+      <em class="text-accent not-italic">Chiffrons-le ensemble.</em>
+    </h2>
+    <p class="text-ink-soft text-lg mb-9">
+      Deux minutes pour décrire vos pièces et vos coordonnées —
+      votre devis détaillé (HT, TVA, TTC + PDF) s'affiche dès la soumission. Sans engagement.
+    </p>
+    <%= link_to "Lancer mon estimation", new_estimation_path, class: "btn-primary" %>
+  </div>
+</section>

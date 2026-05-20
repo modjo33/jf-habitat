@@ -1,0 +1,68 @@
+<div class="mb-10 flex items-end justify-between flex-wrap gap-4">
+  <div>
+    <div class="eyebrow mb-2">CRM</div>
+    <h1 class="h-display text-4xl text-ink">Clients</h1>
+    <p class="text-ink-light mt-2"><%= @clients.size %> client(s) au total.</p>
+  </div>
+
+  <div class="flex gap-2 items-center">
+    <%= link_to "Vue Kanban", kanban_admin_clients_path, class: "btn-ghost text-xs px-5 py-2.5" %>
+    <%= form_with url: admin_clients_path, method: :get, class: "flex gap-2 items-center" do %>
+      <%= text_field_tag :q, @q, placeholder: "Nom, email, tél…", class: "input-field text-sm py-2 max-w-xs" %>
+      <%= select_tag :statut,
+                     options_for_select([["Tous statuts", ""]] + Client::STATUTS.map { |k, v| [v, k] }, @statut),
+                     class: "input-field text-sm py-2" %>
+      <button type="submit" class="btn-secondary text-xs px-5 py-2.5">Filtrer</button>
+    <% end %>
+  </div>
+</div>
+
+<div class="card-premium overflow-hidden">
+  <% if @clients.empty? %>
+    <div class="text-center py-16 text-ink-light">Aucun client.</div>
+  <% else %>
+    <table class="w-full text-sm">
+      <thead class="bg-sand-dark/60">
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light">
+          <th class="px-4 py-3 font-semibold">Client</th>
+          <th class="px-4 py-3 font-semibold">Contact</th>
+          <th class="px-4 py-3 font-semibold">Statut</th>
+          <th class="px-4 py-3 font-semibold">Estimations</th>
+          <th class="px-4 py-3 font-semibold">Prochaine action</th>
+          <th class="px-4 py-3 font-semibold">Maj</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @clients.each do |c| %>
+          <tr class="border-t border-border-warm/40 hover:bg-sand transition cursor-pointer"
+              data-controller="row-link"
+              data-row-link-url-value="<%= admin_client_path(c) %>"
+              data-action="click->row-link#go">
+            <td class="px-4 py-3">
+              <div class="font-semibold text-ink"><%= c.nom %></div>
+              <div class="text-xs text-ink-light"><%= c.ville.presence %></div>
+            </td>
+            <td class="px-4 py-3 text-xs">
+              <div><%= c.email %></div>
+              <div class="text-ink-light"><%= c.telephone %></div>
+            </td>
+            <td class="px-4 py-3"><%= render "statut_badge", statut: c.statut %></td>
+            <td class="px-4 py-3 text-ink-soft text-xs">
+              <%= c.estimations.count %> estim. ·
+              <span class="font-display text-ink"><%= number_to_currency(c.total_devis_envoyes, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+            </td>
+            <td class="px-4 py-3 text-xs">
+              <% if c.prochaine_action_date %>
+                <div class="<%= c.a_relancer? ? 'text-accent font-semibold' : 'text-ink' %>"><%= l(c.prochaine_action_date, format: :long) %></div>
+                <div class="text-ink-light truncate max-w-[200px]"><%= c.prochaine_action %></div>
+              <% else %>
+                <span class="text-ink-light/50">—</span>
+              <% end %>
+            </td>
+            <td class="px-4 py-3 text-xs text-ink-light"><%= time_ago_in_words(c.updated_at) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>
