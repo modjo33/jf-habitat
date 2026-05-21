@@ -10,12 +10,11 @@ class MediaSlot < ApplicationRecord
 
   # URL CDN Active Storage à utiliser dans les vues si l'admin a upload une image.
   # Sinon le helper PhotosHelper.stock_photo_url retombe sur Unsplash.
+  # Blob direct (redirige vers Cloudinary) : les variants Active Storage échouent
+  # avec le service Cloudinary. Les paramètres w/h sont conservés pour compat.
   def image_url(w: 1600, h: nil)
     return nil unless image.attached?
-    variant = h ? image.variant(resize_to_fill: [w, h]) : image.variant(resize_to_limit: [w, nil])
-    Rails.application.routes.url_helpers.rails_representation_url(variant, only_path: true)
-  rescue ActiveStorage::InvariableError
-    Rails.application.routes.url_helpers.rails_blob_url(image, only_path: true)
+    Rails.application.routes.url_helpers.rails_blob_path(image, only_path: true)
   end
 
   private

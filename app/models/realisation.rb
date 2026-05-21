@@ -17,12 +17,12 @@ class Realisation < ApplicationRecord
     metier.to_s.capitalize
   end
 
+  # On sert le blob directement (redirige vers Cloudinary) : les variants Active
+  # Storage (resize_to_fill) échouent avec le service Cloudinary (erreur 500).
+  # Le CSS gère l'affichage ; les images uploadées sont déjà raisonnablement dimensionnées.
   def photo_url(w: 900, h: 1100)
     return nil unless photo.attached?
-    variant = photo.variant(resize_to_fill: [w, h])
-    Rails.application.routes.url_helpers.rails_representation_url(variant, only_path: true)
-  rescue ActiveStorage::InvariableError
-    Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: true)
+    Rails.application.routes.url_helpers.rails_blob_path(photo, only_path: true)
   end
 
   private
