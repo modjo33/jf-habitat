@@ -1,8 +1,11 @@
 class Admin::BaseController < ApplicationController
   layout "admin"
 
-  rate_limit to: 10, within: 5.minutes, key: "admin_auth",
-             response: -> { render plain: "Trop de tentatives. Réessayez dans quelques minutes.", status: :too_many_requests }
+  # Garde-fou anti-abus (par IP). Volontairement large : le concern compte CHAQUE
+  # requête admin, pas seulement les échecs de login — un quota bas bloquerait Johan
+  # en pleine navigation. La vraie protection reste le mot de passe fort (basic auth).
+  rate_limit to: 300, within: 5.minutes, key: "admin_auth",
+             response: -> { render plain: "Trop de requêtes. Réessayez dans quelques minutes.", status: :too_many_requests }
 
   before_action :authenticate_admin
 
