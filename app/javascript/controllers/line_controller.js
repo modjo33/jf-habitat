@@ -1,12 +1,20 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Gère le toggle surface/dimensions et l'affichage des bons champs de dimension
-// selon la prestation : murs → longueur × hauteur ; sols/plafonds → longueur × largeur.
+// Gère le toggle surface/dimensions, les bons champs de dimension selon la
+// prestation (murs → L×H ; sols/plafonds → L×l) et l'affichage des options
+// (suppléments) selon le métier de la prestation choisie.
 export default class extends Controller {
-  static targets = ["prestation", "modeRadio", "modeSurface", "modeDimensions", "largeurWrap", "hauteurWrap", "dimHint", "options"]
+  static targets = ["prestation", "modeRadio", "modeSurface", "modeDimensions", "largeurWrap", "hauteurWrap", "dimHint", "options", "optionItem"]
 
   static mursPrestations = ["peinture_murs_reno", "peinture_murs_neuf", "placo_cloison"]
-  static parquetPrestations = ["parquet_stratifie", "parquet_contrecolle", "parquet_massif"]
+
+  // Métier (catégorie) de chaque prestation — pour afficher les bonnes options.
+  static metiers = {
+    peinture_murs_reno: "peinture", peinture_murs_neuf: "peinture",
+    peinture_plafond: "peinture", peinture_plafond_neuf: "peinture",
+    placo_cloison: "placo", placo_plafond: "placo", placo_bandes_enduit: "placo",
+    parquet_stratifie: "parquet", parquet_contrecolle: "parquet", parquet_massif: "parquet"
+  }
 
   connect() {
     this.toggleMode()
@@ -26,9 +34,11 @@ export default class extends Controller {
 
   onPrestationChange() {
     if (!this.hasPrestationTarget) return
-    const isMurs = this.constructor.mursPrestations.includes(this.prestationTarget.value)
+    const value = this.prestationTarget.value
+    const isMurs = this.constructor.mursPrestations.includes(value)
+    const metier = this.constructor.metiers[value]
 
-    // Murs : longueur (de mur) × hauteur → on masque la largeur, on montre la hauteur.
+    // Murs : longueur (de mur) × hauteur → masque la largeur, montre la hauteur.
     // Sols/plafonds : longueur × largeur → l'inverse.
     if (this.hasLargeurWrapTarget) this.largeurWrapTarget.classList.toggle("hidden", isMurs)
     if (this.hasHauteurWrapTarget) this.hauteurWrapTarget.classList.toggle("hidden", !isMurs)
@@ -39,13 +49,20 @@ export default class extends Controller {
         : "Indiquez la longueur × la largeur de la surface au sol / plafond."
     }
 
-    // Options (ponçage / dépose) : uniquement pour le parquet.
-    const isParquet = this.constructor.parquetPrestations.includes(this.prestationTarget.value)
-    if (this.hasOptionsTarget) {
-      this.optionsTarget.classList.toggle("hidden", !isParquet)
-      if (!isParquet) {
-        this.optionsTarget.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false })
+    // Options : chaque option s'affiche si son métier correspond à la prestation.
+    let anyVisible = false
+    this.optionItemTargets.forEach(item => {
+      const metiers = (item.dataset.metiers || "").split(",")
+      const show = metier && metiers.includes(metier)
+      item.classList.toggle("hidden", !show)
+      item.classList.toggle("flex", show)
+      if (show) {
+        anyVisible = true
+      } else {
+        const cb = item.querySelector('input[type="checkbox"]')
+        if (cb) cb.checked = false
       }
-    }
+    })
+    if (this.hasOptionsTarget) this.optionsTarget.classList.toggle("hidden", !anyVisible)
   }
 }

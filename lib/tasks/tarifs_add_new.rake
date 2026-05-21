@@ -6,6 +6,10 @@ namespace :tarifs do
       { prestation: "peinture_plafond_neuf", gamme: "entree", prix_m2: 20, description: "Peinture plafond blanche sur support neuf" },
       { prestation: "peinture_plafond_neuf", gamme: "milieu", prix_m2: 26, description: "Peinture plafond mate, sous-couche incluse" },
       { prestation: "peinture_plafond_neuf", gamme: "haut",   prix_m2: 36, description: "Peinture plafond premium, finition soignée" },
+      # Bandes & enduit (finition placo) — prestation à part
+      { prestation: "placo_bandes_enduit", gamme: "entree", prix_m2: 10, description: "Bandes + 2 passes d'enduit, prêt à peindre" },
+      { prestation: "placo_bandes_enduit", gamme: "milieu", prix_m2: 14, description: "Bandes + 3 passes d'enduit, ponçage, surface lisse" },
+      { prestation: "placo_bandes_enduit", gamme: "haut",   prix_m2: 20, description: "Finition haute qualité, ratissage complet, prêt à décorer" },
       # Suppléments (une seule ligne, gamme "milieu" par convention)
       { prestation: "poncage",           gamme: "milieu", prix_m2: 22, description: "Ponçage + vitrification d'un parquet existant (par m²)" },
       { prestation: "depose_evacuation", gamme: "milieu", prix_m2: 12, description: "Dépose et évacuation de l'ancien revêtement (par m²)" }

@@ -32,6 +32,11 @@ namespace :tarifs do
         "milieu" => "Plafond BA13 avec isolation phonique, intégration des spots, finition lissée.",
         "haut"   => "Plafond acoustique premium, isolation renforcée, intégrations (spots, trappes) et finition haut de gamme."
       },
+      "placo_bandes_enduit" => {
+        "entree" => "Pose des bandes à joint + 2 passes d'enduit sur placo brut. Surface prête à peindre (finition standard).",
+        "milieu" => "Bandes + 3 passes d'enduit, ponçage. Surface lisse et uniforme, prête à peindre.",
+        "haut"   => "Bandes + enduit haute finition : ratissage complet, ponçage fin, surface « prête à décorer » sans défaut."
+      },
       "parquet_stratifie" => {
         "entree" => "Stratifié AC3, pose flottante sur sous-couche standard, plinthes assorties.",
         "milieu" => "Stratifié AC4 (passage élevé), sous-couche acoustique, pose flottante soignée, barres de seuil.",

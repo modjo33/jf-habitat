@@ -6,12 +6,13 @@ class Tarif < ApplicationRecord
     "peinture_plafond_neuf" => { label: "Peinture plafond (neuf)",       icon: "paint_brush", categorie: "peinture" },
     "placo_cloison"         => { label: "Placo cloison",                 icon: "squares_2x2", categorie: "placo" },
     "placo_plafond"         => { label: "Placo plafond",                 icon: "squares_2x2", categorie: "placo" },
+    "placo_bandes_enduit"   => { label: "Bandes & enduit (finition placo)", icon: "squares_2x2", categorie: "placo" },
     "parquet_stratifie"     => { label: "Parquet stratifié",             icon: "rectangle_stack", categorie: "parquet" },
     "parquet_contrecolle"   => { label: "Parquet contrecollé",           icon: "rectangle_stack", categorie: "parquet" },
     "parquet_massif"        => { label: "Parquet massif",                icon: "rectangle_stack", categorie: "parquet" },
     # Suppléments (options) — catégorie "supplement", exclues du choix de prestation,
     # éditables dans /admin/tarifs. Prix/m² ajouté à la ligne quand l'option est cochée.
-    "poncage"               => { label: "Ponçage + vitrification",       icon: "sparkles", categorie: "supplement" },
+    "poncage"               => { label: "Ponçage",                       icon: "sparkles", categorie: "supplement" },
     "depose_evacuation"     => { label: "Dépose & évacuation ancien revêtement", icon: "trash", categorie: "supplement" }
   }.freeze
 

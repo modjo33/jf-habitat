@@ -90,13 +90,13 @@
     </div>
   </div>
 
-  <%# Options parquet (ponçage / dépose-évacuation) — affichées seulement pour le parquet %>
+  <%# Options (suppléments) — chaque option s'affiche selon le métier de la prestation choisie %>
   <div class="mt-3 hidden" data-line-target="options">
-    <div class="text-xs text-ink-light mb-2 font-semibold">Options parquet</div>
+    <div class="text-xs text-ink-light mb-2 font-semibold">Options</div>
     <div class="grid sm:grid-cols-2 gap-2">
-      <% EstimationLine.supplements_pour("parquet").each do |key, meta| %>
+      <% EstimationLine::SUPPLEMENTS.each do |key, meta| %>
         <% prix = Tarif.prix_for(prestation: key.to_s, gamme: "milieu") %>
-        <label class="flex items-start gap-2 p-2.5 bg-white rounded-lg border border-ink/10 cursor-pointer hover:border-accent transition">
+        <label data-line-target="optionItem" data-metiers="<%= meta[:metiers].join(',') %>" class="hidden items-start gap-2 p-2.5 bg-white rounded-lg border border-ink/10 cursor-pointer hover:border-accent transition">
           <%= f.check_box key, class: "mt-0.5 w-4 h-4 accent-accent", data: { action: "change->estimation#updatePreview" } %>
           <div class="text-xs leading-tight">
             <div class="font-semibold text-ink"><%= meta[:label] %></div>

@@ -16,12 +16,12 @@ class EstimationLine < ApplicationRecord
   # Prestations appliquées sur les MURS → surface = longueur (de mur) × hauteur
   MURS_PRESTATIONS = %w[peinture_murs_reno peinture_murs_neuf placo_cloison].freeze
   # Prestations appliquées sur PLAFOND ou SOL → surface = longueur × largeur
-  PLAFOND_SOL_PRESTATIONS = %w[peinture_plafond peinture_plafond_neuf placo_plafond parquet_stratifie parquet_contrecolle parquet_massif].freeze
+  PLAFOND_SOL_PRESTATIONS = %w[peinture_plafond peinture_plafond_neuf placo_plafond placo_bandes_enduit parquet_stratifie parquet_contrecolle parquet_massif].freeze
 
   # Suppléments (options €/m²) proposés selon le métier. Prix dans la table Tarif
   # (prestation = clé du supplément, gamme "milieu"), éditables dans /admin/tarifs.
   SUPPLEMENTS = {
-    poncage:           { label: "Ponçage + vitrification",            metiers: %w[parquet] },
+    poncage:           { label: "Ponçage",                            metiers: %w[parquet peinture] },
     depose_evacuation: { label: "Dépose & évacuation ancien revêtement", metiers: %w[parquet] }
   }.freeze
 
