@@ -6,6 +6,13 @@ class Admin::BaseController < ApplicationController
 
   before_action :authenticate_admin
 
+  # Un enregistrement supprimé/inexistant ne doit pas afficher une 404 brute :
+  # on renvoie vers la liste correspondante avec un message.
+  rescue_from ActiveRecord::RecordNotFound do
+    redirect_back fallback_location: admin_root_path,
+                  alert: "Élément introuvable (il a peut-être été supprimé)."
+  end
+
   private
 
   # En production, ADMIN_USER et ADMIN_PASSWORD DOIVENT être définis ;
