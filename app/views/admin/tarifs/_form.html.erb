@@ -29,8 +29,12 @@
       </label>
     </div>
     <div class="md:col-span-2">
-      <%= f.label :description, class: "label-field" %>
-      <%= f.text_area :description, rows: 3, class: "input-field" %>
+      <%= f.label :description, "Description courte (résumé affiché sur la carte)", class: "label-field" %>
+      <%= f.text_area :description, rows: 2, class: "input-field" %>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :details, "Détails « En savoir plus » (affiché en dépliable sur la page Prestations)", class: "label-field" %>
+      <%= f.text_area :details, rows: 4, class: "input-field" %>
     </div>
   </div>
 
