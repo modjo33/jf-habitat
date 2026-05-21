@@ -1,5 +1,9 @@
 class EstimationsController < ApplicationController
-  rate_limit to: 30, within: 1.hour, only: [:create, :preview], key: "estimations"
+  # create : action sensible (écrit en base + envoie des emails) → quota strict.
+  rate_limit to: 20, within: 1.hour, only: :create, key: "estimation_create"
+  # preview : calcul en lecture seule appelé à chaque saisie → quota large et séparé,
+  # sinon le simple remplissage du formulaire épuiserait le quota et bloquerait la soumission.
+  rate_limit to: 300, within: 10.minutes, only: :preview, key: "estimation_preview"
 
   def new
     @estimation = Estimation.new

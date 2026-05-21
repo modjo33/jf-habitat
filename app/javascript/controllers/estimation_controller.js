@@ -43,7 +43,14 @@ export default class extends Controller {
     })
   }
 
-  async updatePreview() {
+  // Debounce : on attend que l'utilisateur arrête de saisir (350 ms) avant
+  // d'appeler le serveur, pour éviter un appel par frappe.
+  updatePreview() {
+    clearTimeout(this._previewTimer)
+    this._previewTimer = setTimeout(() => this._fetchPreview(), 350)
+  }
+
+  async _fetchPreview() {
     const lines = this._collectLines()
     const context = this._collectContext()
     const token = document.querySelector('meta[name="csrf-token"]')?.content

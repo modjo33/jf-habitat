@@ -6,8 +6,12 @@ module RateLimitable
       before_action(only: only, except: except) do
         bucket = key.respond_to?(:call) ? instance_exec(&key) : (key || self.class.name)
         cache_key = "rate_limit:#{bucket}:#{request.remote_ip}"
-        count = Rails.cache.increment(cache_key, 1, expires_in: within)
-        if count.to_i > to
+        # Read-modify-write : garantit que le compteur porte bien un TTL (expires_in),
+        # ce que Cache#increment ne fait pas de façon fiable avec le MemoryStore —
+        # sinon un visiteur ayant atteint la limite resterait bloqué jusqu'au redémarrage.
+        count = (Rails.cache.read(cache_key) || 0) + 1
+        Rails.cache.write(cache_key, count, expires_in: within)
+        if count > to
           if response.respond_to?(:call)
             instance_exec(&response)
           else
