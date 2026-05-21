@@ -85,16 +85,20 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 # Scalingo ne fournit qu'UNE base PostgreSQL (via DATABASE_URL / SCALINGO_POSTGRESQL_URL).
+# On n'utilise pas les bases Solid dédiées en prod (cache mémoire, jobs :async,
+# cable async — voir production.rb / cable.yml), donc une seule base suffit.
 # On NE réutilise PAS l'ancre &default ici : ses username/password/host (issus de
-# DB_* en dev) écraseraient ceux contenus dans l'URL. Les sous-bases Solid
-# (cache/queue/cable) pointent toutes sur la même base — leurs tables coexistent
-# sans conflit grâce aux préfixes solid_cache_/solid_queue_/solid_cable_.
+# DB_* en dev) écraseraient ceux contenus dans l'URL.
 production:
   primary: &primary_production
     adapter: postgresql
     encoding: unicode
     max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
     url: <%= ENV["DATABASE_URL"] || ENV["SCALINGO_POSTGRESQL_URL"] %>
+  # Les gems Solid (cache/queue/cable) appellent connects_to au boot ; on garde
+  # donc ces entrées (même base physique) pour que ça résolve. Mais en prod on
+  # utilise cache mémoire + jobs :async + cable async, donc ces tables ne sont
+  # jamais lues ni écrites.
   cache:
     <<: *primary_production
     migrations_paths: db/cache_migrate

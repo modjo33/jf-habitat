@@ -49,12 +49,12 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
-  # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  # Base PostgreSQL unique (Scalingo) : on n'utilise pas les bases Solid dédiées.
+  # Cache en mémoire et jobs en :async (in-process) — largement suffisant pour le
+  # volume du site (envoi des emails de leads en arrière-plan).
+  config.cache_store = :memory_store
 
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
+  config.active_job.queue_adapter = :async
 
   # Email delivery
   config.action_mailer.raise_delivery_errors = false
