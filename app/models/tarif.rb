@@ -1,14 +1,22 @@
 class Tarif < ApplicationRecord
   PRESTATIONS = {
-    "peinture_murs_reno"    => { label: "Peinture murs (rénovation)", icon: "paint_brush", categorie: "peinture" },
-    "peinture_murs_neuf"    => { label: "Peinture murs (neuf)",       icon: "paint_brush", categorie: "peinture" },
-    "peinture_plafond"      => { label: "Peinture plafond",           icon: "paint_brush", categorie: "peinture" },
-    "placo_cloison"         => { label: "Placo cloison",              icon: "squares_2x2", categorie: "placo" },
-    "placo_plafond"         => { label: "Placo plafond",              icon: "squares_2x2", categorie: "placo" },
-    "parquet_stratifie"     => { label: "Parquet stratifié",          icon: "rectangle_stack", categorie: "parquet" },
-    "parquet_contrecolle"   => { label: "Parquet contrecollé",        icon: "rectangle_stack", categorie: "parquet" },
-    "parquet_massif"        => { label: "Parquet massif",             icon: "rectangle_stack", categorie: "parquet" }
+    "peinture_murs_reno"    => { label: "Peinture murs (rénovation)",    icon: "paint_brush", categorie: "peinture" },
+    "peinture_murs_neuf"    => { label: "Peinture murs (neuf)",          icon: "paint_brush", categorie: "peinture" },
+    "peinture_plafond"      => { label: "Peinture plafond (rénovation)", icon: "paint_brush", categorie: "peinture" },
+    "peinture_plafond_neuf" => { label: "Peinture plafond (neuf)",       icon: "paint_brush", categorie: "peinture" },
+    "placo_cloison"         => { label: "Placo cloison",                 icon: "squares_2x2", categorie: "placo" },
+    "placo_plafond"         => { label: "Placo plafond",                 icon: "squares_2x2", categorie: "placo" },
+    "parquet_stratifie"     => { label: "Parquet stratifié",             icon: "rectangle_stack", categorie: "parquet" },
+    "parquet_contrecolle"   => { label: "Parquet contrecollé",           icon: "rectangle_stack", categorie: "parquet" },
+    "parquet_massif"        => { label: "Parquet massif",                icon: "rectangle_stack", categorie: "parquet" },
+    # Suppléments (options) — catégorie "supplement", exclues du choix de prestation,
+    # éditables dans /admin/tarifs. Prix/m² ajouté à la ligne quand l'option est cochée.
+    "poncage"               => { label: "Ponçage + vitrification",       icon: "sparkles", categorie: "supplement" },
+    "depose_evacuation"     => { label: "Dépose & évacuation ancien revêtement", icon: "trash", categorie: "supplement" }
   }.freeze
+
+  # Prestations réellement proposées dans le formulaire (hors suppléments).
+  PRESTATIONS_CHOISISSABLES = PRESTATIONS.reject { |_k, v| v[:categorie] == "supplement" }.freeze
 
   GAMMES = {
     "entree"  => { label: "Entrée de gamme", description: "Finitions standards, matériaux courants" },

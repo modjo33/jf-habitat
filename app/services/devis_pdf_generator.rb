@@ -98,7 +98,7 @@ class DevisPdfGenerator
     rows = @estimation.estimation_lines.map do |l|
       [
         { content: "#{l.piece}\n#{l.type_piece_label}", inline_format: true },
-        { content: l.prestation_label.to_s, inline_format: true },
+        { content: "#{l.prestation_label}#{l.options_actives.any? ? "\n+ #{l.options_actives.join(', ')}" : ''}", inline_format: true },
         l.gamme_label,
         "#{l.surface} m²",
         format_eur(l.prix_unitaire),

@@ -91,6 +91,7 @@ class EstimationsController < ApplicationController
       estimation_lines_attributes: [
         :id, :piece, :prestation, :gamme, :type_piece, :mode_saisie,
         :surface, :longueur, :largeur, :hauteur,
+        :poncage, :depose_evacuation,
         :_destroy
       ]
     )

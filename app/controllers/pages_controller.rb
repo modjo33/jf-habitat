@@ -8,7 +8,7 @@ class PagesController < ApplicationController
   def prestations
     # Comparatif des gammes par prestation, regroupé par métier.
     tarifs = Tarif.actifs.to_a
-    @prestations_par_metier = Tarif::PRESTATIONS.group_by { |_k, v| v[:categorie] }.transform_values do |list|
+    @prestations_par_metier = Tarif::PRESTATIONS_CHOISISSABLES.group_by { |_k, v| v[:categorie] }.transform_values do |list|
       list.map do |key, meta|
         gammes = Tarif::GAMMES.keys.index_with do |g|
           tarifs.find { |t| t.prestation == key && t.gamme == g }

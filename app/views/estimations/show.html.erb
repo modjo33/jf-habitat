@@ -58,6 +58,9 @@
                 <div>
                   <div class="font-semibold text-ink"><%= line.piece %> · <%= line.prestation_label %></div>
                   <div class="text-sm text-ink-light"><%= line.type_piece_label %> · <%= line.gamme_label %> · <%= line.surface %> m²</div>
+                  <% if line.options_actives.any? %>
+                    <div class="text-xs text-accent mt-1">+ <%= line.options_actives.join(" · ") %></div>
+                  <% end %>
                 </div>
               </div>
               <div class="font-display font-bold text-ink text-lg">

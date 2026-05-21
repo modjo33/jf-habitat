@@ -7,9 +7,12 @@
   <%= link_to "+ Nouveau tarif", new_admin_tarif_path, class: "btn-primary text-xs px-5 py-2.5" %>
 </div>
 
+<%
+  cat_labels = { "peinture" => "Peinture", "placo" => "Placo-plâtre", "parquet" => "Parquet", "supplement" => "Suppléments / options (prix au m²)" }
+%>
 <% @by_categorie.each do |categorie, tarifs| %>
   <div class="card-premium p-7 mb-6">
-    <h2 class="font-display text-2xl text-ink mb-5 capitalize"><%= categorie %></h2>
+    <h2 class="font-display text-2xl text-ink mb-5"><%= cat_labels[categorie] || categorie.to_s.capitalize %></h2>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>

@@ -43,7 +43,7 @@
       <%= link_to "Différences entre gammes ?", prestations_path, target: "_blank", class: "text-xs text-accent hover:underline" %>
     </div>
     <%= f.select :prestation,
-                 Tarif::PRESTATIONS.map { |k, v| [v[:label], k] },
+                 Tarif::PRESTATIONS_CHOISISSABLES.map { |k, v| [v[:label], k] },
                  { include_blank: "Choisir la prestation…" },
                  class: "input-field text-sm py-2.5",
                  data: { action: "change->line#onPrestationChange change->estimation#updatePreview", line_target: "prestation" } %>
@@ -87,6 +87,23 @@
         <%= f.label :hauteur, "Hauteur (m)", class: "label-field text-xs" %>
         <%= f.number_field :hauteur, step: 0.01, min: 0, placeholder: "2.5", class: "input-field text-sm py-2.5", data: { action: "input->estimation#updatePreview" } %>
       </div>
+    </div>
+  </div>
+
+  <%# Options parquet (ponçage / dépose-évacuation) — affichées seulement pour le parquet %>
+  <div class="mt-3 hidden" data-line-target="options">
+    <div class="text-xs text-ink-light mb-2 font-semibold">Options parquet</div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <% EstimationLine.supplements_pour("parquet").each do |key, meta| %>
+        <% prix = Tarif.prix_for(prestation: key.to_s, gamme: "milieu") %>
+        <label class="flex items-start gap-2 p-2.5 bg-white rounded-lg border border-ink/10 cursor-pointer hover:border-accent transition">
+          <%= f.check_box key, class: "mt-0.5 w-4 h-4 accent-accent", data: { action: "change->estimation#updatePreview" } %>
+          <div class="text-xs leading-tight">
+            <div class="font-semibold text-ink"><%= meta[:label] %></div>
+            <% if prix %><div class="text-ink-light">+ <%= number_to_currency(prix, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>/m²</div><% end %>
+          </div>
+        </label>
+      <% end %>
     </div>
   </div>
 </div>

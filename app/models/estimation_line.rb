@@ -16,7 +16,14 @@ class EstimationLine < ApplicationRecord
   # Prestations appliquées sur les MURS → surface = longueur (de mur) × hauteur
   MURS_PRESTATIONS = %w[peinture_murs_reno peinture_murs_neuf placo_cloison].freeze
   # Prestations appliquées sur PLAFOND ou SOL → surface = longueur × largeur
-  PLAFOND_SOL_PRESTATIONS = %w[peinture_plafond placo_plafond parquet_stratifie parquet_contrecolle parquet_massif].freeze
+  PLAFOND_SOL_PRESTATIONS = %w[peinture_plafond peinture_plafond_neuf placo_plafond parquet_stratifie parquet_contrecolle parquet_massif].freeze
+
+  # Suppléments (options €/m²) proposés selon le métier. Prix dans la table Tarif
+  # (prestation = clé du supplément, gamme "milieu"), éditables dans /admin/tarifs.
+  SUPPLEMENTS = {
+    poncage:           { label: "Ponçage + vitrification",            metiers: %w[parquet] },
+    depose_evacuation: { label: "Dépose & évacuation ancien revêtement", metiers: %w[parquet] }
+  }.freeze
 
   validates :piece, presence: true
   validates :prestation, presence: true, inclusion: { in: Tarif::PRESTATIONS.keys }
@@ -69,6 +76,28 @@ class EstimationLine < ApplicationRecord
     TYPES_PIECE.dig(type_piece, :coef) || 1.0
   end
 
+  def metier
+    Tarif::PRESTATIONS.dig(prestation, :categorie)
+  end
+
+  # Suppléments disponibles pour le métier de cette ligne (pour le formulaire).
+  def self.supplements_pour(metier)
+    SUPPLEMENTS.select { |_k, v| v[:metiers].include?(metier) }
+  end
+
+  # Suppléments cochés sur cette ligne, avec leur prix/m² (depuis Tarif).
+  def supplements_actifs
+    SUPPLEMENTS.keys.select { |k| public_send(k) }
+  end
+
+  def options_actives
+    supplements_actifs.map { |k| SUPPLEMENTS[k][:label] }
+  end
+
+  def prix_supplements_m2
+    supplements_actifs.sum { |k| (Tarif.prix_for(prestation: k.to_s, gamme: "milieu") || 0).to_d }
+  end
+
   private
 
   def calculer_surface_depuis_dimensions
@@ -79,7 +108,8 @@ class EstimationLine < ApplicationRecord
 
   def calculer_prix
     return if prestation.blank? || gamme.blank?
-    self.prix_unitaire = (Tarif.prix_for(prestation: prestation, gamme: gamme) || 0).to_d.round(2)
+    base = (Tarif.prix_for(prestation: prestation, gamme: gamme) || 0).to_d
+    self.prix_unitaire = (base + prix_supplements_m2).round(2)
   end
 
   def calculer_total
