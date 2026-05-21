@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_100006) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_21_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -75,20 +75,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_100006) do
   create_table "estimation_lines", force: :cascade do |t|
     t.decimal "coef_applique", precision: 5, scale: 3, default: "1.0"
     t.datetime "created_at", null: false
-    t.boolean "depose_ancien", default: false, null: false
     t.bigint "estimation_id", null: false
     t.string "gamme", null: false
     t.decimal "hauteur", precision: 6, scale: 2
     t.decimal "largeur", precision: 6, scale: 2
     t.decimal "longueur", precision: 6, scale: 2
     t.string "mode_saisie", default: "surface", null: false
-    t.integer "nb_fenetres", default: 0, null: false
-    t.integer "nb_portes", default: 0, null: false
     t.string "piece", null: false
-    t.boolean "preparation_speciale", default: false, null: false
     t.string "prestation", null: false
     t.decimal "prix_unitaire", precision: 10, scale: 2, null: false
-    t.boolean "rebouchage_lourd", default: false, null: false
     t.decimal "surface", precision: 8, scale: 2, null: false
     t.decimal "total", precision: 10, scale: 2, null: false
     t.string "type_piece", default: "autre", null: false

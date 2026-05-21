@@ -1,0 +1,70 @@
+<% content_for :title, "Nos prestations & gammes — Peinture, placo, parquet en Gironde · JF Habitat" %>
+<% content_for :description, "Comprenez ce qui est inclus dans chaque gamme (entrée, milieu, haut) pour la peinture, le placo et le parquet. Tarifs indicatifs au m² — artisan en Gironde." %>
+
+<!-- HERO -->
+<section class="relative bg-ink text-sand overflow-hidden">
+  <div class="absolute inset-0 opacity-25">
+    <%= image_tag stock_photo_url(:services_hero, w: 2200, h: 800), alt: "", loading: "eager", class: "w-full h-full object-cover" %>
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/50 via-ink/45 to-ink"></div>
+  </div>
+  <div class="relative max-w-4xl mx-auto px-6 lg:px-10 py-24 lg:py-32 text-center">
+    <div class="eyebrow text-accent mb-5">Prestations & gammes</div>
+    <h1 class="h-display text-5xl lg:text-6xl text-sand mb-6">
+      Ce qui est inclus<br><em class="text-accent not-italic">dans chaque gamme.</em>
+    </h1>
+    <p class="text-sand/70 text-lg max-w-2xl mx-auto leading-relaxed">
+      Pour chaque prestation, voici concrètement ce que comprend l'entrée, le milieu et le haut de gamme —
+      et le tarif indicatif au m². Vous choisissez en toute transparence.
+    </p>
+  </div>
+</section>
+
+<!-- COMPARATIFS PAR MÉTIER -->
+<%
+  metier_labels = { "peinture" => "Peinture", "placo" => "Placo-plâtre", "parquet" => "Parquet" }
+  gamme_accents = { "entree" => "border-border-warm", "milieu" => "border-accent", "haut" => "border-gold" }
+%>
+<% @prestations_par_metier.each do |metier, prestations| %>
+  <section class="py-16 lg:py-20 <%= metier == 'placo' ? 'bg-cream' : 'bg-sand' %>">
+    <div class="max-w-6xl mx-auto px-6 lg:px-10">
+      <div class="eyebrow mb-3"><%= metier_labels[metier] || metier.capitalize %></div>
+
+      <% prestations.each do |presta| %>
+        <div class="mb-12 last:mb-0">
+          <h2 class="h-display text-2xl lg:text-3xl text-ink mb-6"><%= presta[:label] %></h2>
+          <div class="grid md:grid-cols-3 gap-5">
+            <% Tarif::GAMMES.each do |gkey, gmeta| %>
+              <% tarif = presta[:gammes][gkey] %>
+              <div class="bg-cream rounded-2xl border-2 <%= gamme_accents[gkey] %> p-6 flex flex-col">
+                <div class="flex items-baseline justify-between mb-3">
+                  <span class="font-display text-xl text-ink"><%= gmeta[:label] %></span>
+                  <% if tarif %>
+                    <span class="text-accent font-semibold whitespace-nowrap">dès <%= number_to_currency(tarif.prix_m2, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>/m²</span>
+                  <% end %>
+                </div>
+                <p class="text-ink-soft text-sm leading-relaxed flex-1">
+                  <%= tarif&.description.presence || gmeta[:description] %>
+                </p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<!-- NOTE + CTA -->
+<section class="py-16 bg-ink text-sand">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <p class="text-sand/70 text-sm mb-8 leading-relaxed">
+      Les tarifs indiqués sont des prix de départ au m², à titre indicatif. Le prix final dépend de la
+      surface, du type de pièce et de votre localisation — d'où l'intérêt d'une estimation personnalisée.
+    </p>
+    <div class="eyebrow text-accent mb-4">Votre projet</div>
+    <h2 class="h-display text-3xl lg:text-4xl mb-6">
+      Obtenez votre devis chiffré<br><em class="text-accent not-italic">en 2 minutes.</em>
+    </h2>
+    <%= link_to "Lancer mon estimation", new_estimation_path, class: "btn-primary" %>
+  </div>
+</section>

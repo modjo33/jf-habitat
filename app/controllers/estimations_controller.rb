@@ -91,8 +91,6 @@ class EstimationsController < ApplicationController
       estimation_lines_attributes: [
         :id, :piece, :prestation, :gamme, :type_piece, :mode_saisie,
         :surface, :longueur, :largeur, :hauteur,
-        :nb_portes, :nb_fenetres,
-        :rebouchage_lourd, :depose_ancien, :preparation_speciale,
         :_destroy
       ]
     )

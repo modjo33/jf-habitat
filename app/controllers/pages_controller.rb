@@ -5,6 +5,19 @@ class PagesController < ApplicationController
   def services
   end
 
+  def prestations
+    # Comparatif des gammes par prestation, regroupé par métier.
+    tarifs = Tarif.actifs.to_a
+    @prestations_par_metier = Tarif::PRESTATIONS.group_by { |_k, v| v[:categorie] }.transform_values do |list|
+      list.map do |key, meta|
+        gammes = Tarif::GAMMES.keys.index_with do |g|
+          tarifs.find { |t| t.prestation == key && t.gamme == g }
+        end
+        { key: key, label: meta[:label], gammes: gammes }
+      end
+    end
+  end
+
   def realisations
   end
 
@@ -24,6 +37,7 @@ class PagesController < ApplicationController
     @urls = [
       { loc: root_url,                       priority: 1.0, changefreq: "weekly" },
       { loc: services_url,                   priority: 0.8, changefreq: "monthly" },
+      { loc: prestations_url,                priority: 0.8, changefreq: "monthly" },
       { loc: realisations_url,               priority: 0.8, changefreq: "weekly" },
       { loc: contact_url,                    priority: 0.6, changefreq: "yearly" },
       { loc: new_estimation_url,             priority: 0.9, changefreq: "monthly" },

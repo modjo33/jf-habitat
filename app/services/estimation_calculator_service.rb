@@ -55,16 +55,8 @@ class EstimationCalculatorService
     type_piece = params["type_piece"].presence || "autre"
     base_prix = Tarif.prix_for(prestation: prestation, gamme: gamme) || 0
 
-    # Options
-    coef_options = 0
-    coef_options += 0.20 if truthy?(params["rebouchage_lourd"])
-    coef_options += 0.15 if truthy?(params["depose_ancien"])
-    coef_options += 0.25 if truthy?(params["preparation_speciale"])
-
-    # Coef pièce
     coef_piece = EstimationLine::TYPES_PIECE.dig(type_piece, :coef) || 1.0
-
-    prix_unit = (base_prix.to_d * (1 + coef_options)).round(2)
+    prix_unit = base_prix.to_d.round(2)
     total = (surface.to_d * prix_unit * coef_piece).round(2)
 
     {
@@ -80,36 +72,23 @@ class EstimationCalculatorService
       prix_unitaire: prix_unit.to_f,
       coef_piece: coef_piece,
       total: total.to_f,
-      options: options_actives(params)
+      options: []
     }
   end
 
+  # mode "dimensions" : murs → longueur × hauteur ; sols/plafonds → longueur × largeur
   def calc_surface(params, mode, prestation)
-    if mode == "dimensions"
-      l = params["longueur"].to_f
+    return params["surface"].to_f unless mode == "dimensions"
+
+    l = params["longueur"].to_f
+    if EstimationLine::MURS_PRESTATIONS.include?(prestation)
+      h = params["hauteur"].to_f
+      return 0 if l <= 0 || h <= 0
+      l * h
+    else
       w = params["largeur"].to_f
       return 0 if l <= 0 || w <= 0
-
-      if EstimationLine::MURS_PRESTATIONS.include?(prestation)
-        h = params["hauteur"].to_f
-        return 0 if h <= 0
-        perimetre = 2 * (l + w)
-        brute = perimetre * h
-        deduction = params["nb_portes"].to_i * EstimationLine::SURFACE_PORTE + params["nb_fenetres"].to_i * EstimationLine::SURFACE_FENETRE
-        [brute - deduction, 0].max
-      else
-        l * w
-      end
-    else
-      params["surface"].to_f
-    end
-  end
-
-  def options_actives(params)
-    [].tap do |arr|
-      arr << "Rebouchage lourd"  if truthy?(params["rebouchage_lourd"])
-      arr << "Dépose ancien"     if truthy?(params["depose_ancien"])
-      arr << "Préparation spé."  if truthy?(params["preparation_speciale"])
+      l * w
     end
   end
 

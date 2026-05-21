@@ -89,7 +89,6 @@ export default class extends Controller {
     container.querySelectorAll(".estimation-line").forEach(el => {
       if (el.style.display === "none") return
       const get = sel => el.querySelector(sel)?.value || ""
-      const checked = sel => el.querySelector(sel)?.checked || false
       const modeRadio = el.querySelector('input[name*="[mode_saisie]"]:checked')
       lines.push({
         piece: get('input[name*="[piece]"]'),
@@ -100,12 +99,7 @@ export default class extends Controller {
         surface: get('input[name*="[surface]"]'),
         longueur: get('input[name*="[longueur]"]'),
         largeur: get('input[name*="[largeur]"]'),
-        hauteur: get('input[name*="[hauteur]"]'),
-        nb_portes: get('input[name*="[nb_portes]"]'),
-        nb_fenetres: get('input[name*="[nb_fenetres]"]'),
-        rebouchage_lourd: checked('input[name*="[rebouchage_lourd]"][value="1"]'),
-        depose_ancien: checked('input[name*="[depose_ancien]"][value="1"]'),
-        preparation_speciale: checked('input[name*="[preparation_speciale]"][value="1"]')
+        hauteur: get('input[name*="[hauteur]"]')
       })
     })
     return lines

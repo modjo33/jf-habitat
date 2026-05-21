@@ -1,10 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Gère le toggle surface/dimensions et l'affichage des ouvertures selon la prestation
+// Gère le toggle surface/dimensions et l'affichage des bons champs de dimension
+// selon la prestation : murs → longueur × hauteur ; sols/plafonds → longueur × largeur.
 export default class extends Controller {
-  static targets = ["prestation", "modeRadio", "modeSurface", "modeDimensions", "hauteurWrap", "ouvertures"]
+  static targets = ["prestation", "modeRadio", "modeSurface", "modeDimensions", "largeurWrap", "hauteurWrap", "dimHint"]
 
-  // Prestations pour lesquelles on applique la hauteur + déduction des ouvertures
   static mursPrestations = ["peinture_murs_reno", "peinture_murs_neuf", "placo_cloison"]
 
   connect() {
@@ -25,13 +25,17 @@ export default class extends Controller {
 
   onPrestationChange() {
     if (!this.hasPrestationTarget) return
-    const val = this.prestationTarget.value
-    const isMurs = this.constructor.mursPrestations.includes(val)
-    if (this.hasHauteurWrapTarget) {
-      this.hauteurWrapTarget.style.display = isMurs ? "" : "none"
-    }
-    if (this.hasOuverturesTarget) {
-      this.ouverturesTarget.classList.toggle("hidden", !isMurs)
+    const isMurs = this.constructor.mursPrestations.includes(this.prestationTarget.value)
+
+    // Murs : longueur (de mur) × hauteur → on masque la largeur, on montre la hauteur.
+    // Sols/plafonds : longueur × largeur → l'inverse.
+    if (this.hasLargeurWrapTarget) this.largeurWrapTarget.classList.toggle("hidden", isMurs)
+    if (this.hasHauteurWrapTarget) this.hauteurWrapTarget.classList.toggle("hidden", !isMurs)
+
+    if (this.hasDimHintTarget) {
+      this.dimHintTarget.textContent = isMurs
+        ? "Indiquez la longueur totale de mur à traiter × la hauteur sous plafond."
+        : "Indiquez la longueur × la largeur de la surface au sol / plafond."
     }
   }
 }

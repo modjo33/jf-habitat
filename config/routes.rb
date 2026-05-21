@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   root "pages#home"
   get "/services",    to: "pages#services"
+  get "/prestations", to: "pages#prestations"
   get "/realisations", to: "pages#realisations"
   get "/contact",     to: "pages#contact"
   get "/mentions-legales",             to: "pages#mentions_legales"

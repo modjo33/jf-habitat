@@ -13,21 +13,10 @@ class EstimationLine < ApplicationRecord
 
   MODES_SAISIE = %w[surface dimensions].freeze
 
-  # Prestations appliquées sur les MURS (déduction ouvertures applicable)
+  # Prestations appliquées sur les MURS → surface = longueur (de mur) × hauteur
   MURS_PRESTATIONS = %w[peinture_murs_reno peinture_murs_neuf placo_cloison].freeze
-  # Prestations appliquées sur PLAFOND ou SOL (surface = L × l)
+  # Prestations appliquées sur PLAFOND ou SOL → surface = longueur × largeur
   PLAFOND_SOL_PRESTATIONS = %w[peinture_plafond placo_plafond parquet_stratifie parquet_contrecolle parquet_massif].freeze
-
-  # Surcharges options (% sur prix_m2)
-  OPTIONS_SURCOUT = {
-    rebouchage_lourd:     0.20,
-    depose_ancien:        0.15,
-    preparation_speciale: 0.25
-  }.freeze
-
-  # Déductions standard
-  SURFACE_PORTE   = 2.0  # m² par porte
-  SURFACE_FENETRE = 1.5  # m² par fenêtre
 
   validates :piece, presence: true
   validates :prestation, presence: true, inclusion: { in: Tarif::PRESTATIONS.keys }
@@ -53,14 +42,6 @@ class EstimationLine < ApplicationRecord
     TYPES_PIECE.dig(type_piece, :label) || type_piece
   end
 
-  def options_actives
-    [].tap do |arr|
-      arr << "Rebouchage lourd (+20%)"        if rebouchage_lourd
-      arr << "Dépose ancien revêtement (+15%)" if depose_ancien
-      arr << "Préparation spéciale (+25%)"     if preparation_speciale
-    end
-  end
-
   def prestation_sur_murs?
     MURS_PRESTATIONS.include?(prestation)
   end
@@ -69,24 +50,19 @@ class EstimationLine < ApplicationRecord
     PLAFOND_SOL_PRESTATIONS.include?(prestation)
   end
 
-  # Calcul automatique de la surface à partir de L/l/H pour mode "dimensions"
+  # Calcul de la surface en mode "dimensions" :
+  # - murs        → longueur (de mur) × hauteur
+  # - sols/plafonds → longueur × largeur
   def surface_calculee_depuis_dimensions
     return nil unless mode_saisie == "dimensions"
-    return nil if longueur.blank? || largeur.blank?
 
     if prestation_sur_murs?
-      return nil if hauteur.blank?
-      perimetre = 2 * (longueur.to_d + largeur.to_d)
-      brute = perimetre * hauteur.to_d
-      deduction = (nb_portes.to_i * SURFACE_PORTE) + (nb_fenetres.to_i * SURFACE_FENETRE)
-      [(brute - deduction).round(2), 0].max
+      return nil if longueur.blank? || hauteur.blank?
+      (longueur.to_d * hauteur.to_d).round(2)
     else
+      return nil if longueur.blank? || largeur.blank?
       (longueur.to_d * largeur.to_d).round(2)
     end
-  end
-
-  def coef_options
-    OPTIONS_SURCOUT.sum { |opt, val| send(opt) ? val : 0 }
   end
 
   def coef_type_piece
@@ -103,9 +79,7 @@ class EstimationLine < ApplicationRecord
 
   def calculer_prix
     return if prestation.blank? || gamme.blank?
-    base = Tarif.prix_for(prestation: prestation, gamme: gamme) || 0
-    # prix_m2 ajusté avec options (coef_type_piece et coefs globaux appliqués au niveau Estimation)
-    self.prix_unitaire = (base.to_d * (1 + coef_options)).round(2)
+    self.prix_unitaire = (Tarif.prix_for(prestation: prestation, gamme: gamme) || 0).to_d.round(2)
   end
 
   def calculer_total
