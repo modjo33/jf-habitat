@@ -16,6 +16,6 @@
     "CLOUDINARY_API_SECRET": { "required": true }
   },
   "scripts": {
-    "postdeploy": "bundle exec rails db:prepare"
+    "postdeploy": "bundle exec rails db:migrate"
   }
 }
