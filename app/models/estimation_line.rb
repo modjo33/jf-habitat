@@ -21,7 +21,8 @@ class EstimationLine < ApplicationRecord
   # Suppléments (options €/m²) proposés selon le métier. Prix dans la table Tarif
   # (prestation = clé du supplément, gamme "milieu"), éditables dans /admin/tarifs.
   SUPPLEMENTS = {
-    poncage:           { label: "Ponçage",                            metiers: %w[parquet peinture] },
+    poncage:           { label: "Ponçage + vitrification",            metiers: %w[parquet] },
+    poncage_peinture:  { label: "Ponçage / préparation des supports", metiers: %w[peinture] },
     depose_evacuation: { label: "Dépose & évacuation ancien revêtement", metiers: %w[parquet] }
   }.freeze
 

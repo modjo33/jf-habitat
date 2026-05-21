@@ -12,6 +12,7 @@ namespace :tarifs do
       { prestation: "placo_bandes_enduit", gamme: "haut",   prix_m2: 20, description: "Finition haute qualité, ratissage complet, prêt à décorer" },
       # Suppléments (une seule ligne, gamme "milieu" par convention)
       { prestation: "poncage",           gamme: "milieu", prix_m2: 22, description: "Ponçage + vitrification d'un parquet existant (par m²)" },
+      { prestation: "poncage_peinture",  gamme: "milieu", prix_m2: 8,  description: "Ponçage / préparation des supports avant peinture (par m²)" },
       { prestation: "depose_evacuation", gamme: "milieu", prix_m2: 12, description: "Dépose et évacuation de l'ancien revêtement (par m²)" }
     ]
 

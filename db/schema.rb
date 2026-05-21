@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_21_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_21_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -84,6 +84,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_160000) do
     t.string "mode_saisie", default: "surface", null: false
     t.string "piece", null: false
     t.boolean "poncage", default: false, null: false
+    t.boolean "poncage_peinture", default: false, null: false
     t.string "prestation", null: false
     t.decimal "prix_unitaire", precision: 10, scale: 2, null: false
     t.decimal "surface", precision: 8, scale: 2, null: false

@@ -12,7 +12,8 @@ class Tarif < ApplicationRecord
     "parquet_massif"        => { label: "Parquet massif",                icon: "rectangle_stack", categorie: "parquet" },
     # Suppléments (options) — catégorie "supplement", exclues du choix de prestation,
     # éditables dans /admin/tarifs. Prix/m² ajouté à la ligne quand l'option est cochée.
-    "poncage"               => { label: "Ponçage",                       icon: "sparkles", categorie: "supplement" },
+    "poncage"               => { label: "Ponçage + vitrification (parquet)", icon: "sparkles", categorie: "supplement" },
+    "poncage_peinture"      => { label: "Ponçage / préparation (peinture)",  icon: "sparkles", categorie: "supplement" },
     "depose_evacuation"     => { label: "Dépose & évacuation ancien revêtement", icon: "trash", categorie: "supplement" }
   }.freeze
 
