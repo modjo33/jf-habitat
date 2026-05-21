@@ -1,5 +1,5 @@
-<% content_for :title, "JF Habitat — Peinture, placo, parquet en France · Estimation gratuite en 2 min" %>
-<% content_for :description, "Artisan peintre, plaquiste et parqueteur. Estimation en ligne en 2 minutes : devis détaillé (HT, TVA, TTC + PDF) envoyé dès vos coordonnées renseignées. Sans engagement." %>
+<% content_for :title, "Peintre, plaquiste & parqueteur en Gironde (33) — JF Habitat" %>
+<% content_for :description, "Artisan peinture, placo et parquet à Ayguemorte-les-Graves, en Gironde et sur Bordeaux Métropole. Devis détaillé en ligne en 2 minutes, finitions soignées, sans engagement." %>
 
 <!-- ============================================================ HERO -->
 <section class="relative bg-sand overflow-hidden">
@@ -256,3 +256,85 @@
     </div>
   </div>
 </section>
+
+<!-- ============================================================ ZONE D'INTERVENTION (SEO local) -->
+<%
+  communes = [
+    "Ayguemorte-les-Graves", "Beautiran", "Castres-Gironde", "Saint-Médard-d'Eyrans",
+    "Cadaujac", "La Brède", "Léognan", "Martillac", "Portets", "Isle-Saint-Georges",
+    "Saint-Selve", "Villenave-d'Ornon", "Gradignan", "Cestas", "Canéjan", "Bordeaux"
+  ]
+%>
+<section class="py-24 bg-cream border-t border-border-warm/60">
+  <div class="max-w-5xl mx-auto px-6 lg:px-10 text-center">
+    <div class="eyebrow mb-4">Zone d'intervention</div>
+    <h2 class="h-display text-4xl lg:text-5xl text-ink mb-5">
+      Votre artisan en <em class="text-accent not-italic">Gironde</em> & sur Bordeaux Métropole
+    </h2>
+    <p class="text-ink-soft text-lg max-w-2xl mx-auto mb-10">
+      Basé à <strong>Ayguemorte-les-Graves (33640)</strong>, j'interviens pour vos travaux de
+      peinture, placo et parquet sur tout le sud de la Gironde et l'agglomération bordelaise —
+      en rénovation comme en construction neuve.
+    </p>
+    <div class="flex flex-wrap justify-center gap-2.5 max-w-3xl mx-auto">
+      <% communes.each do |ville| %>
+        <span class="inline-block bg-sand-dark/70 border border-border-warm rounded-full px-4 py-1.5 text-sm text-ink-soft"><%= ville %></span>
+      <% end %>
+    </div>
+    <p class="text-ink-light text-sm mt-8">
+      Votre commune n'est pas listée ? <%= link_to "Contactez-nous", contact_path, class: "text-accent font-semibold hover:underline" %> — j'interviens dans toute la Gironde (33).
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ FAQ (SEO + featured snippets) -->
+<%
+  faqs = [
+    ["Dans quelles villes intervenez-vous ?",
+     "Basé à Ayguemorte-les-Graves, j'interviens dans tout le sud de la Gironde et sur Bordeaux Métropole : La Brède, Léognan, Cadaujac, Villenave-d'Ornon, Gradignan, Cestas, Bordeaux et les communes alentour."],
+    ["Le devis est-il gratuit ?",
+     "Oui, totalement. Vous obtenez une estimation détaillée en ligne en 2 minutes, puis je me déplace gratuitement pour une visite technique et un devis définitif, sans engagement."],
+    ["Quels types de travaux réalisez-vous ?",
+     "Peinture intérieure et extérieure, placo-plâtre (cloisons, doublages, plafonds) et pose de parquet (stratifié, contrecollé, massif), aussi bien en rénovation qu'en construction neuve."],
+    ["Quels sont vos tarifs indicatifs ?",
+     "À titre indicatif : peinture dès 18 €/m², parquet dès 30 €/m², placo dès 50 €/m². Le prix exact dépend de la surface, de la gamme et des finitions — d'où l'estimation personnalisée."],
+    ["Intervenez-vous en rénovation et en neuf ?",
+     "Oui, les deux. Que ce soit pour rafraîchir un logement existant ou aménager une construction neuve, je m'adapte à votre projet."],
+    ["Êtes-vous assuré ?",
+     "Oui, tous mes chantiers sont couverts par une garantie décennale. Vous travaillez avec un artisan déclaré et assuré."],
+    ["Quels délais pour mes travaux ?",
+     "Après la signature du devis, je vous communique un planning précis et je m'engage à le respecter. Les délais dépendent de l'ampleur du chantier."],
+    ["Comment obtenir une estimation rapidement ?",
+     "Utilisez l'estimateur en ligne : indiquez vos pièces, surfaces et la gamme souhaitée, puis vos coordonnées — vous recevez un devis détaillé immédiatement."]
+  ]
+%>
+<section class="py-24 bg-sand">
+  <div class="max-w-3xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-12">
+      <div class="eyebrow mb-4">Questions fréquentes</div>
+      <h2 class="h-display text-4xl lg:text-5xl text-ink">Tout ce qu'il faut savoir</h2>
+    </div>
+    <div class="space-y-3">
+      <% faqs.each do |question, answer| %>
+        <details class="group card-premium p-6">
+          <summary class="flex items-center justify-between cursor-pointer list-none">
+            <span class="font-display text-lg text-ink pr-4"><%= question %></span>
+            <svg class="w-5 h-5 text-accent shrink-0 transition-transform group-open:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+          </summary>
+          <p class="text-ink-soft leading-relaxed mt-4"><%= answer %></p>
+        </details>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%# FAQPage schema (rich results / featured snippets) %>
+<script type="application/ld+json">
+<%= raw({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map { |q, a| { "@type": "Question", "name": q, "acceptedAnswer": { "@type": "Answer", "text": a } } }
+}.to_json) %>
+</script>

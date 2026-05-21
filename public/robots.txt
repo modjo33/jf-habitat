@@ -3,6 +3,5 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /admin/
-Disallow: /ai_analyses/
 
-Sitemap: https://jfhabitat.fr/sitemap.xml
+Sitemap: https://www.jfhabitat.fr/sitemap.xml

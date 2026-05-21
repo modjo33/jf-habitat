@@ -1,6 +1,6 @@
 <%# Open Graph & Twitter Card %>
-<% page_title       = content_for?(:title)       ? content_for(:title)       : "JF Habitat — Estimation gratuite de vos travaux peinture, placo & parquet" %>
-<% page_description = content_for?(:description) ? content_for(:description) : "Estimez gratuitement vos travaux de peinture, placo et parquet. Saisie en 2 minutes, devis détaillé (HT, TVA, TTC + PDF) envoyé dès vos coordonnées renseignées." %>
+<% page_title       = content_for?(:title)       ? content_for(:title)       : "Peintre, plaquiste & parqueteur en Gironde (33) — JF Habitat" %>
+<% page_description = content_for?(:description) ? content_for(:description) : "Artisan peinture, placo et parquet à Ayguemorte-les-Graves, en Gironde et sur Bordeaux Métropole. Devis détaillé en ligne en 2 minutes, finitions soignées." %>
 <% page_url         = request.original_url %>
 <% og_image         = content_for?(:og_image) ? content_for(:og_image) : "#{request.base_url}/og-image.png" %>
 
@@ -19,26 +19,40 @@
 
 <link rel="canonical" href="<%= page_url.split('?').first %>">
 
-<%# Schema.org LocalBusiness — placeholders à remplacer avec infos Johan %>
+<%# Schema.org LocalBusiness (référencement local Gironde / Bordeaux) %>
 <script type="application/ld+json">
 <%= raw({
   "@context": "https://schema.org",
   "@type": "HomeAndConstructionBusiness",
+  "@id": "https://www.jfhabitat.fr/#business",
   "name": "JF Habitat",
-  "description": "Artisan peintre, plaquiste et parqueteur. Travaux de rénovation et construction neuve.",
-  "url": "https://jfhabitat.fr",
+  "description": "Artisan peintre, plaquiste et parqueteur à Ayguemorte-les-Graves. Travaux de peinture, placo-plâtre et parquet en Gironde et sur Bordeaux Métropole, en rénovation comme en neuf.",
+  "url": "https://www.jfhabitat.fr",
   "telephone": ENV.fetch("BUSINESS_PHONE", "+33-X-XX-XX-XX-XX"),
   "email": ENV.fetch("BUSINESS_EMAIL", "contact@jfhabitat.fr"),
   "image": "#{request.base_url}/og-image.png",
   "priceRange": "€€",
+  "currenciesAccepted": "EUR",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": ENV.fetch("BUSINESS_STREET", "À compléter"),
     "addressLocality": ENV.fetch("BUSINESS_CITY", "À compléter"),
     "postalCode": ENV.fetch("BUSINESS_POSTAL_CODE", "00000"),
+    "addressRegion": "Gironde",
     "addressCountry": "FR"
   },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 44.7089,
+    "longitude": -0.5483
+  },
   "areaServed": ENV.fetch("BUSINESS_AREA", "France").split(",").map(&:strip),
+  "knowsAbout": [ "Peinture intérieure et extérieure", "Placo-plâtre et cloisons", "Pose de parquet", "Rénovation", "Isolation" ],
+  "makesOffer": [
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Peinture intérieure et extérieure", "areaServed": "Gironde" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Placo-plâtre, cloisons et plafonds", "areaServed": "Gironde" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Pose et rénovation de parquet", "areaServed": "Gironde" } }
+  ],
   "openingHoursSpecification": [
     {
       "@type": "OpeningHoursSpecification",
