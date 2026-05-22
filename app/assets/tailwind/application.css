@@ -94,4 +94,54 @@
     @apply font-display font-medium leading-[1.05];
     font-variation-settings: "opsz" 144, "SOFT" 100;
   }
+
+  /* ---- Wizard d'estimation (façon Typeform) ---- */
+  .wizard-shell {
+    @apply min-h-screen flex flex-col bg-sand;
+  }
+  .wizard-topbar {
+    @apply sticky top-0 z-30 flex items-center px-5 lg:px-8 py-3 bg-sand/90 backdrop-blur border-b border-border-warm/60;
+  }
+  .wizard-stage {
+    @apply flex-1 flex items-center justify-center px-5 lg:px-8 py-12;
+  }
+  .wizard-step {
+    @apply w-full max-w-2xl mx-auto flex flex-col items-center text-center;
+    animation: fade-up 0.4s ease both;
+  }
+  .wizard-eyebrow {
+    @apply inline-block text-xs font-bold uppercase text-accent mb-3;
+    letter-spacing: 0.18em;
+  }
+  .wizard-question {
+    @apply font-display text-3xl lg:text-4xl text-ink mb-8 leading-tight;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+  .wizard-cards {
+    @apply grid sm:grid-cols-2 gap-3 w-full max-w-lg;
+  }
+  .wizard-cards-grid {
+    @apply sm:grid-cols-3;
+  }
+  .wizard-card {
+    @apply flex flex-col items-center gap-1 p-5 bg-cream border-2 border-border-warm rounded-xl text-center transition-all hover:border-accent/60 hover:-translate-y-0.5;
+  }
+  .wizard-card[data-selected="true"] {
+    @apply border-accent bg-accent/5 shadow-card;
+  }
+  .wizard-card-title {
+    @apply font-semibold text-ink;
+  }
+  .wizard-card-sub {
+    @apply text-xs text-ink-light;
+  }
+  .wizard-error {
+    @apply mt-4 text-sm font-semibold text-red-700;
+  }
+  /* Montants du devis floutés tant que les coordonnées ne sont pas saisies */
+  .devis-blur {
+    filter: blur(7px);
+    user-select: none;
+    pointer-events: none;
+  }
 }

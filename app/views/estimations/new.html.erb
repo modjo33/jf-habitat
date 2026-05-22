@@ -1,189 +1,407 @@
+<% content_for :fullscreen, true %>
 <% content_for :title, "Estimation gratuite peinture, placo, parquet en Gironde — JF Habitat" %>
-<% content_for :description, "Estimez gratuitement vos travaux de peinture, placo ou parquet en Gironde. Devis détaillé en 2 minutes, sans engagement. Artisan JF Habitat (Ayguemorte-les-Graves, 33)." %>
+<% content_for :description, "Estimez gratuitement vos travaux de peinture, placo ou parquet en Gironde. Devis détaillé en quelques questions, sans engagement. Artisan JF Habitat (Ayguemorte-les-Graves, 33)." %>
 
-<section class="relative bg-ink overflow-hidden">
-  <div class="absolute inset-0 opacity-25">
-    <%= image_tag stock_photo_url(:estimation_hero, w: 2000, h: 800),
-          alt: "",
-          loading: "eager",
-          class: "w-full h-full object-cover" %>
-    <div class="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/50 to-ink"></div>
-  </div>
-  <div class="relative max-w-4xl mx-auto px-6 lg:px-10 pt-20 pb-32 text-center text-sand">
-    <div class="eyebrow text-accent mb-5"><%= site_text("estimation_new.hero.eyebrow", "Estimation en ligne") %></div>
-    <h1 class="h-display text-4xl lg:text-6xl text-sand mb-5">
-      <%= site_text("estimation_new.hero.title", "Construisons votre estimation.") %>
-    </h1>
-    <p class="text-sand/70 text-lg max-w-xl mx-auto"><%= site_text("estimation_new.hero.body", "Dimensions précises, options, déductions d'ouvertures. L'estimation s'ajuste en temps réel.") %></p>
-  </div>
-</section>
+<%
+  types_piece = EstimationLine::TYPES_PIECE.map { |k, v| [k, v[:label]] }
+  gammes = [
+    ["entree", "Entrée de gamme", "Finitions standards, matériaux courants"],
+    ["milieu", "Milieu de gamme", "Bon rapport qualité-prix, finitions soignées"],
+    ["haut",   "Haut de gamme",   "Matériaux premium, finitions impeccables"]
+  ]
+  travaux = [
+    ["peinture_murs",       "Peinture des murs"],
+    ["peinture_plafond",    "Peinture du plafond"],
+    ["placo_cloison",       "Cloison placo"],
+    ["placo_plafond",       "Plafond placo"],
+    ["placo_bandes_enduit", "Bandes & enduit"],
+    ["parquet_stratifie",   "Parquet stratifié"],
+    ["parquet_contrecolle", "Parquet contrecollé"],
+    ["parquet_massif",      "Parquet massif"]
+  ]
+  # Précisions (valeurs = libellés, compilées dans le message du lead)
+  etats     = ["Surfaces saines", "Quelques reprises (trous, fissures)", "Dégradées (humidité, anciennes couches à retirer)"]
+  peintures = ["Mate", "Velours", "Satin", "Lessivable (cuisine, salle de bain)"]
+  teintes   = ["Une seule teinte", "Plusieurs teintes"]
+  sols      = ["Sol nu / béton", "Ancien parquet", "Carrelage", "Moquette"]
+  occupes   = ["Logement occupé", "Logement vide"]
+  meubles   = ["Pas de meubles à déplacer", "Je m'occupe des meubles", "Meubles à protéger / déplacer par vos soins"]
+  ouinon    = ["Oui", "Non"]
+  profils   = ["Propriétaire", "Locataire", "Professionnel / bailleur"]
+  sources   = ["Bouche-à-oreille", "Recherche Google", "Réseaux sociaux", "J'ai déjà fait appel à vous", "Autre"]
+%>
 
-<section class="-mt-16 pb-24">
-  <div class="max-w-6xl mx-auto px-6 lg:px-10">
-    <%= form_with model: @estimation, url: estimation_path, method: :post, multipart: true, data: { controller: "estimation", estimation_target: "form" }, class: "grid lg:grid-cols-3 gap-8" do |f| %>
+<%= form_with model: @estimation, url: estimation_path, method: :post, multipart: true,
+      data: { controller: "wizard", action: "keydown->wizard#onKeydown" },
+      class: "wizard-shell" do |f| %>
 
-      <div class="lg:col-span-2 space-y-6">
+  <!-- Barre de progression -->
+  <header class="wizard-topbar">
+    <a href="<%= root_path %>" class="font-display text-lg text-ink">JF&nbsp;Habitat</a>
+    <div class="flex-1 mx-4 h-1.5 bg-sand-dark rounded-full overflow-hidden">
+      <div data-wizard-target="progressBar" class="h-full bg-accent rounded-full transition-all duration-300" style="width:0%"></div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span data-wizard-target="progressText" class="text-xs text-ink-light tabular-nums"></span>
+      <button type="button" data-wizard-target="back" data-action="wizard#prev"
+              class="text-sm font-semibold text-ink-soft hover:text-accent transition">← Retour</button>
+    </div>
+  </header>
 
-        <!-- Type de chantier + Étage -->
-        <div class="card-premium p-6 lg:p-8">
-          <h2 class="font-display text-2xl font-bold text-ink mb-1">Votre chantier</h2>
-          <p class="text-ink-light text-sm mb-5">Informations générales.</p>
+  <!-- Lignes assemblées (injectées par le contrôleur) + champs cachés -->
+  <div data-wizard-target="lines" class="hidden"></div>
 
-          <div class="grid md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="label-field">Type de chantier</label>
-              <div class="grid grid-cols-2 gap-2">
-                <% Estimation::TYPES_CHANTIER.each do |key, label| %>
-                  <label class="relative cursor-pointer">
-                    <%= f.radio_button :type_chantier, key, class: "peer sr-only", checked: key == "renovation" %>
-                    <div class="p-3 border-2 border-ink/10 rounded-lg text-center transition peer-checked:border-accent peer-checked:bg-accent/5 hover:border-accent/40 text-sm font-semibold"><%= label %></div>
-                  </label>
-                <% end %>
-              </div>
-            </div>
-            <div>
-              <%= f.label :etage, "Étage", class: "label-field" %>
-              <%= f.number_field :etage, min: 0, max: 30, step: 1, placeholder: "0", class: "input-field", data: { action: "input->estimation#updatePreview" } %>
-            </div>
+  <main class="wizard-stage">
+
+    <!-- 1 · Type de chantier -->
+    <section class="wizard-step" data-wizard-target="step" data-step="type_chantier" data-validate="card">
+      <div class="wizard-eyebrow">Votre projet</div>
+      <h2 class="wizard-question">Quel type de chantier ?</h2>
+      <div data-card-group data-auto-advance="true" class="wizard-cards">
+        <%= f.hidden_field :type_chantier, value: "" %>
+        <button type="button" data-card data-value="renovation" data-action="wizard#selectCard" class="wizard-card">
+          <span class="wizard-card-title">Rénovation</span>
+          <span class="wizard-card-sub">Logement existant à rénover</span>
+        </button>
+        <button type="button" data-card data-value="neuf" data-action="wizard#selectCard" class="wizard-card">
+          <span class="wizard-card-title">Construction neuve</span>
+          <span class="wizard-card-sub">Logement neuf ou support neuf</span>
+        </button>
+      </div>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+
+    <!-- 2 · Accès -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="acces">
+      <div class="wizard-eyebrow">Accès au chantier</div>
+      <h2 class="wizard-question">À quel étage se situe le chantier ?</h2>
+      <div class="max-w-xs">
+        <%= f.number_field :etage, value: 0, min: 0, max: 29, step: 1,
+              class: "input-field text-center text-xl", placeholder: "0" %>
+        <p class="text-xs text-ink-light mt-1.5">0 = rez-de-chaussée</p>
+      </div>
+      <div data-card-group data-auto-advance="false" class="wizard-cards mt-6">
+        <%= f.hidden_field :ascenseur, value: "true" %>
+        <button type="button" data-card data-value="true" data-selected="true" data-action="wizard#selectCard" class="wizard-card">
+          <span class="wizard-card-title">Ascenseur ou RDC</span>
+        </button>
+        <button type="button" data-card data-value="false" data-action="wizard#selectCard" class="wizard-card">
+          <span class="wizard-card-title">Escaliers uniquement</span>
+        </button>
+      </div>
+      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
+    </section>
+
+    <!-- 3 · Nombre de pièces -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="nb_pieces" data-validate="number">
+      <div class="wizard-eyebrow">Votre logement</div>
+      <h2 class="wizard-question">Combien de pièces à traiter ?</h2>
+      <div class="max-w-[10rem]">
+        <%= number_field_tag :nb_pieces, 1, min: 1, max: 12, step: 1,
+              data: { wizard_target: "nbPieces" },
+              class: "input-field text-center text-3xl font-display" %>
+      </div>
+      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+
+    <!-- Écrans pièces (générés dynamiquement) -->
+    <div data-wizard-target="piecesContainer"></div>
+
+    <!-- Précisions chantier (affichées selon les travaux choisis) -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_etat" data-show-when="reno" data-validate="card">
+      <div class="wizard-eyebrow">Le chantier</div>
+      <h2 class="wizard-question">Dans quel état sont les surfaces ?</h2>
+      <div data-card-group data-auto-advance="true" class="wizard-cards">
+        <input type="hidden" name="prec_etat" value="">
+        <% etats.each do |label| %>
+          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
+        <% end %>
+      </div>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_peinture" data-show-when="peinture" data-validate="card">
+      <div class="wizard-eyebrow">Finitions</div>
+      <h2 class="wizard-question">Quel type de peinture souhaitez-vous ?</h2>
+      <div data-card-group data-auto-advance="true" class="wizard-cards">
+        <input type="hidden" name="prec_peinture" value="">
+        <% peintures.each do |label| %>
+          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
+        <% end %>
+      </div>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_teintes" data-show-when="peinture" data-validate="card">
+      <div class="wizard-eyebrow">Finitions</div>
+      <h2 class="wizard-question">Une seule teinte ou plusieurs ?</h2>
+      <div data-card-group data-auto-advance="true" class="wizard-cards">
+        <input type="hidden" name="prec_teintes" value="">
+        <% teintes.each do |label| %>
+          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
+        <% end %>
+      </div>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_sol" data-show-when="parquet" data-validate="card">
+      <div class="wizard-eyebrow">Le chantier</div>
+      <h2 class="wizard-question">Quel revêtement de sol actuel ?</h2>
+      <div data-card-group data-auto-advance="true" class="wizard-cards">
+        <input type="hidden" name="prec_sol" value="">
+        <% sols.each do |label| %>
+          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
+        <% end %>
+      </div>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+
+    <!-- Conditions du chantier (plusieurs réponses, pas d'auto-avance) -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_conditions">
+      <div class="wizard-eyebrow">Conditions du chantier</div>
+      <h2 class="wizard-question">Quelques infos sur le déroulé</h2>
+      <div class="w-full max-w-lg space-y-5 text-left">
+        <div>
+          <label class="label-field">Pendant les travaux, le logement sera…</label>
+          <div data-card-group data-auto-advance="false" class="grid grid-cols-2 gap-2">
+            <input type="hidden" name="prec_occupe" value="">
+            <% occupes.each do |label| %>
+              <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
+            <% end %>
           </div>
-
+        </div>
+        <div>
+          <label class="label-field">Meubles</label>
+          <div data-card-group data-auto-advance="false" class="grid sm:grid-cols-3 gap-2">
+            <input type="hidden" name="prec_meubles" value="">
+            <% meubles.each do |label| %>
+              <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
+            <% end %>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-5">
           <div>
-            <label class="label-field">Accès au chantier</label>
-            <div class="grid grid-cols-2 gap-2">
-              <label class="relative cursor-pointer">
-                <%= f.radio_button :ascenseur, "true", class: "peer sr-only", checked: true, data: { action: "change->estimation#updatePreview" } %>
-                <div class="p-3 border-2 border-ink/10 rounded-lg text-center transition peer-checked:border-accent peer-checked:bg-accent/5 text-sm font-semibold">Ascenseur ou RDC</div>
-              </label>
-              <label class="relative cursor-pointer">
-                <%= f.radio_button :ascenseur, "false", class: "peer sr-only", data: { action: "change->estimation#updatePreview" } %>
-                <div class="p-3 border-2 border-ink/10 rounded-lg text-center transition peer-checked:border-accent peer-checked:bg-accent/5 text-sm font-semibold">Escaliers uniquement</div>
-              </label>
+            <label class="label-field">Hauteur sous plafond &gt; 2,70 m ?</label>
+            <div data-card-group data-auto-advance="false" class="grid grid-cols-2 gap-2">
+              <input type="hidden" name="prec_hauteur" value="">
+              <% ouinon.each do |label| %>
+                <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
+              <% end %>
+            </div>
+          </div>
+          <div>
+            <label class="label-field">Accès & stationnement faciles ?</label>
+            <div data-card-group data-auto-advance="false" class="grid grid-cols-2 gap-2">
+              <input type="hidden" name="prec_acces" value="">
+              <% ouinon.each do |label| %>
+                <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
+              <% end %>
             </div>
           </div>
         </div>
+      </div>
+      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
+    </section>
 
-        <!-- Pièces -->
-        <div class="card-premium p-6 lg:p-8" data-estimation-target="lines">
-          <div class="mb-5">
-            <h2 class="font-display text-2xl font-bold text-ink mb-1">Vos pièces & prestations</h2>
-            <p class="text-ink-light text-sm">Ajoutez une ligne par prestation et par pièce. Vous pouvez saisir directement la surface ou les dimensions L×l×H.</p>
-          </div>
+    <!-- Récap -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="recap" data-recap>
+      <div class="wizard-eyebrow">Récapitulatif</div>
+      <h2 class="wizard-question">Vérifiez votre projet</h2>
+      <p class="text-ink-light mb-6 max-w-lg">Ajustez les options si besoin. Le devis chiffré s'affiche juste après vos coordonnées.</p>
+      <div data-wizard-target="recap" class="w-full max-w-lg"></div>
+      <button type="button" data-action="wizard#next" class="btn-primary mt-6">Continuer</button>
+    </section>
 
-          <div id="lines-container" class="space-y-4">
-            <%= f.fields_for :estimation_lines do |line| %>
-              <%= render "line_fields", f: line %>
+    <!-- Coordonnées (gate) -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="contact" data-validate="contact" data-no-enter>
+      <div class="wizard-eyebrow">Votre devis</div>
+      <h2 class="wizard-question">Votre devis chiffré est prêt</h2>
+
+      <!-- Loader de calcul -->
+      <div data-wizard-target="loader" class="w-full max-w-lg flex flex-col items-center gap-3 py-10">
+        <span class="w-10 h-10 border-[3px] border-accent/30 border-t-accent rounded-full animate-spin"></span>
+        <p class="text-ink-soft font-semibold">Calcul de votre devis en cours…</p>
+      </div>
+
+      <!-- Devis chiffré flouté tant que les coordonnées ne sont pas saisies -->
+      <div data-wizard-target="devisTeaser" class="hidden relative w-full max-w-lg mb-6">
+        <div data-wizard-target="devisRows" class="space-y-2 p-5 bg-cream border border-border-warm rounded-2xl text-left"></div>
+        <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-sand/40 backdrop-blur-[1px]">
+          <span class="text-2xl">🔒</span>
+          <p class="text-ink font-semibold text-center px-6 max-w-xs">Complétez vos coordonnées ci-dessous pour afficher votre devis détaillé.</p>
+        </div>
+      </div>
+
+      <div class="w-full max-w-lg grid sm:grid-cols-2 gap-4 text-left">
+        <div class="sm:col-span-2">
+          <%= f.label :nom, "Nom complet *", class: "label-field" %>
+          <%= f.text_field :nom, placeholder: "Jean Dupont", class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :email, "Email *", class: "label-field" %>
+          <%= f.email_field :email, placeholder: "jean@exemple.fr", class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :telephone, "Téléphone *", class: "label-field" %>
+          <%= f.telephone_field :telephone, placeholder: "06 12 34 56 78", class: "input-field" %>
+        </div>
+        <div class="sm:col-span-2">
+          <%= f.label :adresse, "Adresse du chantier", class: "label-field" %>
+          <%= f.text_field :adresse, placeholder: "12 rue des Lilas", class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :code_postal, "Code postal", class: "label-field" %>
+          <%= f.text_field :code_postal, placeholder: "33640", class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :ville, "Ville", class: "label-field" %>
+          <%= f.text_field :ville, placeholder: "Ayguemorte-les-Graves", class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :delai, "Délai envisagé", class: "label-field" %>
+          <%= f.select :delai, Estimation::DELAIS.map { |k, v| [v, k] }, { include_blank: "Sélectionnez…" }, class: "input-field" %>
+        </div>
+        <div>
+          <label class="label-field">Vous êtes</label>
+          <select name="prec_profil" class="input-field">
+            <option value="">Sélectionnez…</option>
+            <% profils.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="label-field">Comment nous avez-vous connus ?</label>
+          <select name="prec_source" class="input-field">
+            <option value="">Sélectionnez…</option>
+            <% sources.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <%= f.label :message, "Précisions (optionnel)", class: "label-field" %>
+          <%= f.text_area :message, rows: 2, placeholder: "État actuel, contraintes particulières…", class: "input-field" %>
+        </div>
+        <div class="sm:col-span-2">
+          <%= f.label :photos, "Photos du chantier (optionnel)", class: "label-field" %>
+          <%= f.file_field :photos, multiple: true, accept: "image/*",
+                class: "block w-full text-sm text-ink-soft file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent-dark cursor-pointer" %>
+        </div>
+      </div>
+
+      <% if @estimation.errors.any? %>
+        <div class="w-full max-w-lg mt-5 p-4 bg-red-50 border border-red-200 rounded-xl text-left">
+          <div class="font-semibold text-red-800 mb-1">Merci de corriger :</div>
+          <ul class="list-disc list-inside text-sm text-red-700">
+            <% @estimation.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
             <% end %>
-          </div>
+          </ul>
+        </div>
+      <% end %>
 
-          <template id="line-template">
-            <%= f.fields_for :estimation_lines, EstimationLine.new(mode_saisie: "surface", type_piece: "salon"), child_index: "NEW_RECORD" do |line| %>
-              <%= render "line_fields", f: line %>
-            <% end %>
-          </template>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
 
-          <button type="button"
-                  data-action="estimation#addLine"
-                  class="mt-5 w-full py-3.5 border-2 border-dashed border-ink/15 rounded-xl text-ink-soft font-semibold hover:border-accent hover:text-accent transition flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            Ajouter une pièce / prestation
+      <button type="button" data-action="wizard#submitForm" data-wizard-target="submitBtn" class="btn-primary mt-6">
+        Afficher mon devis chiffré
+      </button>
+      <p class="text-xs text-ink-light mt-4 max-w-md leading-relaxed">
+        En soumettant ce formulaire, vous acceptez d'être recontacté par JF Habitat au sujet de votre estimation. Vos données ne sont jamais cédées à des tiers.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- Gabarit d'une pièce (4 écrans) -->
+  <template data-wizard-target="pieceTemplate">
+    <!-- a · type de pièce -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="card">
+      <div class="wizard-eyebrow">Pièce __N__</div>
+      <h2 class="wizard-question">Quel type de pièce ?</h2>
+      <div data-card-group data-auto-advance="true" class="wizard-cards wizard-cards-grid">
+        <input type="hidden" name="piece_type" value="">
+        <% types_piece.each do |key, label| %>
+          <button type="button" data-card data-value="<%= key %>" data-action="wizard#selectCard" class="wizard-card">
+            <span class="wizard-card-title"><%= label %></span>
           </button>
-        </div>
+        <% end %>
+      </div>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
 
-        <!-- Photos -->
-        <div class="card-premium p-6 lg:p-8">
-          <h2 class="font-display text-2xl font-bold text-ink mb-1">Photos du chantier <span class="text-ink-light text-sm font-normal">(optionnel)</span></h2>
-          <p class="text-ink-light text-sm mb-5">Ajoutez des photos pour aider Johan à affiner son devis lors de la visite (max 10 Mo / photo, JPG/PNG/WEBP/HEIC).</p>
-          <%= f.file_field :photos, multiple: true, accept: "image/*", class: "block w-full text-sm text-ink-soft file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent-dark cursor-pointer" %>
-        </div>
+    <!-- b · travaux -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="travaux">
+      <div class="wizard-eyebrow">Pièce __N__</div>
+      <h2 class="wizard-question">Quels travaux dans cette pièce ?</h2>
+      <p class="text-ink-light mb-5">Plusieurs choix possibles.</p>
+      <div class="grid sm:grid-cols-2 gap-3 max-w-lg w-full">
+        <% travaux.each do |val, label| %>
+          <label class="relative cursor-pointer">
+            <input type="checkbox" name="piece_travaux" value="<%= val %>" class="peer sr-only">
+            <span class="block p-4 border-2 border-border-warm rounded-xl text-sm font-semibold text-ink-soft transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:text-ink hover:border-accent/50"><%= label %></span>
+          </label>
+        <% end %>
+      </div>
+      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
 
-        <!-- Coordonnées -->
-        <div class="card-premium p-6 lg:p-8">
-          <div class="flex items-center gap-3 mb-1">
-            <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
-              </svg>
+    <!-- c · dimensions (un bloc par type de surface concerné) -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="dimensions">
+      <div class="wizard-eyebrow">Pièce __N__</div>
+      <h2 class="wizard-question">Dimensions de la pièce</h2>
+      <p class="text-ink-light mb-6 max-w-md">En mètres. La surface en m² est calculée automatiquement.</p>
+
+      <div class="w-full max-w-md space-y-5">
+        <!-- Murs : longueur × hauteur -->
+        <div data-dim-group="murs" class="p-4 bg-cream border border-border-warm rounded-xl text-left">
+          <div class="text-xs font-bold uppercase tracking-wide text-accent mb-3">Murs · longueur × hauteur</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="label-field">Longueur des murs (mL)</label>
+              <input type="number" data-dim="murs_L" min="0.1" step="0.05" placeholder="14.0" class="input-field text-center">
             </div>
             <div>
-              <h2 class="font-display text-2xl font-bold text-ink">Vos coordonnées</h2>
-              <p class="text-ink-light text-sm">Nécessaires pour recevoir votre estimation détaillée.</p>
+              <label class="label-field">Hauteur (m)</label>
+              <input type="number" data-dim="murs_H" min="0.1" step="0.05" placeholder="2.5" class="input-field text-center">
             </div>
           </div>
+          <p class="text-xs text-ink-light mt-2">Longueur cumulée (développé) des murs à traiter.</p>
+        </div>
 
-          <div class="grid md:grid-cols-2 gap-4 mt-5">
-            <div class="md:col-span-2">
-              <%= f.label :nom, "Nom complet *", class: "label-field" %>
-              <%= f.text_field :nom, required: true, placeholder: "Jean Dupont", class: "input-field", id: "estimation_nom" %>
+        <!-- Sol / plafond : longueur × largeur -->
+        <div data-dim-group="sol" class="p-4 bg-cream border border-border-warm rounded-xl text-left">
+          <div class="text-xs font-bold uppercase tracking-wide text-accent mb-3">Sol / plafond · longueur × largeur</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="label-field">Longueur (m)</label>
+              <input type="number" data-dim="sol_L" min="0.1" step="0.05" placeholder="4.0" class="input-field text-center">
             </div>
             <div>
-              <%= f.label :email, "Email *", class: "label-field" %>
-              <%= f.email_field :email, required: true, placeholder: "jean@exemple.fr", class: "input-field", id: "estimation_email" %>
+              <label class="label-field">Largeur (m)</label>
+              <input type="number" data-dim="sol_l" min="0.1" step="0.05" placeholder="3.0" class="input-field text-center">
             </div>
-            <div>
-              <%= f.label :telephone, "Téléphone *", class: "label-field" %>
-              <%= f.telephone_field :telephone, required: true, placeholder: "06 12 34 56 78", class: "input-field", id: "estimation_telephone" %>
-            </div>
-            <div class="md:col-span-2">
-              <%= f.label :adresse, "Adresse du chantier", class: "label-field" %>
-              <%= f.text_field :adresse, placeholder: "12 rue des Lilas", class: "input-field" %>
-            </div>
-            <div>
-              <%= f.label :code_postal, "Code postal", class: "label-field" %>
-              <%= f.text_field :code_postal, placeholder: "63000", class: "input-field", data: { action: "input->estimation#updatePreview" } %>
-            </div>
-            <div>
-              <%= f.label :ville, "Ville", class: "label-field" %>
-              <%= f.text_field :ville, placeholder: "Clermont-Ferrand", class: "input-field" %>
-            </div>
-            <div class="md:col-span-2">
-              <%= f.label :delai, "Délai envisagé", class: "label-field" %>
-              <%= f.select :delai, Estimation::DELAIS.map { |k, v| [v, k] }, { include_blank: "Sélectionnez…" }, class: "input-field" %>
-            </div>
-            <div class="md:col-span-2">
-              <%= f.label :message, "Précisions (optionnel)", class: "label-field" %>
-              <%= f.text_area :message, rows: 3, placeholder: "État actuel, contraintes particulières…", class: "input-field" %>
-            </div>
-          </div>
-
-          <% if @estimation.errors.any? %>
-            <div class="mt-5 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <div class="font-semibold text-red-800 mb-1">Merci de corriger :</div>
-              <ul class="list-disc list-inside text-sm text-red-700">
-                <% @estimation.errors.full_messages.each do |msg| %>
-                  <li><%= msg %></li>
-                <% end %>
-              </ul>
-            </div>
-          <% end %>
-
-          <div class="mt-6 pt-6 border-t border-ink/5 text-xs text-ink-light leading-relaxed">
-            En soumettant ce formulaire, vous acceptez d'être recontacté par JF Habitat au sujet de votre estimation. Vos données ne sont jamais cédées à des tiers.
           </div>
         </div>
       </div>
 
-      <!-- COLONNE RÉCAP -->
-      <div class="lg:col-span-1">
-        <div class="sticky top-28 card-premium p-6 lg:p-7">
-          <div class="eyebrow mb-2">Votre sélection</div>
-          <h3 class="font-display text-xl text-ink mb-5">Récapitulatif</h3>
+      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
 
-          <div id="preview-summary" data-estimation-target="preview">
-            <%= render "preview", preview: { lines: [], surface_totale: 0, count: 0 } %>
-          </div>
-
-          <%= f.submit "Obtenir mon devis chiffré", class: "btn-primary w-full mt-6" %>
-
-          <div class="mt-4 flex items-center justify-center gap-1.5 text-xs text-ink-light text-center leading-snug">
-            <svg class="w-4 h-4 text-sauge shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Le total chiffré apparaît<br>après vos coordonnées
-          </div>
-        </div>
+    <!-- d · gamme -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="card">
+      <div class="wizard-eyebrow">Pièce __N__</div>
+      <h2 class="wizard-question">Niveau de gamme pour cette pièce</h2>
+      <div data-card-group data-auto-advance="true" class="wizard-cards">
+        <input type="hidden" name="piece_gamme" value="">
+        <% gammes.each do |key, label, desc| %>
+          <button type="button" data-card data-value="<%= key %>" data-action="wizard#selectCard" class="wizard-card">
+            <span class="wizard-card-title"><%= label %></span>
+            <span class="wizard-card-sub"><%= desc %></span>
+          </button>
+        <% end %>
       </div>
-    <% end %>
-  </div>
-</section>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+  </template>
+
+<% end %>

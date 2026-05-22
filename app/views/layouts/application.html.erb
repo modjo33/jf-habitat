@@ -29,7 +29,8 @@
   </head>
 
   <body class="font-body bg-sand text-ink antialiased">
-    <%= render "shared/navbar" %>
+    <% fullscreen = content_for?(:fullscreen) %>
+    <%= render "shared/navbar" unless fullscreen %>
 
     <% if notice %>
       <div class="fixed top-24 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-lg shadow-lg animate-slide-in">
@@ -47,7 +48,7 @@
       <%= yield %>
     </main>
 
-    <%= render "shared/footer" %>
+    <%= render "shared/footer" unless fullscreen %>
     <%= render "shared/cookie_banner" %>
   </body>
 </html>
