@@ -53,7 +53,7 @@ gem "prawn-table", "~> 0.2"
 gem "twilio-ruby", "~> 7.0"
 
 # AI features: Claude vision analysis + Gemini image generation
-gem "anthropic", "~> 1.35"
+gem "anthropic", "~> 1.43"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
