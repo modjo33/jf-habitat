@@ -15,6 +15,20 @@ class Admin::ClientsController < Admin::BaseController
     end
   end
 
+  def new
+    @client = Client.new(statut: "nouveau")
+  end
+
+  def create
+    @client = Client.new(client_params)
+    @client.derniere_interaction_at = Time.current
+    if @client.save
+      redirect_to admin_client_path(@client), notice: "Client créé."
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
   def show
     @notes       = @client.client_notes.recent
     @estimations = @client.estimations.order(created_at: :desc)

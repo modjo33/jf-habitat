@@ -1,0 +1,69 @@
+<div class="mb-8">
+  <%= link_to "← Retour aux clients", admin_clients_path, class: "text-sm text-ink-light hover:text-ink" %>
+  <h1 class="h-display text-4xl text-ink mt-3">Nouveau client</h1>
+  <p class="text-ink-light mt-2">Pour un devis manuel ou un contact hors estimateur en ligne.</p>
+</div>
+
+<div class="max-w-2xl">
+  <div class="card-premium p-6">
+    <% if @client.errors.any? %>
+      <div class="mb-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <ul class="list-disc list-inside space-y-1">
+          <% @client.errors.full_messages.each do |msg| %><li><%= msg %></li><% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%= form_with model: @client, url: admin_clients_path, method: :post, class: "space-y-4" do |f| %>
+      <div>
+        <%= f.label :nom, "Nom du client", class: "label-field" %>
+        <%= f.text_field :nom, placeholder: "SCI Jomero, M. Dupont…", class: "input-field", required: true, autofocus: true %>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :telephone, "Téléphone", class: "label-field" %>
+          <%= f.telephone_field :telephone, placeholder: "06 12 34 56 78", class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :email, "Email (facultatif)", class: "label-field" %>
+          <%= f.email_field :email, class: "input-field" %>
+        </div>
+      </div>
+      <p class="text-xs text-ink-light -mt-2">Renseigne au moins un moyen de contact (téléphone ou email).</p>
+
+      <div>
+        <%= f.label :statut, "Statut commercial", class: "label-field" %>
+        <%= f.select :statut, Client::STATUTS.map { |k, v| [v, k] }, {}, class: "input-field" %>
+      </div>
+
+      <div>
+        <%= f.label :adresse, "Adresse", class: "label-field" %>
+        <%= f.text_field :adresse, class: "input-field" %>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <div><%= f.label :code_postal, "CP", class: "label-field" %><%= f.text_field :code_postal, class: "input-field" %></div>
+        <div class="col-span-2"><%= f.label :ville, "Ville", class: "label-field" %><%= f.text_field :ville, class: "input-field" %></div>
+      </div>
+
+      <div>
+        <%= f.label :prochaine_action, "Prochaine action", class: "label-field" %>
+        <%= f.text_field :prochaine_action, placeholder: "Relancer pour l'accord, planifier le chantier…", class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :prochaine_action_date, "Échéance", class: "label-field" %>
+        <%= f.date_field :prochaine_action_date, class: "input-field" %>
+      </div>
+
+      <div>
+        <%= f.label :notes_internes, "Notes", class: "label-field" %>
+        <%= f.text_area :notes_internes, rows: 4, class: "input-field", placeholder: "Détails du devis manuel, montant, contexte…" %>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <%= link_to "Annuler", admin_clients_path, class: "btn-ghost text-xs px-5 py-2.5" %>
+        <%= f.submit "Créer le client", class: "btn-primary text-xs px-6 py-2.5" %>
+      </div>
+    <% end %>
+  </div>
+</div>

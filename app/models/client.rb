@@ -12,7 +12,9 @@ class Client < ApplicationRecord
   has_many :client_notes, dependent: :destroy
 
   validates :nom,    presence: true, length: { minimum: 2, maximum: 120 }
-  validates :email,  presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
+  # Email optionnel : un client créé à la main (devis manuel, bouche-à-oreille) peut
+  # n'avoir qu'un téléphone. Reste unique + au bon format quand il est renseigné.
+  validates :email,  uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :statut, inclusion: { in: STATUTS.keys }
   validates :telephone, format: { with: /\A(\+33|0)[1-9](\d{2}){4}\z/, message: "doit être un numéro français valide" }, allow_blank: true
 

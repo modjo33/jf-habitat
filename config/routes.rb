@@ -20,7 +20,7 @@ Rails.application.routes.draw do
     resources :tarifs, except: :show
     resources :estimations, only: [:index, :show, :update, :destroy]
 
-    resources :clients, only: [:index, :show, :update] do
+    resources :clients, only: [:index, :show, :update, :new, :create] do
       collection { get :kanban }
       resources :notes, only: [:create, :destroy], controller: "client_notes"
     end
