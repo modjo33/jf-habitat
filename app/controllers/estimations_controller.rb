@@ -31,6 +31,11 @@ class EstimationsController < ApplicationController
       LeadMailer.nouveau_lead(@estimation).deliver_later
       LeadMailer.confirmation_client(@estimation).deliver_later
       SmsNotificationService.notify_new_lead(@estimation)
+      # Signale la conversion (lead) à la page de confirmation — fire une seule fois via le flash,
+      # donc pas de double comptage si le client recharge / revient sur son devis plus tard.
+      flash[:lead_converted] = true
+      flash[:lead_value] = @estimation.total_ttc.to_f
+      flash[:lead_reference] = @estimation.reference
       redirect_to estimation_path(reference: @estimation.reference)
     else
       @estimation.estimation_lines.build(mode_saisie: "surface", type_piece: "salon") if @estimation.estimation_lines.empty?

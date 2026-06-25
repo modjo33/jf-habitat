@@ -151,3 +151,17 @@
     </div>
   </div>
 </section>
+
+<%# Conversion GA4 — déclenchée une seule fois, juste après la soumission (flag flash).
+    gtag n'existe que si le visiteur a accepté les cookies (cf. _analytics.html.erb). %>
+<% if flash[:lead_converted] %>
+  <script>
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'generate_lead', {
+        currency: 'EUR',
+        value: <%= flash[:lead_value].to_f %>,
+        transaction_id: '<%= j flash[:lead_reference].to_s %>'
+      });
+    }
+  </script>
+<% end %>
