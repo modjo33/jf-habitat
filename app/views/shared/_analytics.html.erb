@@ -5,8 +5,8 @@
 
 <% if Rails.env.production? && has_consent %>
   <% if ga4_id.present? %>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= ga4_id %>"></script>
-    <script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= ga4_id %>" nonce="<%= content_security_policy_nonce %>"></script>
+    <script nonce="<%= content_security_policy_nonce %>">
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
@@ -15,7 +15,7 @@
   <% end %>
 
   <% if meta_id.present? %>
-    <script>
+    <script nonce="<%= content_security_policy_nonce %>">
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
