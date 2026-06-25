@@ -22,6 +22,22 @@
   <% end %>
 </div>
 
+<div class="grid md:grid-cols-2 gap-4 mb-10">
+  <div class="card-premium p-6 flex items-center justify-between">
+    <div>
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Devis acceptés</div>
+      <div class="font-display text-3xl mt-2 text-ink"><%= @nb_devis_acceptes %></div>
+      <div class="text-xs text-ink-light mt-1">clients passés en « Gagné »</div>
+    </div>
+    <%= link_to "Voir →", admin_clients_path(statut: "gagne"), class: "text-sm text-accent font-semibold hover:underline shrink-0" %>
+  </div>
+  <div class="card-premium p-6 bg-ink text-sand border-ink">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">CA gagné</div>
+    <div class="font-display text-3xl mt-2 text-sand"><%= number_to_currency(@ca_gagne, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
+    <div class="text-xs text-sand/60 mt-1">devis acceptés (estimateur + manuels)</div>
+  </div>
+</div>
+
 <div class="card-premium p-7">
   <div class="flex items-center justify-between mb-6">
     <h2 class="font-display text-2xl text-ink">Derniers leads</h2>

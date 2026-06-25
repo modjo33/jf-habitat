@@ -88,6 +88,12 @@
         </div>
 
         <div>
+          <%= f.label :montant_devis_manuel, "Montant du devis (€)", class: "label-field" %>
+          <%= f.text_field :montant_devis_manuel, placeholder: "ex : 979,80", class: "input-field" %>
+          <p class="text-xs text-ink-light mt-1">Pour un devis fait à la main (hors estimateur).</p>
+        </div>
+
+        <div>
           <%= f.label :prochaine_action, "Prochaine action", class: "label-field" %>
           <%= f.text_field :prochaine_action, placeholder: "Rappeler · envoyer devis · visite chantier…", class: "input-field" %>
         </div>

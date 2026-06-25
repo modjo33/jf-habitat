@@ -55,7 +55,7 @@ class Admin::ClientsController < Admin::BaseController
   def client_params
     params.require(:client).permit(
       :nom, :email, :telephone, :adresse, :code_postal, :ville,
-      :statut, :notes_internes, :prochaine_action, :prochaine_action_date
+      :statut, :montant_devis_manuel, :notes_internes, :prochaine_action, :prochaine_action_date
     )
   end
 end

@@ -43,8 +43,15 @@ class Client < ApplicationRecord
     STATUTS[statut] || statut.to_s
   end
 
+  # Accepte un montant saisi à la française ("979,80") en plus du format décimal.
+  def montant_devis_manuel=(val)
+    val = val.to_s.tr(",", ".").strip if val.is_a?(String)
+    super(val.presence)
+  end
+
+  # Valeur totale des devis du client = devis manuel éventuel + estimations en ligne.
   def total_devis_envoyes
-    estimations.sum(:total_ttc)
+    (montant_devis_manuel || 0) + estimations.sum(:total_ttc)
   end
 
   def a_relancer?

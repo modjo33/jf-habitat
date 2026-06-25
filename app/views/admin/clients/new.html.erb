@@ -32,9 +32,15 @@
       </div>
       <p class="text-xs text-ink-light -mt-2">Renseigne au moins un moyen de contact (téléphone ou email).</p>
 
-      <div>
-        <%= f.label :statut, "Statut commercial", class: "label-field" %>
-        <%= f.select :statut, Client::STATUTS.map { |k, v| [v, k] }, {}, class: "input-field" %>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :statut, "Statut commercial", class: "label-field" %>
+          <%= f.select :statut, Client::STATUTS.map { |k, v| [v, k] }, {}, class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :montant_devis_manuel, "Montant du devis (€)", class: "label-field" %>
+          <%= f.text_field :montant_devis_manuel, placeholder: "ex : 979,80", class: "input-field" %>
+        </div>
       </div>
 
       <div>

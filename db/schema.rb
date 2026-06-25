@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_25_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_25_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -59,6 +59,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_200000) do
     t.datetime "derniere_interaction_at"
     t.string "email"
     t.string "nom", null: false
+    t.decimal "montant_devis_manuel", precision: 10, scale: 2
     t.text "notes_internes"
     t.text "prochaine_action"
     t.date "prochaine_action_date"
