@@ -152,16 +152,12 @@
   </div>
 </section>
 
-<%# Conversion GA4 — déclenchée une seule fois, juste après la soumission (flag flash).
-    gtag n'existe que si le visiteur a accepté les cookies (cf. _analytics.html.erb). %>
+<%# Conversion GA4 (lead) — données posées dans le DOM, l'event est envoyé par
+    application.js sur turbo:load. On NE met PAS de <script> inline ici : après une
+    navigation Turbo (soumission du form → redirect), il est bloqué par la CSP à nonce. %>
 <% if flash[:lead_converted] %>
-  <script nonce="<%= content_security_policy_nonce %>">
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', 'generate_lead', {
-        currency: 'EUR',
-        value: <%= flash[:lead_value].to_f %>,
-        transaction_id: '<%= j flash[:lead_reference].to_s %>'
-      });
-    }
-  </script>
+  <div id="lead-conversion-data"
+       data-value="<%= flash[:lead_value].to_f %>"
+       data-reference="<%= flash[:lead_reference] %>"
+       hidden></div>
 <% end %>
