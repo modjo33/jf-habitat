@@ -18,5 +18,7 @@ class Admin::DashboardController < Admin::BaseController
     calcul = CalculDeclarations.new
     precedent = calcul.trimestre_precedent
     @prochaine_declaration = precedent.a_declarer? ? precedent : calcul.trimestre_courant
+
+    @campagne = CampagneAds.instance
   end
 end

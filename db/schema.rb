@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_07_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_090000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "campagne_ads", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.decimal "budget_total", precision: 10, scale: 2, default: "900.0"
+    t.decimal "cout_journalier", precision: 8, scale: 2, default: "20.0"
+    t.datetime "created_at", null: false
+    t.decimal "depense_cumulee", precision: 10, scale: 2, default: "0.0"
+    t.date "depense_maj_le"
+    t.string "nom", default: "Travaux Gironde Sud"
+    t.datetime "updated_at", null: false
+    t.date "validation_deadline", default: "2026-08-06"
   end
 
   create_table "client_notes", force: :cascade do |t|

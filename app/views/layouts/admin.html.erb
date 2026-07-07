@@ -83,6 +83,24 @@
 
       <div class="flex-1 flex flex-col">
         <main class="flex-1 p-8 overflow-x-hidden">
+          <% if campagne_ads&.alerte? %>
+            <% crit = campagne_ads.niveau == :critique %>
+            <div class="mb-6 px-4 py-3 rounded-lg border flex items-center justify-between gap-4 <%= crit ? 'bg-red-50 border-red-300 text-red-800' : 'bg-accent-soft border-accent/40 text-ink' %>">
+              <div class="text-sm">
+                <span class="font-bold"><%= crit ? '⚠️ Campagne Google Ads — action requise' : '👀 Campagne Google Ads — à surveiller' %></span>
+                <span class="mx-2">·</span>
+                <% if campagne_ads.pourcentage >= 70 %>
+                  Dépense à <strong><%= campagne_ads.pourcentage %> %</strong> du budget
+                  (reste <strong><%= number_to_currency(campagne_ads.budget_restant, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></strong>,
+                  ≈ <%= campagne_ads.jours_budget_restant %> j de diffusion).
+                <% end %>
+                <% if campagne_ads.jours_avant_validation && campagne_ads.jours_avant_validation <= 10 %>
+                  Validation d'annonceur à faire dans <strong><%= campagne_ads.jours_avant_validation %> j</strong> (Kbis Switchloop).
+                <% end %>
+              </div>
+              <%= link_to "Voir →", admin_root_path, class: "text-sm font-semibold shrink-0 hover:underline" %>
+            </div>
+          <% end %>
           <% if notice %>
             <div class="mb-6 bg-sauge-soft border border-sauge/30 text-ink px-4 py-3 rounded-lg"><%= notice %></div>
           <% end %>

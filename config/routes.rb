@@ -25,6 +25,8 @@ Rails.application.routes.draw do
       resources :notes, only: [:create, :destroy], controller: "client_notes"
     end
 
+    patch "campagne-ads", to: "campagne_ads#update", as: :campagne_ads
+
     resources :encaissements, except: [:show]
     get    "declarations",               to: "declarations#index",               as: :declarations
     post   "declarations/marquer",       to: "declarations#marquer_declaree",    as: :marquer_declaration
