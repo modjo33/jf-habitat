@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_25_210000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_07_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,8 +58,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_210000) do
     t.datetime "created_at", null: false
     t.datetime "derniere_interaction_at"
     t.string "email"
-    t.string "nom", null: false
     t.decimal "montant_devis_manuel", precision: 10, scale: 2
+    t.string "nom", null: false
     t.text "notes_internes"
     t.text "prochaine_action"
     t.date "prochaine_action_date"
@@ -71,6 +71,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_210000) do
     t.index ["email"], name: "index_clients_on_email", unique: true
     t.index ["prochaine_action_date"], name: "index_clients_on_prochaine_action_date"
     t.index ["statut"], name: "index_clients_on_statut"
+  end
+
+  create_table "declaration_periodes", force: :cascade do |t|
+    t.integer "annee", null: false
+    t.decimal "ca_declare", precision: 10, scale: 2, null: false
+    t.decimal "cotisations_estimees", precision: 10, scale: 2
+    t.datetime "created_at", null: false
+    t.date "declaree_le", null: false
+    t.integer "trimestre", null: false
+    t.datetime "updated_at", null: false
+    t.index ["annee", "trimestre"], name: "index_declaration_periodes_on_annee_and_trimestre", unique: true
+  end
+
+  create_table "encaissements", force: :cascade do |t|
+    t.bigint "client_id"
+    t.datetime "created_at", null: false
+    t.date "date_encaissement", null: false
+    t.string "libelle", null: false
+    t.string "mode_reglement", default: "virement", null: false
+    t.decimal "montant", precision: 10, scale: 2, null: false
+    t.string "reference"
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_encaissements_on_client_id"
+    t.index ["date_encaissement"], name: "index_encaissements_on_date_encaissement"
   end
 
   create_table "estimation_lines", force: :cascade do |t|
@@ -145,6 +169,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_210000) do
     t.index ["position"], name: "index_realisations_on_position"
   end
 
+  create_table "reglage_declarations", force: :cascade do |t|
+    t.decimal "allocation_journaliere", precision: 6, scale: 2, default: "50.15"
+    t.decimal "are_mensuelle", precision: 8, scale: 2, default: "1524.6"
+    t.datetime "created_at", null: false
+    t.date "fin_droits_are"
+    t.decimal "taux_cfp", precision: 4, scale: 2, default: "0.3"
+    t.decimal "taux_cma", precision: 4, scale: 2, default: "0.48"
+    t.decimal "taux_cotisations", precision: 5, scale: 2, default: "21.2"
+    t.datetime "updated_at", null: false
+    t.boolean "versement_liberatoire", default: false, null: false
+  end
+
   create_table "site_texts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description", comment: "Notice pour l'admin : où le texte s'affiche"
@@ -170,6 +206,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_210000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "client_notes", "clients"
+  add_foreign_key "encaissements", "clients"
   add_foreign_key "estimation_lines", "estimations"
   add_foreign_key "estimations", "clients"
 end

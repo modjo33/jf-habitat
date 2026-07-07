@@ -1,0 +1,186 @@
+<% montant = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
+
+<div class="mb-10">
+  <div class="eyebrow mb-2">Compta</div>
+  <h1 class="h-display text-4xl text-ink">Déclarations</h1>
+  <p class="text-ink-light mt-2">Les chiffres à recopier, calculés sur le CA réellement encaissé.</p>
+</div>
+
+<%# ---- URSSAF ---- %>
+<div class="grid md:grid-cols-2 gap-4 mb-10">
+  <% [@trimestre_precedent, @trimestre_courant].each do |t| %>
+    <div class="card-premium p-6 <%= 'bg-ink text-sand border-ink' if t.a_declarer? %>">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] <%= t.a_declarer? ? 'text-accent' : 'text-ink-light' %>">
+            URSSAF · <%= t.libelle %>
+          </div>
+          <div class="font-display text-3xl mt-2 <%= t.a_declarer? ? 'text-sand' : 'text-ink' %>">
+            <%= montant.(t.ca) %>
+          </div>
+          <div class="text-xs mt-1 <%= t.a_declarer? ? 'text-sand/60' : 'text-ink-light' %>">
+            CA encaissé à déclarer · cotisations estimées : <strong><%= montant.(t.cotisations) %></strong>
+          </div>
+        </div>
+        <% if t.en_cours %>
+          <span class="text-xs px-2 py-1 rounded-full bg-sand text-ink-light border border-border-warm shrink-0">En cours</span>
+        <% elsif t.declaree? %>
+          <span class="text-xs px-2 py-1 rounded-full bg-sauge-soft text-ink border border-sauge/30 shrink-0">✓ Déclarée le <%= l t.declaration.declaree_le, format: "%d/%m" %></span>
+        <% elsif t.en_retard? %>
+          <span class="text-xs px-2 py-1 rounded-full bg-accent text-sand shrink-0">⚠ En retard</span>
+        <% end %>
+      </div>
+
+      <div class="mt-4 pt-4 border-t <%= t.a_declarer? ? 'border-sand/15' : 'border-border-warm/60' %> flex items-center justify-between gap-3">
+        <div class="text-xs <%= t.a_declarer? ? 'text-sand/70' : 'text-ink-light' %>">
+          <% if t.en_cours %>
+            Trimestre en cours — à déclarer avant le <strong><%= l t.date_limite, format: "%d/%m/%Y" %></strong>
+          <% else %>
+            Date limite : <strong><%= l t.date_limite, format: "%d/%m/%Y" %></strong>
+            <% if t.a_declarer? %>(dans <%= (t.date_limite - Date.current).to_i %> j)<% end %>
+          <% end %>
+        </div>
+        <% if t.a_declarer? %>
+          <%= button_to "✓ Marquer déclarée", admin_marquer_declaration_path(annee: t.annee, trimestre: t.numero),
+                method: :post, class: "text-xs font-bold bg-accent text-sand px-3 py-2 rounded-lg hover:opacity-90 transition shrink-0",
+                data: { turbo_confirm: "Tu as bien saisi #{montant.(t.ca)} sur autoentrepreneur.urssaf.fr ?" } %>
+        <% end %>
+      </div>
+      <div class="text-[11px] mt-3 <%= t.a_declarer? ? 'text-sand/50' : 'text-ink-light/70' %>">
+        À saisir sur autoentrepreneur.urssaf.fr → « Prestations de services (BIC) » : <strong><%= montant.(t.ca) %></strong>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%# ---- France Travail ---- %>
+<div class="card-premium p-7 mb-10">
+  <div class="flex items-center justify-between mb-1">
+    <h2 class="font-display text-2xl text-ink">France Travail — actualisation</h2>
+    <% unless @reglages.are_active? %>
+      <span class="text-xs px-2 py-1 rounded-full bg-sand text-ink-light border border-border-warm">Droits ARE terminés</span>
+    <% end %>
+  </div>
+  <p class="text-xs text-ink-light mb-6">
+    À l'actualisation (entre le 28 et le 15), réponds « oui » à « avez-vous travaillé ? » et déclare ton CA du mois.
+    <% if @reglages.fin_droits_are %>
+      Fin de droits estimée : <strong><%= l @reglages.fin_droits_are, format: "%d/%m/%Y" %></strong> — chaque jour non indemnisé la repousse d'autant.
+    <% end %>
+  </p>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <% [@mois_precedent, @mois_courant].each_with_index do |m, i| %>
+      <div class="rounded-xl border border-border-warm/60 p-5 <%= 'bg-sand' if i.zero? %>">
+        <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mb-3">
+          <%= m.libelle %> <%= i.zero? ? "· à déclarer à l'actualisation" : "· en cours" %>
+        </div>
+        <table class="w-full text-sm">
+          <tr><td class="py-1 text-ink-light">CA encaissé du mois</td><td class="py-1 text-right font-semibold text-ink"><%= montant.(m.ca) %></td></tr>
+          <tr><td class="py-1 text-ink-light">Revenu retenu (− 50 %)</td><td class="py-1 text-right text-ink"><%= montant.(m.revenu_retenu) %></td></tr>
+          <tr><td class="py-1 text-ink-light">Déduit de l'ARE (70 %)</td><td class="py-1 text-right font-semibold text-accent"><%= montant.(m.deduction_are) %></td></tr>
+          <tr><td class="py-1 text-ink-light">ARE estimée du mois</td><td class="py-1 text-right font-semibold text-ink"><%= montant.(m.are_estimee) %></td></tr>
+          <tr><td class="py-1 text-ink-light">Jours non indemnisés (reportés)</td><td class="py-1 text-right text-ink">≈ <%= m.jours_non_indemnises %> j</td></tr>
+        </table>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%# ---- Seuils ---- %>
+<div class="card-premium p-7 mb-10">
+  <h2 class="font-display text-2xl text-ink mb-1">Seuils <%= Date.current.year %></h2>
+  <p class="text-xs text-ink-light mb-6">CA annuel encaissé : <strong><%= montant.(@seuils.first[:ca]) %></strong></p>
+
+  <div class="space-y-5">
+    <% @seuils.each do |s| %>
+      <div>
+        <div class="flex items-baseline justify-between mb-1.5">
+          <div class="text-sm font-semibold text-ink"><%= s[:label] %> <span class="text-ink-light font-normal">· <%= number_with_delimiter(s[:seuil], delimiter: " ") %> €</span></div>
+          <div class="text-xs font-bold <%= s[:pourcentage] >= 80 ? 'text-accent' : 'text-ink-light' %>"><%= s[:pourcentage] %> %</div>
+        </div>
+        <div class="h-2 rounded-full bg-sand overflow-hidden border border-border-warm/60">
+          <div class="h-full rounded-full <%= s[:pourcentage] >= 80 ? 'bg-accent' : 'bg-ink' %>" style="width: <%= s[:pourcentage] %>%"></div>
+        </div>
+        <div class="text-[11px] text-ink-light mt-1"><%= s[:note] %></div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%# ---- Historique ---- %>
+<div class="card-premium p-7 mb-10">
+  <h2 class="font-display text-2xl text-ink mb-6">Historique des déclarations URSSAF</h2>
+  <% if @historique.empty? %>
+    <div class="text-center py-8 text-ink-light">Aucune déclaration archivée pour le moment.</div>
+  <% else %>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+          <th class="py-3 font-semibold">Période</th>
+          <th class="py-3 font-semibold">CA déclaré</th>
+          <th class="py-3 font-semibold">Cotisations estimées</th>
+          <th class="py-3 font-semibold">Déclarée le</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @historique.each do |p| %>
+          <tr class="border-b border-border-warm/40">
+            <td class="py-3 font-semibold text-ink"><%= p.libelle %></td>
+            <td class="py-3 text-ink"><%= montant.(p.ca_declare) %></td>
+            <td class="py-3 text-ink-soft"><%= montant.(p.cotisations_estimees) %></td>
+            <td class="py-3 text-xs text-ink-light"><%= l p.declaree_le, format: "%d/%m/%Y" %></td>
+            <td class="py-3 text-right">
+              <%= button_to "Annuler", admin_annuler_declaration_path(p), method: :delete,
+                    class: "text-xs text-ink-light hover:text-accent underline",
+                    data: { turbo_confirm: "Annuler l'archivage de #{p.libelle} ?" } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>
+
+<%# ---- Réglages ---- %>
+<div class="card-premium p-7">
+  <h2 class="font-display text-2xl text-ink mb-1">Réglages</h2>
+  <p class="text-xs text-ink-light mb-6">Situation ARE et taux — à ajuster quand les barèmes changent (sans redéployer).</p>
+
+  <%= form_with model: @reglages, url: admin_declaration_reglages_path, method: :patch do |f| %>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div>
+        <%= f.label :are_mensuelle, "ARE mensuelle (€)", class: "label-field" %>
+        <%= f.text_field :are_mensuelle, class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :allocation_journaliere, "Allocation journalière (€)", class: "label-field" %>
+        <%= f.text_field :allocation_journaliere, class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :fin_droits_are, "Fin de droits ARE", class: "label-field" %>
+        <%= f.date_field :fin_droits_are, class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :taux_cotisations, "Taux cotisations (%)", class: "label-field" %>
+        <%= f.text_field :taux_cotisations, class: "input-field" %>
+        <p class="text-[11px] text-ink-light mt-1">21,2 % sans ACRE · 10,6 % avec</p>
+      </div>
+      <div>
+        <%= f.label :taux_cfp, "Taux CFP (%)", class: "label-field" %>
+        <%= f.text_field :taux_cfp, class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :taux_cma, "Taxe CMA (%)", class: "label-field" %>
+        <%= f.text_field :taux_cma, class: "input-field" %>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 mt-4">
+      <%= f.check_box :versement_liberatoire, class: "h-4 w-4" %>
+      <%= f.label :versement_liberatoire, "Versement libératoire de l'impôt (+ 1,7 %)", class: "text-sm text-ink" %>
+    </div>
+    <div class="mt-6">
+      <%= f.submit "Enregistrer les réglages", class: "bg-ink text-sand text-sm font-bold px-5 py-2.5 rounded-lg hover:opacity-90 transition cursor-pointer" %>
+    </div>
+  <% end %>
+</div>

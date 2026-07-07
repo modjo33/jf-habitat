@@ -130,5 +130,18 @@
       <div class="font-display text-3xl"><%= number_to_currency(@client.total_devis_envoyes, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
       <div class="text-xs text-sand/60 mt-1">cumul sur <%= @client.estimations.count %> estimation(s)</div>
     </div>
+
+    <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mb-2">Encaissements</div>
+      <% if @client.encaissements.any? %>
+        <div class="font-display text-3xl text-ink"><%= number_to_currency(@client.encaissements.sum(:montant), unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
+        <div class="text-xs text-ink-light mt-1"><%= @client.encaissements.count %> paiement(s) reçu(s)</div>
+      <% else %>
+        <div class="text-xs text-ink-light">Aucun paiement enregistré.</div>
+      <% end %>
+      <%= link_to "💰 Enregistrer un encaissement",
+            new_admin_encaissement_path(client_id: @client.id, montant: @client.montant_devis_manuel),
+            class: "mt-4 block text-center text-xs font-bold bg-accent text-sand px-4 py-2.5 rounded-lg hover:opacity-90 transition" %>
+    </div>
   </div>
 </div>

@@ -1,0 +1,41 @@
+<%= form_with model: [:admin, encaissement] do |f| %>
+  <% if encaissement.errors.any? %>
+    <div class="mb-6 bg-accent-soft border border-accent/30 text-ink px-4 py-3 rounded-lg text-sm">
+      <%= encaissement.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :date_encaissement, "Date d'encaissement", class: "label-field" %>
+      <%= f.date_field :date_encaissement, class: "input-field", required: true %>
+      <p class="text-[11px] text-ink-light mt-1">La date où l'argent est arrivé sur le compte, pas la date de la facture.</p>
+    </div>
+    <div>
+      <%= f.label :montant, "Montant (€)", class: "label-field" %>
+      <%= f.text_field :montant, placeholder: "ex : 979,80", class: "input-field", required: true %>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :libelle, "Libellé", class: "label-field" %>
+      <%= f.text_field :libelle, placeholder: "ex : Chantier SCI JMR — solde", class: "input-field", required: true %>
+    </div>
+    <div>
+      <%= f.label :client_id, "Client (optionnel)", class: "label-field" %>
+      <%= f.collection_select :client_id, Client.order(:nom), :id, :nom, { include_blank: "— aucun —" }, { class: "input-field" } %>
+    </div>
+    <div>
+      <%= f.label :mode_reglement, "Mode de règlement", class: "label-field" %>
+      <%= f.select :mode_reglement, Encaissement::MODES.invert.to_a, {}, { class: "input-field" } %>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :reference, "Référence facture (optionnel)", class: "label-field" %>
+      <%= f.text_field :reference, placeholder: "ex : FAC-20260706-01", class: "input-field" %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4 mt-8">
+    <%= f.submit encaissement.persisted? ? "Mettre à jour" : "Enregistrer l'encaissement",
+          class: "bg-accent text-sand text-sm font-bold px-6 py-3 rounded-lg hover:opacity-90 transition cursor-pointer" %>
+    <%= link_to "Annuler", admin_encaissements_path, class: "text-sm text-ink-light hover:text-ink" %>
+  </div>
+<% end %>

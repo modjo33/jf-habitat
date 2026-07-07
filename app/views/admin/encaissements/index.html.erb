@@ -1,0 +1,76 @@
+<% montant = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
+
+<div class="flex items-start justify-between mb-10">
+  <div>
+    <div class="eyebrow mb-2">Compta</div>
+    <h1 class="h-display text-4xl text-ink">Encaissements</h1>
+    <p class="text-ink-light mt-2">Le livre des recettes : chaque paiement reçu, à sa date d'encaissement.</p>
+  </div>
+  <div class="flex gap-3 shrink-0">
+    <%= link_to "⬇ Export livre des recettes", admin_encaissements_path(format: :csv, annee: @annee),
+          class: "text-sm font-semibold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition" %>
+    <%= link_to "+ Nouvel encaissement", new_admin_encaissement_path,
+          class: "text-sm font-bold bg-accent text-sand px-4 py-2.5 rounded-lg hover:opacity-90 transition" %>
+  </div>
+</div>
+
+<div class="card-premium p-6 mb-6 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <% annees = (Encaissement.minimum(:date_encaissement)&.year || Date.current.year)..Date.current.year %>
+    <% annees.to_a.reverse.each do |a| %>
+      <%= link_to a, admin_encaissements_path(annee: a),
+            class: "text-sm px-3 py-1.5 rounded-lg border transition #{a == @annee ? 'bg-ink text-sand border-ink font-bold' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+    <% end %>
+  </div>
+  <div class="text-right">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Total encaissé <%= @annee %></div>
+    <div class="font-display text-2xl text-ink"><%= montant.(@total_annee) %></div>
+  </div>
+</div>
+
+<div class="card-premium p-7">
+  <% if @encaissements.empty? %>
+    <div class="text-center py-12 text-ink-light">
+      Aucun encaissement en <%= @annee %>.
+      <%= link_to "Enregistrer le premier →", new_admin_encaissement_path, class: "text-accent font-semibold hover:underline" %>
+    </div>
+  <% else %>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+          <th class="py-3 font-semibold">Date</th>
+          <th class="py-3 font-semibold">Libellé</th>
+          <th class="py-3 font-semibold">Client</th>
+          <th class="py-3 font-semibold">Référence</th>
+          <th class="py-3 font-semibold">Mode</th>
+          <th class="py-3 font-semibold text-right">Montant</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @encaissements.each do |e| %>
+          <tr class="border-b border-border-warm/40 hover:bg-sand transition">
+            <td class="py-3 text-ink-soft whitespace-nowrap"><%= l e.date_encaissement, format: "%d/%m/%Y" %></td>
+            <td class="py-3 font-semibold text-ink"><%= e.libelle %></td>
+            <td class="py-3">
+              <% if e.client %>
+                <%= link_to e.client.nom, admin_client_path(e.client), class: "text-accent hover:underline" %>
+              <% else %>
+                <span class="text-ink-light">—</span>
+              <% end %>
+            </td>
+            <td class="py-3 font-mono text-xs text-ink-soft"><%= e.reference.presence || "—" %></td>
+            <td class="py-3 text-ink-soft"><%= e.mode_reglement_label %></td>
+            <td class="py-3 text-right font-semibold text-ink whitespace-nowrap"><%= montant.(e.montant) %></td>
+            <td class="py-3 text-right whitespace-nowrap">
+              <%= link_to "Modifier", edit_admin_encaissement_path(e), class: "text-xs text-ink-light hover:text-accent underline mr-2" %>
+              <%= button_to "Suppr.", admin_encaissement_path(e), method: :delete,
+                    class: "text-xs text-ink-light hover:text-accent underline inline",
+                    form: { class: "inline", data: { turbo_confirm: "Supprimer cet encaissement de #{montant.(e.montant)} ?" } } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

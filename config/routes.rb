@@ -25,6 +25,12 @@ Rails.application.routes.draw do
       resources :notes, only: [:create, :destroy], controller: "client_notes"
     end
 
+    resources :encaissements, except: [:show]
+    get    "declarations",               to: "declarations#index",               as: :declarations
+    post   "declarations/marquer",       to: "declarations#marquer_declaree",    as: :marquer_declaration
+    delete "declarations/periodes/:id",  to: "declarations#annuler_declaration", as: :annuler_declaration
+    patch  "declarations/reglages",      to: "declarations#update_reglages",     as: :declaration_reglages
+
     resources :site_texts, only: [:index, :update]
     resources :media_slots, only: [:index, :update] do
       member { delete :remove_image }

@@ -12,5 +12,11 @@ class Admin::DashboardController < Admin::BaseController
     @nb_devis_acceptes = gagne_ids.size
     @ca_gagne = Client.where(id: gagne_ids).sum(:montant_devis_manuel) +
                 Estimation.where(client_id: gagne_ids).sum(:total_ttc)
+
+    # Compta — prochaine échéance URSSAF (trimestre précédent si pas encore
+    # déclaré, sinon trimestre en cours).
+    calcul = CalculDeclarations.new
+    precedent = calcul.trimestre_precedent
+    @prochaine_declaration = precedent.a_declarer? ? precedent : calcul.trimestre_courant
   end
 end
