@@ -11,6 +11,9 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', '<%= ga4_id %>', { anonymize_ip: true });
+      <% if (ads_send_to = google_ads_lead_send_to).present? %>
+      gtag('config', '<%= ads_send_to.split("/").first %>'); <%# Google Ads — conversion form-submit %>
+      <% end %>
     </script>
   <% end %>
 

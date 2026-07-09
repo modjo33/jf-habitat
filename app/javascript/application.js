@@ -30,6 +30,16 @@ function fireLeadConversion(attempt = 0) {
     value: parseFloat(el.dataset.value) || 0,
     transaction_id: el.dataset.reference || ""
   })
+  // Conversion Google Ads « Demande de devis » (event manuel, sans GTM). Le send_to
+  // complet (AW-XXXX/label) est posé côté serveur ; absent → on ne fire pas.
+  if (el.dataset.adsSendTo) {
+    window.gtag("event", "conversion", {
+      send_to: el.dataset.adsSendTo,
+      currency: "EUR",
+      value: parseFloat(el.dataset.value) || 0,
+      transaction_id: el.dataset.reference || ""
+    })
+  }
   el.remove()
 }
 

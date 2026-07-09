@@ -7,4 +7,11 @@ module ApplicationHelper
   rescue ActiveRecord::StatementInvalid, ActiveRecord::NoDatabaseError
     @campagne_ads = nil
   end
+
+  # Conversion Google Ads « Demande de devis » (event manuel gtag, sans GTM).
+  # Format ENV = "AW-XXXXXXXXX/LABEL" (send_to complet). Absent → conversion Ads
+  # désactivée (fail-closed), le suivi GA4 generate_lead continue de tourner.
+  def google_ads_lead_send_to
+    ENV["GOOGLE_ADS_LEAD_SEND_TO"].presence
+  end
 end

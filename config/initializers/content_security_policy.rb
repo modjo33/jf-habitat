@@ -9,11 +9,16 @@ Rails.application.configure do
     policy.script_src  :self, :https
     policy.style_src   :self, :https
     # connect-src doit autoriser l'envoi des hits vers Google Analytics / Tag Manager
-    # (GA4 poste sur *.google-analytics.com via fetch/beacon) + le pixel Meta.
+    # (GA4 poste sur *.google-analytics.com via fetch/beacon) + le pixel Meta +
+    # les conversions Google Ads (gtag poste via beacon/fetch sur googleadservices /
+    # doubleclick / google.com — sinon la conversion « Demande de devis » est bloquée).
     policy.connect_src :self,
                        "https://*.google-analytics.com",
                        "https://*.analytics.google.com",
                        "https://*.googletagmanager.com",
+                       "https://www.googleadservices.com",
+                       "https://googleads.g.doubleclick.net",
+                       "https://www.google.com",
                        "https://www.facebook.com"
     policy.frame_src   :self, "https://cal.com", "https://*.cal.com"
     # policy.report_uri "/csp-violation-report-endpoint"
