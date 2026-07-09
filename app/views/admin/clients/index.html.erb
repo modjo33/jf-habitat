@@ -9,7 +9,7 @@
     <%= link_to "+ Nouveau client", new_admin_client_path, class: "btn-primary text-xs px-5 py-2.5" %>
     <%= link_to "Vue Kanban", kanban_admin_clients_path, class: "btn-ghost text-xs px-5 py-2.5" %>
     <%= form_with url: admin_clients_path, method: :get, class: "flex gap-2 items-center" do %>
-      <%= text_field_tag :q, @q, placeholder: "Nom, email, tél…", class: "input-field text-sm py-2 max-w-xs" %>
+      <%= text_field_tag :q, @q, placeholder: "Nom, réf, email, tél, ville…", class: "input-field text-sm py-2 max-w-xs" %>
       <%= select_tag :statut,
                      options_for_select([["Tous statuts", ""]] + Client::STATUTS.map { |k, v| [v, k] }, @statut),
                      class: "input-field text-sm py-2" %>

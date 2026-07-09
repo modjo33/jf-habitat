@@ -5,7 +5,16 @@ class Admin::ClientsController < Admin::BaseController
     @q          = params[:q].to_s.strip
     @statut     = params[:statut].presence
     @clients    = Client.recents
-    @clients    = @clients.where("nom ILIKE :q OR email ILIKE :q OR telephone ILIKE :q", q: "%#{@q}%") if @q.present?
+    if @q.present?
+      # nom/email/tél/ville/CP sur le client + référence d'estimation via EXISTS
+      # (sous-requête → pas de doublon de client s'il a plusieurs estimations).
+      @clients = @clients.where(
+        "clients.nom ILIKE :q OR clients.email ILIKE :q OR clients.telephone ILIKE :q " \
+        "OR clients.ville ILIKE :q OR clients.code_postal ILIKE :q " \
+        "OR EXISTS (SELECT 1 FROM estimations e WHERE e.client_id = clients.id AND e.reference ILIKE :q)",
+        q: "%#{@q}%"
+      )
+    end
     @clients    = @clients.par_statut(@statut) if @statut.present?
   end
 
