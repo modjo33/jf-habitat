@@ -1,0 +1,18 @@
+<% forfait_id = "mur_#{mur.id}_#{kind}_forfait" %>
+<div>
+  <span class="label-field !text-xs !mb-1"><%= titre %></span>
+  <div class="flex gap-1.5">
+    <%= f.select "#{kind}_categorie",
+          options_for_select(
+            Mur::PREP_CATEGORIES.map { |k, v| [v[:label], k, { data: { forfait: v[:forfait] } }] },
+            mur.public_send("#{kind}_categorie")
+          ),
+          {},
+          data: { action: "change->autosave#prepCategory", "forfait-input": forfait_id },
+          class: "input-field !py-1.5 !px-2 text-sm flex-1" %>
+    <%= f.number_field "#{kind}_forfait", id: forfait_id, step: "0.01", inputmode: "decimal", placeholder: "0",
+          value: vide_si_zero(mur.public_send("#{kind}_forfait")),
+          data: { action: "change->autosave#save focus->autosave#select" },
+          class: "input-field !py-1.5 !px-2 text-sm w-20 text-center" %>
+  </div>
+</div>

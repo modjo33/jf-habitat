@@ -1,0 +1,7 @@
+<div id="mur_<%= mur.id %>_readout" class="flex items-center justify-between mt-3 pt-3 border-t border-border-warm/50">
+  <span class="text-sm text-ink-light">
+    Surface nette
+    <strong class="text-ink"><%= number_with_precision(mur.surface_nette, precision: 2, strip_insignificant_zeros: true, separator: ",") %> m²</strong>
+  </span>
+  <span class="font-display text-xl text-accent"><%= eur(mur.total) %></span>
+</div>

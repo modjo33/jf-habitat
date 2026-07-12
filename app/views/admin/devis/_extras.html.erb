@@ -1,0 +1,43 @@
+<div class="card-premium p-5 mb-4">
+  <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold mb-3">Frais du chantier</div>
+  <%= form_with url: devis_extras_admin_estimation_path(estimation), method: :patch,
+        data: { controller: "autosave" } do %>
+    <div class="grid sm:grid-cols-2 gap-5">
+      <!-- Trajet -->
+      <div>
+        <span class="label-field !text-xs !mb-1">Trajet (déplacement)</span>
+        <div class="flex items-center gap-1.5 text-sm flex-wrap">
+          <%= number_field_tag "estimation[devis_trajet_prix_jour]", vide_si_zero(estimation.devis_trajet_prix_jour),
+                step: "0.01", inputmode: "decimal", placeholder: "0",
+                data: { action: "input->autosave#liveRow change->autosave#save focus->autosave#select", autosave_target: "dimA" },
+                class: "input-field !py-1.5 !px-2 w-24 text-center" %>
+          <span class="text-ink-light">€/jour ×</span>
+          <%= number_field_tag "estimation[devis_trajet_jours]", vide_si_zero(estimation.devis_trajet_jours),
+                step: "0.5", inputmode: "decimal", placeholder: "1",
+                data: { action: "input->autosave#liveRow change->autosave#save focus->autosave#select", autosave_target: "dimB" },
+                class: "input-field !py-1.5 !px-2 w-16 text-center" %>
+          <span class="text-ink-light">j =</span>
+          <span class="font-semibold text-ink whitespace-nowrap">
+            <span data-autosave-target="rowSurface"><%= number_with_precision(estimation.devis_trajet_total, precision: 2, strip_insignificant_zeros: true, separator: ",") %></span> €
+          </span>
+        </div>
+      </div>
+
+      <!-- Consommables -->
+      <div>
+        <span class="label-field !text-xs !mb-1">Consommables</span>
+        <div class="flex items-center gap-1.5 text-sm">
+          <%= text_field_tag "estimation[devis_consommables_libelle]", estimation.devis_consommables_libelle,
+                placeholder: "ex. bâches, adhésif, sous-couche…",
+                data: { action: "change->autosave#save" },
+                class: "input-field !py-1.5 !px-2 flex-1 min-w-0" %>
+          <%= number_field_tag "estimation[devis_consommables]", vide_si_zero(estimation.devis_consommables),
+                step: "0.01", inputmode: "decimal", placeholder: "0",
+                data: { action: "change->autosave#save focus->autosave#select" },
+                class: "input-field !py-1.5 !px-2 w-24 text-center" %>
+          <span class="text-ink-light">€</span>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

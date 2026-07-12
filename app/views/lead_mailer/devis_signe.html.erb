@@ -1,0 +1,26 @@
+<div style="font-family: Arial, sans-serif; color: #0F2A44; max-width: 560px;">
+  <h2 style="color: #0F2A44;">Merci <%= @estimation.nom %> 🤝</h2>
+
+  <p>Votre devis <strong><%= @estimation.reference %></strong> a bien été signé le
+    <%= @estimation.devis_signe_at&.strftime("%d/%m/%Y à %H:%M") %>.</p>
+
+  <p>Vous le trouverez <strong>en pièce jointe</strong> (PDF), avec le détail des travaux
+    et votre signature.</p>
+
+  <table style="margin: 16px 0; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 8px 16px; background: #FAF7F2; font-weight: bold;">Montant total</td>
+      <td style="padding: 8px 16px; background: #FAF7F2; color: #E6752A; font-size: 18px; font-weight: bold;">
+        <%= number_to_currency(@estimation.devis_total, unit: "€", format: "%n %u", separator: ",", delimiter: " ", precision: 2) %>
+      </td>
+    </tr>
+  </table>
+
+  <p style="font-size: 13px; color: #4A6785;">TVA non applicable, art. 293 B du CGI.</p>
+
+  <p>Nous reviendrons vers vous pour convenir de la date de démarrage du chantier.
+    Pour toute question, répondez simplement à cet e-mail.</p>
+
+  <p style="margin-top: 24px;">À très bientôt,<br><strong>JF Habitat</strong><br>
+    <span style="color: #4A6785; font-size: 13px;">Artisan peintre · plaquiste · parqueteur</span></p>
+</div>

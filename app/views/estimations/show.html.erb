@@ -89,12 +89,6 @@
             <span>× <%= @estimation.coef_etage %></span>
           </div>
         <% end %>
-        <% if @estimation.remise_degressive.to_d > 0 %>
-          <div class="flex justify-between text-xs text-emerald-600 font-semibold">
-            <span>Remise dégressive (<%= (@estimation.remise_degressive * 100).to_i %>% · grand chantier)</span>
-            <span>-<%= (@estimation.remise_degressive * 100).to_i %>%</span>
-          </div>
-        <% end %>
         <div class="flex justify-between text-sm pt-2 border-t border-ink/10">
           <span class="text-ink-light">Total HT</span>
           <span class="font-semibold text-ink"><%= number_to_currency(@estimation.total_ht, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>

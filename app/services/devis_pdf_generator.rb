@@ -140,11 +140,6 @@ class DevisPdfGenerator
       if @estimation.coef_etage.to_d != 1.0
         line(pdf, @estimation.coef_etage_label, "× #{@estimation.coef_etage}")
       end
-      if @estimation.remise_degressive.to_d > 0
-        pdf.fill_color "2F9E44"
-        line(pdf, "Remise dégressive (#{(@estimation.remise_degressive * 100).to_i}%)", "appliquée")
-        pdf.fill_color rgb(INK_SOFT)
-      end
 
       pdf.stroke_color "DDDDDD"
       pdf.stroke_horizontal_rule

@@ -1,0 +1,14 @@
+Merci <%= @estimation.nom %>,
+
+Votre devis <%= @estimation.reference %> a bien été signé le <%= @estimation.devis_signe_at&.strftime("%d/%m/%Y à %H:%M") %>.
+
+Vous le trouverez en pièce jointe (PDF), avec le détail des travaux et votre signature.
+
+Montant total : <%= number_to_currency(@estimation.devis_total, unit: "€", format: "%n %u", separator: ",", delimiter: " ", precision: 2) %>
+TVA non applicable, art. 293 B du CGI.
+
+Nous reviendrons vers vous pour convenir de la date de démarrage du chantier.
+Pour toute question, répondez simplement à cet e-mail.
+
+À très bientôt,
+JF Habitat — Artisan peintre · plaquiste · parqueteur

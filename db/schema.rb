@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_12_151945) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -96,6 +96,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
     t.index ["annee", "trimestre"], name: "index_declaration_periodes_on_annee_and_trimestre", unique: true
   end
 
+  create_table "deductions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.decimal "hauteur", precision: 6, scale: 2, default: "0.0"
+    t.string "libelle", default: "Ouverture"
+    t.decimal "longueur", precision: 6, scale: 2, default: "0.0"
+    t.bigint "mur_id", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["mur_id", "position"], name: "index_deductions_on_mur_id_and_position"
+    t.index ["mur_id"], name: "index_deductions_on_mur_id"
+  end
+
   create_table "encaissements", force: :cascade do |t|
     t.bigint "client_id"
     t.datetime "created_at", null: false
@@ -140,12 +152,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
     t.decimal "coef_region", precision: 5, scale: 3, default: "1.0"
     t.datetime "created_at", null: false
     t.string "delai"
+    t.boolean "devis_actif", default: false, null: false
+    t.decimal "devis_consommables", precision: 10, scale: 2, default: "0.0"
+    t.string "devis_consommables_libelle"
+    t.string "devis_remise_type"
+    t.decimal "devis_remise_valeur", precision: 10, scale: 2, default: "0.0"
+    t.string "devis_signataire"
+    t.string "devis_signature_ip"
+    t.datetime "devis_signe_at"
+    t.datetime "devis_signe_envoye_at"
+    t.decimal "devis_total", precision: 10, scale: 2, default: "0.0"
+    t.decimal "devis_total_brut", precision: 10, scale: 2, default: "0.0"
+    t.decimal "devis_trajet_jours", precision: 6, scale: 1, default: "1.0"
+    t.decimal "devis_trajet_prix_jour", precision: 10, scale: 2, default: "0.0"
     t.string "email", null: false
     t.integer "etage", default: 0, null: false
     t.text "message"
     t.string "nom", null: false
     t.string "reference", null: false
-    t.decimal "remise_degressive", precision: 5, scale: 3, default: "0.0"
     t.string "statut", default: "nouveau", null: false
     t.decimal "surface_totale", precision: 10, scale: 2, default: "0.0"
     t.string "telephone", null: false
@@ -168,6 +192,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
     t.string "key", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_media_slots_on_key", unique: true
+  end
+
+  create_table "murs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "gamme", default: "milieu", null: false
+    t.decimal "hauteur", precision: 6, scale: 2, default: "0.0"
+    t.string "kind", default: "mur", null: false
+    t.decimal "largeur", precision: 6, scale: 2, default: "0.0"
+    t.string "libelle", null: false
+    t.decimal "longueur", precision: 6, scale: 2, default: "0.0"
+    t.bigint "piece_id", null: false
+    t.string "poncage_categorie", default: "aucun"
+    t.decimal "poncage_forfait", precision: 8, scale: 2, default: "0.0"
+    t.integer "position", default: 0, null: false
+    t.decimal "prix_peinture_m2", precision: 8, scale: 2, default: "0.0"
+    t.string "ratissage_categorie", default: "aucun", null: false
+    t.decimal "ratissage_forfait", precision: 8, scale: 2, default: "0.0"
+    t.string "rebouchage_categorie", default: "aucun"
+    t.decimal "rebouchage_forfait", precision: 8, scale: 2, default: "0.0"
+    t.decimal "surface_nette", precision: 10, scale: 2, default: "0.0"
+    t.decimal "total", precision: 10, scale: 2, default: "0.0"
+    t.string "type_chantier", default: "renovation", null: false
+    t.datetime "updated_at", null: false
+    t.index ["piece_id", "position"], name: "index_murs_on_piece_id_and_position"
+    t.index ["piece_id"], name: "index_murs_on_piece_id"
+  end
+
+  create_table "pieces", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "estimation_id", null: false
+    t.decimal "hauteur_sous_plafond", precision: 6, scale: 2, default: "2.5"
+    t.string "nom", null: false
+    t.integer "position", default: 0, null: false
+    t.decimal "total", precision: 10, scale: 2, default: "0.0"
+    t.string "type_piece"
+    t.datetime "updated_at", null: false
+    t.index ["estimation_id", "position"], name: "index_pieces_on_estimation_id_and_position"
+    t.index ["estimation_id"], name: "index_pieces_on_estimation_id"
   end
 
   create_table "realisations", force: :cascade do |t|
@@ -215,10 +277,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
     t.index ["prestation", "gamme"], name: "index_tarifs_on_prestation_and_gamme", unique: true
   end
 
+  create_table "zones", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.decimal "largeur", precision: 6, scale: 2, default: "0.0"
+    t.string "libelle", default: "Partie"
+    t.decimal "longueur", precision: 6, scale: 2, default: "0.0"
+    t.bigint "mur_id", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["mur_id", "position"], name: "index_zones_on_mur_id_and_position"
+    t.index ["mur_id"], name: "index_zones_on_mur_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "client_notes", "clients"
+  add_foreign_key "deductions", "murs"
   add_foreign_key "encaissements", "clients"
   add_foreign_key "estimation_lines", "estimations"
   add_foreign_key "estimations", "clients"
+  add_foreign_key "murs", "pieces"
+  add_foreign_key "pieces", "estimations"
+  add_foreign_key "zones", "murs"
 end

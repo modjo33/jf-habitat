@@ -1,0 +1,32 @@
+<div id="piece_<%= piece.id %>" class="card-premium p-5">
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    <%= form_with model: [:admin, piece], method: :patch,
+          data: { controller: "autosave" }, class: "flex items-center gap-3 flex-1 min-w-0" do |f| %>
+      <%= f.text_field :nom, placeholder: "Nom de la pièce",
+            data: { action: "change->autosave#save" },
+            class: "input-field !py-2 font-display text-lg flex-1 min-w-0" %>
+      <label class="flex items-center gap-1.5 text-xs text-ink-light whitespace-nowrap">
+        Hauteur
+        <%= f.number_field :hauteur_sous_plafond, step: "0.01", inputmode: "decimal",
+              data: { action: "change->autosave#save focus->autosave#select" },
+              class: "input-field !py-1.5 !px-2 w-20 text-center" %>
+        m
+      </label>
+    <% end %>
+    <%= render "admin/devis/piece_readout", piece: piece %>
+    <%= button_to "🗑", admin_piece_path(piece), method: :delete,
+          form: { data: { turbo_confirm: "Supprimer cette pièce et tous ses murs ?" } },
+          class: "text-ink-light hover:text-red-500 text-lg px-1" %>
+  </div>
+
+  <div id="piece_<%= piece.id %>_murs" class="space-y-3">
+    <%= render partial: "admin/devis/mur", collection: piece.murs, as: :mur %>
+  </div>
+
+  <div class="flex gap-2 mt-4">
+    <%= button_to "+ Mur", admin_murs_path(piece_id: piece.id, kind: "mur"),
+          class: "btn-ghost !px-5 !py-2.5 !text-xs" %>
+    <%= button_to "+ Plafond", admin_murs_path(piece_id: piece.id, kind: "plafond"),
+          class: "btn-ghost !px-5 !py-2.5 !text-xs" %>
+  </div>
+</div>

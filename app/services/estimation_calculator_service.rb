@@ -16,13 +16,11 @@ class EstimationCalculatorService
     # Coefficients globaux
     coef_region = calculer_coef_region
     coef_etage  = calculer_coef_etage
-    remise = calculer_remise_degressive(surface_totale)
 
     apres_coefs = sous_total * coef_region * coef_etage
-    apres_remise = apres_coefs * (1 - remise)
 
     tva = 10.0
-    total_ttc = (apres_remise * (1 + tva / 100)).round(2)
+    total_ttc = (apres_coefs * (1 + tva / 100)).round(2)
 
     {
       lines: lines,
@@ -32,9 +30,7 @@ class EstimationCalculatorService
       coef_region_label: label_coef_region(coef_region),
       coef_etage: coef_etage,
       coef_etage_label: label_coef_etage(coef_etage),
-      remise_degressive: remise,
-      remise_euros: (apres_coefs - apres_remise).round(2),
-      total_ht: apres_remise.round(2),
+      total_ht: apres_coefs.round(2),
       total_ttc: total_ttc,
       tva_taux: tva,
       count: lines.size
@@ -108,10 +104,6 @@ class EstimationCalculatorService
     etage = @context[:etage].to_i
     return 1.0 if etage <= 2
     truthy?(@context[:ascenseur]) ? 1.03 : 1.10
-  end
-
-  def calculer_remise_degressive(surface)
-    Estimation::SEUILS_REMISE.detect { |s| surface >= s[:seuil_m2] }&.dig(:remise).to_f
   end
 
   def label_coef_region(coef)

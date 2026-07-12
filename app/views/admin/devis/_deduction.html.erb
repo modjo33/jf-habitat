@@ -1,0 +1,21 @@
+<div id="deduction_<%= deduction.id %>" class="flex items-center gap-2 py-1">
+  <%= form_with model: [:admin, deduction], method: :patch,
+        data: { controller: "autosave" }, class: "flex items-center gap-2 flex-1 flex-wrap" do |f| %>
+    <%= f.text_field :libelle, placeholder: "Ouverture",
+          data: { action: "change->autosave#save" },
+          class: "input-field !py-1.5 !px-2 text-sm w-28" %>
+    <div class="flex items-center gap-1 text-sm">
+      <%= f.number_field :longueur, step: "0.01", inputmode: "decimal", placeholder: "0",
+            value: vide_si_zero(deduction.longueur),
+            data: { action: "input->autosave#liveRow change->autosave#save focus->autosave#select", autosave_target: "dimA" }, class: "input-field !py-1.5 !px-2 w-20 text-center" %>
+      <span class="text-ink-light">×</span>
+      <%= f.number_field :hauteur, step: "0.01", inputmode: "decimal", placeholder: "0",
+            value: vide_si_zero(deduction.hauteur),
+            data: { action: "input->autosave#liveRow change->autosave#save focus->autosave#select", autosave_target: "dimB" }, class: "input-field !py-1.5 !px-2 w-20 text-center" %>
+      <span class="text-ink-light">m</span>
+    </div>
+    <%= render "admin/devis/deduction_surface", deduction: deduction %>
+  <% end %>
+  <%= button_to "×", admin_deduction_path(deduction), method: :delete,
+        class: "text-red-400 hover:text-red-600 text-lg px-2 leading-none" %>
+</div>

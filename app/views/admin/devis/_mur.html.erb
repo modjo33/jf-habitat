@@ -1,0 +1,104 @@
+<div id="mur_<%= mur.id %>" class="rounded-xl border border-border-warm/60 bg-cream/60 p-4">
+  <%= form_with model: [:admin, mur], method: :patch,
+        data: { controller: "autosave", autosave_prices_value: peinture_prix_json, autosave_kind_value: mur.kind } do |f| %>
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full <%= mur.plafond? ? 'bg-ink text-sand' : 'bg-accent-soft text-accent' %>">
+        <%= mur.kind_label %>
+      </span>
+      <%= f.text_field :libelle, data: { action: "change->autosave#save" },
+            class: "input-field !py-1.5 font-semibold flex-1" %>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <label class="block">
+        <span class="label-field !text-xs !mb-1">Type</span>
+        <%= f.select :type_chantier,
+              options_for_select(Mur::TYPES_CHANTIER.map { |k, v| [v, k] }, mur.type_chantier),
+              {}, data: { action: "change->autosave#applyTarif", autosave_target: "chantier" },
+              class: "input-field !py-2 text-sm" %>
+      </label>
+      <label class="block">
+        <span class="label-field !text-xs !mb-1">Gamme</span>
+        <%= f.select :gamme,
+              options_for_select(Tarif::GAMMES.map { |k, v| [v[:label], k] }, mur.gamme),
+              {}, data: { action: "change->autosave#applyTarif", autosave_target: "gamme" },
+              class: "input-field !py-2 text-sm" %>
+      </label>
+    </div>
+
+    <% unless mur.plafond? %>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <label class="block">
+          <span class="label-field !text-xs !mb-1">Longueur (m)</span>
+          <%= f.number_field :longueur, step: "0.01", inputmode: "decimal", placeholder: "0",
+                value: vide_si_zero(mur.longueur),
+                data: { action: "change->autosave#save focus->autosave#select" }, class: "input-field !py-2 text-center text-lg" %>
+        </label>
+        <label class="block">
+          <span class="label-field !text-xs !mb-1">Hauteur (m)</span>
+          <%= f.number_field :hauteur, step: "0.01", inputmode: "decimal", placeholder: "0",
+                value: vide_si_zero(mur.hauteur),
+                data: { action: "change->autosave#save focus->autosave#select" }, class: "input-field !py-2 text-center text-lg" %>
+        </label>
+      </div>
+    <% end %>
+
+    <label class="block mb-3">
+      <span class="label-field !text-xs !mb-1">Peinture €/m² <span class="text-ink-light font-normal">(barème <%= mur.gamme_label.downcase %>, ajustable)</span></span>
+      <%= f.number_field :prix_peinture_m2, step: "0.01", inputmode: "decimal", placeholder: "0",
+            value: vide_si_zero(mur.prix_peinture_m2),
+            data: { action: "change->autosave#save focus->autosave#select", autosave_target: "prix" },
+            class: "input-field !py-2 text-center text-lg" %>
+    </label>
+
+    <details class="mt-1" <%= "open" if mur.travaux_exceptionnels? %>>
+      <summary class="cursor-pointer list-none flex items-center justify-between text-xs font-semibold text-ink-light hover:text-ink py-1 select-none">
+        <span>+ Travaux exceptionnels <span class="font-normal">(en plus de la gamme)</span></span>
+        <% if mur.prep_total.positive? %>
+          <span class="text-accent">+ <%= eur(mur.prep_total) %></span>
+        <% end %>
+      </summary>
+      <p class="text-[11px] text-ink-light leading-snug mt-1 mb-2">
+        La gamme choisie inclut déjà la prépa standard. N'ajoute ici que le <strong>surplus</strong> (mur très abîmé, ancien support difficile…) — sinon laisse sur « Aucun ».
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <%= render "admin/devis/prep_field", f: f, mur: mur, kind: "poncage",    titre: "Ponçage" %>
+        <%= render "admin/devis/prep_field", f: f, mur: mur, kind: "rebouchage", titre: "Rebouchage" %>
+        <%= render "admin/devis/prep_field", f: f, mur: mur, kind: "ratissage",  titre: "Ratissage" %>
+      </div>
+    </details>
+  <% end %>
+
+  <% unless mur.plafond? %>
+    <div class="mt-4">
+      <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold mb-1">Déductions (ouvertures)</div>
+      <div id="mur_<%= mur.id %>_deductions">
+        <%= render partial: "admin/devis/deduction", collection: mur.deductions, as: :deduction %>
+      </div>
+      <div class="flex gap-2 mt-2">
+        <%= button_to "+ Porte",   admin_deductions_path(mur_id: mur.id, preset: "porte"),   class: "text-xs px-3 py-1.5 rounded-full border border-border-warm hover:bg-sand" %>
+        <%= button_to "+ Fenêtre", admin_deductions_path(mur_id: mur.id, preset: "fenetre"), class: "text-xs px-3 py-1.5 rounded-full border border-border-warm hover:bg-sand" %>
+        <%= button_to "+ Autre",   admin_deductions_path(mur_id: mur.id),                    class: "text-xs px-3 py-1.5 rounded-full border border-border-warm hover:bg-sand" %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if mur.plafond? %>
+    <div class="mt-4">
+      <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold mb-1">Surfaces du plafond (additionnées)</div>
+      <p class="text-[11px] text-ink-light mb-1">Décompose un plafond de forme complexe en plusieurs rectangles (L × l).</p>
+      <div id="mur_<%= mur.id %>_zones">
+        <%= render partial: "admin/devis/zone", collection: mur.zones, as: :zone %>
+      </div>
+      <%= button_to "+ Ajouter une partie", admin_zones_path(mur_id: mur.id),
+            class: "text-xs px-3 py-1.5 mt-2 rounded-full border border-border-warm hover:bg-sand" %>
+    </div>
+  <% end %>
+
+  <%= render "admin/devis/mur_readout", mur: mur %>
+
+  <div class="mt-2 text-right">
+    <%= button_to "Supprimer le #{mur.kind_label.downcase}", admin_mur_path(mur), method: :delete,
+          class: "text-[11px] text-ink-light hover:text-red-500" %>
+  </div>
+</div>

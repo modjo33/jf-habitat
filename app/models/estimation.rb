@@ -21,15 +21,13 @@ class Estimation < ApplicationRecord
     grandes_villes: { cp: %w[06 13 33 59 69 31 67 44], coef: 1.05, label: "Grandes métropoles" }
   }.freeze
 
-  # Tarifs dégressifs par surface totale
-  SEUILS_REMISE = [
-    { seuil_m2: 200, remise: 0.15 },
-    { seuil_m2: 100, remise: 0.10 }
-  ].freeze
+  DEVIS_REMISE_TYPES = %w[pourcentage montant].freeze
 
   belongs_to :client, optional: true
   has_many :estimation_lines, dependent: :destroy
+  has_many :pieces, -> { order(:position, :id) }, dependent: :destroy
   has_many_attached :photos
+  has_one_attached :devis_signature
   accepts_nested_attributes_for :estimation_lines, allow_destroy: true
 
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }
@@ -50,15 +48,9 @@ class Estimation < ApplicationRecord
   def recalculer_totaux
     self.surface_totale = estimation_lines.reject(&:marked_for_destruction?).sum { |l| l.surface.to_d }
 
-    # Tarif dégressif selon surface totale
-    self.remise_degressive = SEUILS_REMISE.detect { |s| surface_totale >= s[:seuil_m2] }&.dig(:remise) || 0
-
     sous_total = estimation_lines.reject(&:marked_for_destruction?).sum { |l| l.total.to_d }
-    # Application des coefficients multiplicatifs et de la remise dégressive
-    apres_coefs = sous_total * coef_region.to_d * coef_etage.to_d
-    apres_remise = apres_coefs * (1 - remise_degressive.to_d)
-
-    self.total_ht = apres_remise.round(2)
+    # Application des coefficients multiplicatifs (région, étage).
+    self.total_ht  = (sous_total * coef_region.to_d * coef_etage.to_d).round(2)
     self.total_ttc = (total_ht * (1 + tva_taux / 100)).round(2)
   end
 
@@ -87,7 +79,101 @@ class Estimation < ApplicationRecord
     "Étage ≥3 #{ascenseur ? 'avec ascenseur' : 'sans ascenseur'} (+#{pct}%)"
   end
 
+  # ------------------------------------------------------------------
+  # Devis terrain (outil admin, tablette). Totaux indépendants du
+  # chiffrage web (total_ht/total_ttc) ; franchise en base → pas de TVA.
+  # ------------------------------------------------------------------
+
+  # Recalcul bottom-up : murs → pièces → total devis. Écrit en base via
+  # update_columns pour ne pas déclencher les callbacks du chiffrage web.
+  def devis_recompute!
+    pieces.includes(murs: %i[deductions zones]).each do |piece|
+      piece.murs.each do |m|
+        m.update_columns(surface_nette: m.surface_nette_calc, total: m.total_calc)
+      end
+      piece.update_column(:total, piece.murs.sum { |m| m.total.to_d }.round(2))
+    end
+    brut       = pieces.sum { |p| p.total.to_d }.round(2)
+    # La remise s'applique au sous-total complet (travaux + trajet + consommables).
+    sous_total = brut + devis_extras_total
+    total      = [sous_total - devis_remise_for(sous_total), 0.to_d].max.round(2)
+    update_columns(devis_total_brut: brut, devis_total: total)
+    total
+  end
+
+  # Sous-total avant remise : travaux + frais (trajet + consommables).
+  def devis_sous_total
+    (devis_total_brut.to_d + devis_extras_total).round(2)
+  end
+
+  # Frais de déplacement : prix/jour × nombre de jours.
+  def devis_trajet_total
+    (devis_trajet_prix_jour.to_d * devis_trajet_jours.to_d).round(2)
+  end
+
+  # Total des frais ajoutés au chantier (trajet + consommables).
+  def devis_extras_total
+    (devis_trajet_total + devis_consommables.to_d).round(2)
+  end
+
+  # Montant € de la remise appliquée (sur le sous-total : travaux + frais).
+  def devis_remise_montant
+    devis_remise_for(devis_sous_total)
+  end
+
+  def devis_signe?
+    devis_signe_at.present? && devis_signature.attached?
+  end
+
+  # Montant retenu pour le chiffre d'affaires : le devis terrain **signé** s'il
+  # existe (montant réel négocié sur place), sinon le chiffrage web (total_ttc).
+  def ca_montant
+    devis_signe_at.present? ? devis_total.to_d : total_ttc.to_d
+  end
+
+  # Version agrégée (SQL) — utilisable sur une relation : Estimation.where(...).ca_montant.
+  def self.ca_montant
+    sum(Arel.sql("CASE WHEN devis_signe_at IS NOT NULL THEN devis_total ELSE total_ttc END")).to_d
+  end
+
+  # Enregistre la signature du client, verrouille le devis et passe le lead
+  # (et le client) en « gagné ». `signature_io` = flux binaire PNG décodé.
+  def finaliser_devis_signe!(signature_io:, signataire:, ip:)
+    devis_recompute!
+    devis_signature.attach(io: signature_io, filename: "signature-#{reference}.png", content_type: "image/png")
+    update!(devis_signataire: signataire.presence || nom,
+            devis_signature_ip: ip, devis_signe_at: Time.current, statut: "gagne")
+    client&.update(statut: "gagne") if client && client.statut != "gagne"
+  end
+
+  # Crée une pièce par local distinct de l'estimation web (nom + hauteur par
+  # défaut). L'artisan y ajoutera les murs avec les vraies mesures. Idempotent.
+  def devis_prefill_from_web!
+    return if pieces.exists?
+
+    noms = estimation_lines.map { |l| [l.piece, l.type_piece] }.uniq
+    noms = [["Pièce 1", "autre"]] if noms.empty?
+    noms.each_with_index do |(nom, type_piece), i|
+      pieces.create!(nom: nom.presence || "Pièce #{i + 1}",
+                     type_piece: type_piece.presence || "autre",
+                     hauteur_sous_plafond: 2.5, position: i)
+    end
+    update_columns(devis_actif: true)
+  end
+
   private
+
+  # Remise en euros calculée sur un total brut donné.
+  def devis_remise_for(brut)
+    brut = brut.to_d
+    return 0.to_d if devis_remise_type.blank? || devis_remise_valeur.to_d <= 0
+
+    case devis_remise_type
+    when "pourcentage" then (brut * devis_remise_valeur.to_d / 100).round(2)
+    when "montant"     then [devis_remise_valeur.to_d, brut].min
+    else 0.to_d
+    end
+  end
 
   def calculer_coef_region
     return 1.0 if code_postal.blank?

@@ -1,0 +1,47 @@
+<div class="mb-6">
+  <%= link_to admin_estimation_path(@estimation), class: "inline-flex items-center gap-2 text-sm text-ink-light hover:text-ink mb-3" do %>
+    ← Retour au lead
+  <% end %>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="h-display text-3xl text-ink">Devis terrain — <%= @estimation.nom %></h1>
+      <div class="mt-1 flex items-center gap-3 text-sm text-ink-light">
+        <span class="font-mono text-xs text-accent font-semibold"><%= @estimation.reference %></span>
+        <% if @estimation.adresse.present? %>
+          <span><%= @estimation.adresse %> · <%= @estimation.code_postal %> <%= @estimation.ville %></span>
+        <% end %>
+      </div>
+    </div>
+    <%= link_to "Comparatif des gammes ↗", admin_gammes_path, target: "_blank",
+          class: "shrink-0 text-xs font-semibold px-4 py-2 rounded-full border border-border-warm hover:bg-ink hover:text-sand transition" %>
+  </div>
+</div>
+
+<% if @estimation.pieces.empty? %>
+  <div class="card-premium p-8 text-center max-w-xl mx-auto mb-6">
+    <p class="text-ink-soft mb-1 font-display text-xl">Prêt à chiffrer sur place</p>
+    <p class="text-sm text-ink-light mb-5">Démarre à partir de l'estimation que le client a faite en ligne, ou pars d'une feuille blanche.</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <%= button_to "Pré-remplir depuis l'estimation", devis_prefill_admin_estimation_path(@estimation), class: "btn-primary" %>
+      <%= button_to "Commencer vide", admin_pieces_path(estimation_id: @estimation.id),
+            form: { data: { turbo: false } }, class: "btn-ghost" %>
+    </div>
+  </div>
+<% end %>
+
+<div id="pieces" class="space-y-5 pb-8">
+  <%= render partial: "admin/devis/piece", collection: @estimation.pieces, as: :piece %>
+</div>
+
+<div class="pb-4">
+  <%= button_to admin_pieces_path(estimation_id: @estimation.id),
+        class: "btn-ghost w-full !justify-center" do %>
+    + Ajouter une pièce
+  <% end %>
+</div>
+
+<% if @estimation.pieces.any? %>
+  <%= render "admin/devis/extras", estimation: @estimation %>
+<% end %>
+
+<%= render "admin/devis/bar", estimation: @estimation %>

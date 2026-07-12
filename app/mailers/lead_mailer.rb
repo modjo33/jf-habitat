@@ -13,6 +13,16 @@ class LeadMailer < ApplicationMailer
          subject: "Votre estimation JF Habitat · #{estimation.reference}"
   end
 
+  # Devis signé sur place : PDF joint, envoyé au client + copie interne.
+  def devis_signe(estimation)
+    @estimation = estimation
+    pdf = DevisTerrainPdfGenerator.new(estimation).generate.render
+    attachments["devis-jf-habitat-#{estimation.reference}.pdf"] = { mime_type: "application/pdf", content: pdf }
+    mail to: estimation.email,
+         cc: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
+         subject: "Votre devis signé · JF Habitat · #{estimation.reference}"
+  end
+
   private
 
   def number_to_currency(amount, unit: "€")

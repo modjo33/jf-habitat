@@ -1,0 +1,62 @@
+<% categorie_labels = { "peinture" => "Peinture", "placo" => "Placo / cloisons", "parquet" => "Parquet" } %>
+
+<div class="mb-8">
+  <h1 class="h-display text-4xl text-ink">Comparatif des gammes</h1>
+  <p class="mt-2 text-ink-light max-w-2xl">
+    Ce qui est inclus dans chaque gamme, pour expliquer au client pourquoi choisir l'une plutôt qu'une autre.
+    Prix et descriptions viennent de <%= link_to "vos tarifs", admin_tarifs_path, class: "text-accent hover:underline" %> — tout se met à jour ici automatiquement.
+  </p>
+</div>
+
+<% if @par_categorie.size > 1 %>
+  <nav class="flex flex-wrap gap-2 mb-8">
+    <% @par_categorie.each_key do |cat| %>
+      <a href="#cat-<%= cat %>" class="text-xs font-semibold px-4 py-2 rounded-full border border-border-warm hover:bg-ink hover:text-sand transition">
+        <%= categorie_labels[cat] || cat.capitalize %>
+      </a>
+    <% end %>
+  </nav>
+<% end %>
+
+<div class="space-y-14">
+  <% @par_categorie.each do |categorie, prestations| %>
+    <section id="cat-<%= categorie %>">
+      <h2 class="font-display text-2xl text-ink mb-5 flex items-center gap-3">
+        <span class="w-8 h-px bg-accent"></span><%= categorie_labels[categorie] || categorie.capitalize %>
+      </h2>
+
+      <div class="space-y-8">
+        <% prestations.each do |prestation, meta| %>
+          <div>
+            <h3 class="font-semibold text-ink mb-3"><%= meta[:label] %></h3>
+            <div class="grid md:grid-cols-3 gap-4">
+              <% Tarif::GAMMES.each do |gamme_key, gamme_meta| %>
+                <% t = @tarif.call(prestation, gamme_key) %>
+                <% reco = (gamme_key == "milieu") %>
+                <div class="card-premium p-5 relative <%= 'ring-2 ring-accent/50' if reco %>">
+                  <% if reco %>
+                    <span class="absolute -top-2.5 left-5 text-[10px] font-bold uppercase tracking-wider bg-accent text-white px-2.5 py-1 rounded-full">Recommandé</span>
+                  <% end %>
+                  <div class="flex items-baseline justify-between mb-2">
+                    <span class="text-xs uppercase tracking-wider font-bold text-ink-light"><%= gamme_meta[:label] %></span>
+                    <% if t %>
+                      <span class="font-display text-2xl text-accent"><%= eur(t.prix_m2) %><span class="text-xs text-ink-light font-body">/m²</span></span>
+                    <% end %>
+                  </div>
+                  <% if t&.description.present? %>
+                    <p class="font-semibold text-ink text-sm mb-2"><%= t.description %></p>
+                  <% end %>
+                  <% if t&.details.present? %>
+                    <p class="text-sm text-ink-soft leading-relaxed"><%= t.details %></p>
+                  <% else %>
+                    <p class="text-sm text-ink-light italic"><%= gamme_meta[:description] %></p>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>

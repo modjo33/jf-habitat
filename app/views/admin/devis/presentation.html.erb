@@ -1,0 +1,110 @@
+<div class="max-w-3xl mx-auto pb-16">
+  <div class="mb-6 flex items-center justify-between">
+    <%= link_to "← Modifier le devis", devis_admin_estimation_path(@estimation),
+          class: "text-sm text-ink-light hover:text-ink" %>
+    <%= link_to "Voir le PDF ↗", devis_pdf_admin_estimation_path(@estimation), target: "_blank",
+          class: "text-xs font-semibold px-4 py-2 rounded-full border border-border-warm hover:bg-ink hover:text-sand transition" %>
+  </div>
+
+  <!-- En-tête devis -->
+  <div class="text-center mb-8">
+    <div class="font-display text-3xl text-ink">JF <span class="text-accent">Habitat</span></div>
+    <div class="text-xs uppercase tracking-[0.2em] text-ink-light mt-1">Devis · <%= @estimation.reference %></div>
+    <div class="mt-3 text-sm text-ink-soft">
+      <%= @estimation.nom %><% if @estimation.adresse.present? %> · <%= @estimation.adresse %>, <%= @estimation.code_postal %> <%= @estimation.ville %><% end %>
+    </div>
+  </div>
+
+  <!-- Récapitulatif des travaux -->
+  <div class="card-premium p-6 mb-6">
+    <% @estimation.pieces.each do |piece| %>
+      <div class="mb-5 last:mb-0">
+        <div class="flex items-baseline justify-between border-b border-ink/10 pb-2 mb-2">
+          <h3 class="font-display text-lg text-ink"><%= piece.nom %></h3>
+          <span class="font-semibold text-ink"><%= eur(piece.total) %></span>
+        </div>
+        <% piece.murs.each do |mur| %>
+          <div class="flex items-start justify-between py-1.5 text-sm">
+            <div>
+              <span class="font-medium text-ink"><%= mur.libelle %></span>
+              <span class="text-ink-light">· <%= mur.prestation_label %> · <%= mur.gamme_label %></span>
+              <div class="text-xs text-ink-light"><%= number_with_precision(mur.surface_nette, precision: 2, strip_insignificant_zeros: true, separator: ",") %> m² × <%= eur(mur.prix_peinture_m2) %>/m²</div>
+            </div>
+            <span class="text-ink whitespace-nowrap"><%= eur(mur.peinture_total) %></span>
+          </div>
+          <% if mur.prep_total.positive? %>
+            <div class="flex items-center justify-between py-1 text-xs text-ink-light pl-2">
+              <span>+ Travaux exceptionnels (<%= mur.libelle %>)</span>
+              <span><%= eur(mur.prep_total) %></span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% detail = @estimation.devis_remise_montant.to_d.positive? || @estimation.devis_extras_total.to_d.positive? %>
+    <div class="mt-4 pt-4 border-t border-ink/10 space-y-1.5">
+      <% if detail %>
+        <div class="flex justify-between text-sm"><span class="text-ink-light">Travaux de peinture</span><span><%= eur(@estimation.devis_total_brut) %></span></div>
+      <% end %>
+      <% if @estimation.devis_trajet_total.to_d.positive? %>
+        <div class="flex justify-between text-sm"><span class="text-ink-light">Déplacement<% if @estimation.devis_trajet_jours.to_d > 0 %> (<%= number_with_precision(@estimation.devis_trajet_jours, precision: 1, strip_insignificant_zeros: true, separator: ",") %> j)<% end %></span><span><%= eur(@estimation.devis_trajet_total) %></span></div>
+      <% end %>
+      <% if @estimation.devis_consommables.to_d.positive? %>
+        <div class="flex justify-between text-sm"><span class="text-ink-light">Consommables<% if @estimation.devis_consommables_libelle.present? %> <span class="text-ink-light/70">(<%= @estimation.devis_consommables_libelle %>)</span><% end %></span><span><%= eur(@estimation.devis_consommables) %></span></div>
+      <% end %>
+      <% if @estimation.devis_remise_montant.to_d.positive? %>
+        <div class="flex justify-between text-sm pt-1 border-t border-ink/5"><span class="text-ink-light">Sous-total</span><span><%= eur(@estimation.devis_sous_total) %></span></div>
+        <div class="flex justify-between text-sm text-sauge"><span>Remise</span><span>- <%= eur(@estimation.devis_remise_montant) %></span></div>
+      <% end %>
+      <div class="flex items-baseline justify-between pt-2">
+        <span class="font-bold text-ink">Total</span>
+        <span class="font-display text-3xl text-accent"><%= eur(@estimation.devis_total) %></span>
+      </div>
+      <div class="text-right text-[11px] text-ink-light">TVA non applicable, art. 293 B du CGI</div>
+    </div>
+  </div>
+
+  <!-- Signature -->
+  <% if @estimation.devis_signe? %>
+    <div class="card-premium p-6 text-center">
+      <div class="inline-flex items-center gap-2 text-sauge font-semibold mb-3">✓ Devis signé</div>
+      <p class="text-sm text-ink-soft">Par <strong><%= @estimation.devis_signataire %></strong> le <%= @estimation.devis_signe_at.strftime("%d/%m/%Y à %H:%M") %></p>
+      <div class="my-4 flex justify-center">
+        <%= image_tag url_for(@estimation.devis_signature), class: "max-h-32 border border-border-warm rounded-lg bg-white p-2" %>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <%= link_to "Télécharger le PDF", devis_pdf_admin_estimation_path(@estimation), target: "_blank", class: "btn-secondary text-sm" %>
+        <%= button_to "Renvoyer le mail au client", devis_resend_admin_estimation_path(@estimation), class: "btn-ghost text-sm" %>
+      </div>
+      <% if @estimation.devis_signe_envoye_at %>
+        <p class="text-xs text-ink-light mt-3">Mail envoyé à <%= @estimation.email %> le <%= @estimation.devis_signe_envoye_at.strftime("%d/%m à %H:%M") %></p>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="card-premium p-6">
+      <h3 class="font-display text-xl text-ink mb-1">Signature du client</h3>
+      <p class="text-sm text-ink-light mb-4">En signant, le client accepte ce devis pour un montant de <strong class="text-ink"><%= eur(@estimation.devis_total) %></strong>.</p>
+
+      <%= form_with url: devis_sign_admin_estimation_path(@estimation), method: :post,
+            data: { controller: "signature", action: "submit->signature#submit" } do %>
+        <label class="label-field">Nom du signataire</label>
+        <%= text_field_tag :signataire, @estimation.nom, class: "input-field mb-4" %>
+
+        <div class="relative">
+          <canvas data-signature-target="canvas"
+                  class="w-full h-48 bg-white border-2 border-dashed border-border-warm rounded-xl"
+                  style="touch-action: none;"></canvas>
+          <button type="button" data-action="signature#clear"
+                  class="absolute top-2 right-2 text-xs px-3 py-1.5 rounded-full bg-sand border border-border-warm hover:bg-cream">Effacer</button>
+          <span class="absolute bottom-2 left-3 text-xs text-ink-light/60 pointer-events-none">Signez ci-dessus ✍︎</span>
+        </div>
+
+        <%= hidden_field_tag :signature_data, "", data: { signature_target: "data" } %>
+
+        <%= submit_tag "Valider et signer le devis", class: "btn-primary w-full !justify-center mt-5" %>
+        <p class="text-[11px] text-ink-light text-center mt-2">Signature électronique horodatée. Micro-entreprise, TVA non applicable (art. 293 B du CGI).</p>
+      <% end %>
+    </div>
+  <% end %>
+</div>

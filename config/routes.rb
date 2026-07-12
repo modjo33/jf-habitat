@@ -18,7 +18,25 @@ Rails.application.routes.draw do
   namespace :admin do
     root to: "dashboard#index"
     resources :tarifs, except: :show
-    resources :estimations, only: [:index, :show, :update, :destroy]
+    resources :gammes, only: :index
+    resources :estimations, only: [:index, :show, :update, :destroy] do
+      member do
+        get   :devis,              to: "devis#show"          # écran de saisie (tablette)
+        post  :devis_prefill,      to: "devis#prefill"       # pré-remplissage depuis l'estimation web
+        patch :devis_remise,       to: "devis#remise"        # remise (% ou montant)
+        patch :devis_extras,       to: "devis#extras"        # trajet + consommables
+        get   :devis_presentation, to: "devis#presentation"  # récap client + signature
+        post  :devis_sign,         to: "devis#sign"          # enregistrer la signature
+        post  :devis_resend,       to: "devis#resend"        # renvoyer le mail signé
+        get   :devis_pdf,          to: "devis#pdf"           # télécharger le PDF
+      end
+    end
+
+    # Devis terrain : structure imbriquée pièce → mur → déduction.
+    resources :pieces,     only: [:create, :update, :destroy]
+    resources :murs,       only: [:create, :update, :destroy]
+    resources :deductions, only: [:create, :update, :destroy]
+    resources :zones,      only: [:create, :update, :destroy]
 
     resources :clients, only: [:index, :show, :update, :new, :create] do
       collection { get :kanban }
