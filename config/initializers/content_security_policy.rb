@@ -8,6 +8,10 @@ Rails.application.configure do
     policy.object_src  :none
     policy.script_src  :self, :https
     policy.style_src   :self, :https
+    # Autorise les attributs `style="..."` inline (couleurs dynamiques du calendrier,
+    # des badges, etc.). Sans risque d'exécution ; ne couvre que les attributs style,
+    # pas les blocs <style> (qui restent protégés par nonce via style-src).
+    policy.style_src_attr :unsafe_inline
     # connect-src doit autoriser l'envoi des hits vers Google Analytics / Tag Manager
     # (GA4 poste sur *.google-analytics.com via fetch/beacon) + le pixel Meta +
     # les conversions Google Ads (gtag poste via beacon/fetch sur googleadservices /
