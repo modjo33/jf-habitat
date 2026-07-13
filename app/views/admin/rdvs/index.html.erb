@@ -34,19 +34,21 @@
       <% @jours.each do |jour| %>
         <% hors_mois = jour.month != @mois.month %>
         <% aujourdhui = jour == Date.current %>
-        <div class="min-h-[92px] rounded-lg border p-1.5 flex flex-col gap-1 <%= hors_mois ? 'bg-sand/40 border-transparent' : 'bg-cream border-border-warm/50' %>">
+        <% rdvs_jour = @rdvs_par_jour[jour] || [] %>
+        <div class="min-h-[92px] rounded-lg border p-1.5 flex flex-col gap-1 <%= hors_mois ? 'border-transparent' : 'border-border-warm/50' %> <%= 'bg-cream' if rdvs_jour.empty? && !hors_mois %> <%= 'bg-sand/40' if rdvs_jour.empty? && hors_mois %>"
+             style="<%= rdv_cell_style(rdvs_jour) %>">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full <%= 'bg-accent text-white' if aujourdhui %> <%= 'text-ink-light/50' if hors_mois %>">
+            <span class="text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full <%= 'bg-accent text-white' if aujourdhui %> <%= 'text-ink-light/50' if hors_mois && !aujourdhui %>">
               <%= jour.day %>
             </span>
-            <%= link_to "+", new_admin_rdv_path(date: jour), class: "text-ink-light/40 hover:text-accent text-sm leading-none px-1", title: "Ajouter un RDV" %>
+            <%= link_to "+", new_admin_rdv_path(date: jour), class: "text-ink-light/50 hover:text-accent text-sm leading-none px-1", title: "Ajouter un RDV" %>
           </div>
-          <% (@rdvs_par_jour[jour] || []).each do |rdv| %>
+          <% rdvs_jour.each do |rdv| %>
             <% suite = rdv.multi_jour? && jour != rdv.jour %>
             <%= link_to edit_admin_rdv_path(rdv), title: "#{rdv.horaire} · #{rdv.titre}",
-                  style: "background:#{rdv.couleur}1A; border-left:3px solid #{rdv.couleur};",
-                  class: "block text-[11px] leading-tight rounded px-1.5 py-1 text-ink truncate #{'opacity-50 line-through' if rdv.statut == 'annule'}" do %>
-              <% if suite %>↳ <% elsif !rdv.all_day %><span class="font-semibold"><%= rdv.starts_at.strftime("%H:%M") %></span> <% end %><%= rdv.titre %>
+                  style: "background:#{rdv.couleur};",
+                  class: "block text-[11px] leading-tight rounded px-1.5 py-1 text-white truncate shadow-sm #{'opacity-50 line-through' if rdv.statut == 'annule'}" do %>
+              <% if suite %>↳ <% elsif !rdv.all_day %><span class="font-bold"><%= rdv.starts_at.strftime("%H:%M") %></span> <% end %><%= rdv.titre %>
             <% end %>
           <% end %>
         </div>

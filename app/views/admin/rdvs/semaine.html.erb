@@ -27,7 +27,9 @@
 <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
   <% @jours.each do |jour| %>
     <% aujourdhui = jour == Date.current %>
-    <div class="card-premium p-2 min-h-[220px] flex flex-col <%= 'ring-2 ring-accent/40' if aujourdhui %>">
+    <% rdvs_jour = @rdvs_par_jour[jour] || [] %>
+    <div class="card-premium p-2 min-h-[220px] flex flex-col <%= 'ring-2 ring-accent/40' if aujourdhui %>"
+         style="<%= rdv_cell_style(rdvs_jour, alpha: 0.12) %>">
       <div class="flex items-center justify-between px-1 pb-2 mb-1 border-b border-border-warm/60">
         <div class="text-xs">
           <span class="font-bold text-ink"><%= jours_fr[jour.cwday - 1] %></span>
@@ -36,14 +38,14 @@
         <%= link_to "+", new_admin_rdv_path(date: jour), class: "text-ink-light/50 hover:text-accent leading-none px-1" %>
       </div>
       <div class="space-y-1.5 flex-1">
-        <% (@rdvs_par_jour[jour] || []).each do |rdv| %>
+        <% rdvs_jour.each do |rdv| %>
           <% suite = rdv.multi_jour? && jour != rdv.jour %>
           <%= link_to edit_admin_rdv_path(rdv),
-                style: "background:#{rdv.couleur}14; border-left:3px solid #{rdv.couleur};",
-                class: "block rounded px-2 py-1.5 #{'opacity-50 line-through' if rdv.statut == 'annule'}" do %>
-            <div class="text-[11px] font-semibold text-ink-light"><%= suite ? "↳ suite" : rdv.horaire %></div>
-            <div class="text-xs font-semibold text-ink leading-tight"><%= rdv.titre %></div>
-            <% if rdv.client %><div class="text-[10px] text-ink-light truncate"><%= rdv.client.nom %></div><% end %>
+                style: "background:#{rdv.couleur};",
+                class: "block rounded px-2 py-1.5 text-white shadow-sm #{'opacity-50 line-through' if rdv.statut == 'annule'}" do %>
+            <div class="text-[11px] font-semibold opacity-90"><%= suite ? "↳ suite" : rdv.horaire %></div>
+            <div class="text-xs font-bold leading-tight"><%= rdv.titre %></div>
+            <% if rdv.client %><div class="text-[10px] opacity-90 truncate"><%= rdv.client.nom %></div><% end %>
           <% end %>
         <% end %>
       </div>
