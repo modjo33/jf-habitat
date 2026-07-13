@@ -41,6 +41,8 @@ class Admin::ClientsController < Admin::BaseController
   def show
     @notes       = @client.client_notes.recent
     @estimations = @client.estimations.order(created_at: :desc).with_attached_devis_signature
+    # Estimations ayant un devis PDF prêt (sans charger le binaire).
+    @devis_doc_ids = DevisDocument.where(estimation_id: @estimations.map(&:id)).pluck(:estimation_id).to_set
   end
 
   def update

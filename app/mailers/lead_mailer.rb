@@ -16,9 +16,9 @@ class LeadMailer < ApplicationMailer
   # Envoi du devis (PDF attaché) au client + copie interne.
   def devis_document(estimation)
     @estimation = estimation
-    if estimation.devis_document.attached?
+    if estimation.devis_document&.data.present?
       attachments["devis-jf-habitat-#{estimation.reference}.pdf"] = {
-        mime_type: "application/pdf", content: estimation.devis_document.download
+        mime_type: "application/pdf", content: estimation.devis_document.data
       }
     end
     mail to: estimation.email,

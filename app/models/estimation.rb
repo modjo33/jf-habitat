@@ -28,7 +28,9 @@ class Estimation < ApplicationRecord
   has_many :pieces, -> { order(:position, :id) }, dependent: :destroy
   has_many_attached :photos
   has_one_attached :devis_signature
-  has_one_attached :devis_document # PDF du devis prêt à envoyer au client
+  # PDF du devis prêt à envoyer, stocké en base (table dédiée) plutôt que sur
+  # Cloudinary (qui bloque la livraison des fichiers PDF).
+  has_one :devis_document, dependent: :destroy
   accepts_nested_attributes_for :estimation_lines, allow_destroy: true
 
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }

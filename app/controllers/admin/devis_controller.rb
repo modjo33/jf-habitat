@@ -39,11 +39,23 @@ class Admin::DevisController < Admin::BaseController
     end
   end
 
-  # Envoie le devis (PDF attaché) au client par mail.
-  def envoyer
-    unless @estimation.devis_document.attached?
+  # Télécharge / affiche le PDF du devis (stocké en base) — via l'admin (auth),
+  # pas d'URL Cloudinary publique.
+  def document_pdf
+    doc = @estimation.devis_document
+    unless doc&.data.present?
       return redirect_back fallback_location: admin_estimation_path(@estimation),
-                           alert: "Aucun devis PDF attaché à envoyer."
+                           alert: "Aucun devis PDF."
+    end
+    send_data doc.data, filename: "devis-jf-habitat-#{@estimation.reference}.pdf",
+              type: "application/pdf", disposition: "inline"
+  end
+
+  # Envoie le devis (PDF) au client par mail.
+  def envoyer
+    unless @estimation.devis_document&.data.present?
+      return redirect_back fallback_location: admin_estimation_path(@estimation),
+                           alert: "Aucun devis PDF à envoyer."
     end
     LeadMailer.devis_document(@estimation).deliver_now
     @estimation.update(statut: "devis_envoye") if @estimation.statut == "nouveau" || @estimation.statut == "contacte"

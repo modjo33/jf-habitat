@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_13_143458) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_13_182115) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -106,6 +106,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_143458) do
     t.datetime "updated_at", null: false
     t.index ["mur_id", "position"], name: "index_deductions_on_mur_id_and_position"
     t.index ["mur_id"], name: "index_deductions_on_mur_id"
+  end
+
+  create_table "devis_documents", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.binary "data"
+    t.bigint "estimation_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["estimation_id"], name: "index_devis_documents_on_estimation_id", unique: true
   end
 
   create_table "encaissements", force: :cascade do |t|
@@ -311,6 +319,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_143458) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "client_notes", "clients"
   add_foreign_key "deductions", "murs"
+  add_foreign_key "devis_documents", "estimations"
   add_foreign_key "encaissements", "clients"
   add_foreign_key "estimation_lines", "estimations"
   add_foreign_key "estimations", "clients"
