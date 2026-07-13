@@ -60,6 +60,11 @@ class Client < ApplicationRecord
     prochaine_action_date.present? && prochaine_action_date <= Date.current
   end
 
+  # Adresse sur une ligne, pour pré-remplir un RDV.
+  def adresse_complete
+    [adresse, [code_postal, ville].compact_blank.join(" ")].compact_blank.join(", ")
+  end
+
   private
 
   def downcase_email

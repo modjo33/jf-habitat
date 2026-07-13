@@ -1,0 +1,14 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6 flex items-start justify-between gap-4">
+    <div>
+      <%= link_to "← Retour au calendrier", admin_rdvs_path(mois: @rdv.starts_at&.strftime("%Y-%m")), class: "text-sm text-ink-light hover:text-ink" %>
+      <h1 class="h-display text-3xl text-ink mt-2">Modifier le RDV</h1>
+    </div>
+    <%= button_to "Supprimer", admin_rdv_path(@rdv), method: :delete,
+          form: { data: { turbo_confirm: "Supprimer ce RDV ?" } },
+          class: "text-sm text-red-500 hover:text-red-700 mt-8 shrink-0" %>
+  </div>
+  <div class="card-premium p-6">
+    <%= render "form", rdv: @rdv %>
+  </div>
+</div>

@@ -48,6 +48,7 @@
               <%= nav.(admin_root_path, "Dashboard", %w[dashboard]) %>
               <%= nav.(admin_clients_path, "Clients (CRM)", %w[clients client_notes], badge: Client.where(statut: %w[nouveau contacte rdv_pris devis_envoye]).count) %>
               <%= nav.(admin_estimations_path, "Estimations", %w[estimations], badge: Estimation.where(statut: "nouveau").count) %>
+              <%= nav.(admin_rdvs_path, "Agenda", %w[rdvs]) %>
             </div>
           </div>
 

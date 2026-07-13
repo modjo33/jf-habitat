@@ -22,6 +22,38 @@
   <% end %>
 </div>
 
+<!-- Agenda du jour -->
+<div class="card-premium p-6 mb-10">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="font-display text-xl text-ink">Agenda — aujourd'hui</h2>
+    <%= link_to "Voir l'agenda →", admin_rdvs_path, class: "text-sm text-accent hover:underline" %>
+  </div>
+  <% if @rdvs_jour.empty? %>
+    <p class="text-sm text-ink-light">Aucun RDV aujourd'hui.</p>
+  <% else %>
+    <div class="space-y-1.5">
+      <% @rdvs_jour.each do |rdv| %>
+        <%= link_to edit_admin_rdv_path(rdv), class: "flex items-center gap-3 p-2 rounded-lg hover:bg-sand" do %>
+          <span class="w-1.5 h-8 rounded-full shrink-0" style="background:<%= rdv.couleur %>"></span>
+          <span class="text-sm font-semibold text-ink w-28 shrink-0"><%= rdv.horaire %></span>
+          <span class="text-sm text-ink truncate flex-1"><%= rdv.titre %><% if rdv.client %> · <span class="text-ink-light"><%= rdv.client.nom %></span><% end %></span>
+          <% if rdv.adresse.present? %><span class="text-xs text-ink-light truncate hidden lg:block max-w-[200px]"><%= rdv.adresse %></span><% end %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+  <% if @rdvs_a_venir.any? %>
+    <div class="mt-4 pt-4 border-t border-border-warm/60 flex flex-wrap items-center gap-2">
+      <span class="text-[10px] uppercase tracking-wider text-ink-light font-bold">À venir</span>
+      <% @rdvs_a_venir.each do |rdv| %>
+        <%= link_to edit_admin_rdv_path(rdv), class: "text-xs px-3 py-1.5 rounded-full border border-border-warm hover:bg-sand text-ink" do %>
+          <span style="color:<%= rdv.couleur %>">●</span> <%= rdv.starts_at.strftime("%d/%m") %> · <%= rdv.titre.truncate(24) %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
 <div class="grid md:grid-cols-3 gap-4 mb-10">
   <div class="card-premium p-6 flex items-center justify-between <%= 'border-accent' if @prochaine_declaration.a_declarer? %>">
     <div>

@@ -11,9 +11,12 @@
         <% if @client.ville.present? %> · <%= @client.ville %><% end %>
       </div>
     </div>
-    <div class="text-right text-xs text-ink-light">
-      <div>Créé le <%= l(@client.created_at, format: :long) %></div>
-      <div>Dernière interaction : <%= time_ago_in_words(@client.derniere_interaction_at || @client.updated_at) %> ago</div>
+    <div class="flex flex-col items-end gap-2">
+      <%= link_to "📅 Planifier un RDV", new_admin_rdv_path(client_id: @client.id), class: "btn-primary text-sm px-5 py-2.5" %>
+      <div class="text-right text-xs text-ink-light">
+        <div>Créé le <%= l(@client.created_at, format: :long) %></div>
+        <div>Dernière interaction : <%= time_ago_in_words(@client.derniere_interaction_at || @client.updated_at) %> ago</div>
+      </div>
     </div>
   </div>
 </div>

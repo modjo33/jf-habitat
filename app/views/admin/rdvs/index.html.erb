@@ -1,0 +1,94 @@
+<% mois_fr = %w[_ Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre Novembre Décembre] %>
+<% jours_fr = %w[Lun Mar Mer Jeu Ven Sam Dim] %>
+<% prev_mois = (@mois << 1).strftime("%Y-%m") %>
+<% next_mois = (@mois >> 1).strftime("%Y-%m") %>
+
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div class="flex items-center gap-3">
+    <h1 class="h-display text-3xl text-ink"><%= mois_fr[@mois.month] %> <%= @mois.year %></h1>
+    <div class="flex items-center gap-1">
+      <%= link_to "‹", admin_rdvs_path(mois: prev_mois), class: "w-8 h-8 flex items-center justify-center rounded-lg border border-border-warm hover:bg-sand text-ink" %>
+      <%= link_to "Aujourd'hui", admin_rdvs_path(mois: Date.current.strftime("%Y-%m")), class: "px-3 h-8 flex items-center rounded-lg border border-border-warm hover:bg-sand text-xs font-semibold text-ink" %>
+      <%= link_to "›", admin_rdvs_path(mois: next_mois), class: "w-8 h-8 flex items-center justify-center rounded-lg border border-border-warm hover:bg-sand text-ink" %>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="flex rounded-lg border border-border-warm overflow-hidden text-xs font-semibold">
+      <span class="px-3 py-2 bg-ink text-sand">Mois</span>
+      <%= link_to "Semaine", semaine_admin_rdvs_path(date: @mois), class: "px-3 py-2 hover:bg-sand text-ink" %>
+    </div>
+    <%= link_to "iCal ↗", ical_admin_rdvs_path, class: "px-3 py-2 rounded-lg border border-border-warm hover:bg-sand text-xs font-semibold text-ink", title: "Abonner ton téléphone à l'agenda" %>
+    <%= link_to "+ Nouveau RDV", new_admin_rdv_path(date: Date.current), class: "btn-primary text-sm px-5 py-2.5" %>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-4 gap-6">
+  <!-- Calendrier -->
+  <div class="lg:col-span-3 card-premium p-4">
+    <div class="grid grid-cols-7 gap-px mb-1">
+      <% jours_fr.each do |j| %>
+        <div class="text-center text-[11px] uppercase tracking-wider font-bold text-ink-light py-1"><%= j %></div>
+      <% end %>
+    </div>
+    <div class="grid grid-cols-7 gap-1">
+      <% @jours.each do |jour| %>
+        <% hors_mois = jour.month != @mois.month %>
+        <% aujourdhui = jour == Date.current %>
+        <div class="min-h-[92px] rounded-lg border p-1.5 flex flex-col gap-1 <%= hors_mois ? 'bg-sand/40 border-transparent' : 'bg-cream border-border-warm/50' %>">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full <%= 'bg-accent text-white' if aujourdhui %> <%= 'text-ink-light/50' if hors_mois %>">
+              <%= jour.day %>
+            </span>
+            <%= link_to "+", new_admin_rdv_path(date: jour), class: "text-ink-light/40 hover:text-accent text-sm leading-none px-1", title: "Ajouter un RDV" %>
+          </div>
+          <% (@rdvs_par_jour[jour] || []).each do |rdv| %>
+            <% suite = rdv.multi_jour? && jour != rdv.jour %>
+            <%= link_to edit_admin_rdv_path(rdv), title: "#{rdv.horaire} · #{rdv.titre}",
+                  style: "background:#{rdv.couleur}1A; border-left:3px solid #{rdv.couleur};",
+                  class: "block text-[11px] leading-tight rounded px-1.5 py-1 text-ink truncate #{'opacity-50 line-through' if rdv.statut == 'annule'}" do %>
+              <% if suite %>↳ <% elsif !rdv.all_day %><span class="font-semibold"><%= rdv.starts_at.strftime("%H:%M") %></span> <% end %><%= rdv.titre %>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Prochains RDV -->
+  <div class="lg:col-span-1">
+    <div class="card-premium p-5">
+      <h2 class="font-display text-lg text-ink mb-4">Prochains RDV</h2>
+      <% if @prochains.empty? %>
+        <p class="text-sm text-ink-light">Aucun RDV à venir.</p>
+      <% else %>
+        <div class="space-y-3">
+          <% @prochains.each do |rdv| %>
+            <%= link_to edit_admin_rdv_path(rdv), class: "block group" do %>
+              <div class="flex gap-2">
+                <span class="w-1.5 rounded-full shrink-0" style="background:<%= rdv.couleur %>"></span>
+                <div class="min-w-0">
+                  <div class="text-xs text-ink-light"><%= l(rdv.starts_at, format: :long) rescue rdv.starts_at.strftime("%d/%m") %> · <%= rdv.horaire %></div>
+                  <div class="text-sm font-semibold text-ink truncate group-hover:text-accent"><%= rdv.titre %></div>
+                  <div class="text-xs text-ink-light">
+                    <%= rdv.categorie_label %><% if rdv.client %> · <%= rdv.client.nom %><% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="mt-5 pt-4 border-t border-border-warm/60">
+        <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold mb-2">Légende</div>
+        <div class="space-y-1">
+          <% Rdv::CATEGORIES.each do |key, meta| %>
+            <div class="flex items-center gap-2 text-xs text-ink-soft">
+              <span class="w-3 h-3 rounded" style="background:<%= meta[:color] %>"></span><%= meta[:label] %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

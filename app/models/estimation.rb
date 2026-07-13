@@ -121,6 +121,11 @@ class Estimation < ApplicationRecord
     devis_remise_for(devis_sous_total)
   end
 
+  # Adresse chantier sur une ligne (pour pré-remplir un RDV).
+  def adresse_complete
+    [adresse, [code_postal, ville].compact_blank.join(" ")].compact_blank.join(", ")
+  end
+
   def devis_signe?
     devis_signe_at.present? && devis_signature.attached?
   end

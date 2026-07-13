@@ -19,6 +19,12 @@ Rails.application.routes.draw do
     root to: "dashboard#index"
     resources :tarifs, except: :show
     resources :gammes, only: :index
+    resources :rdvs, except: :show do
+      collection do
+        get :semaine
+        get :ical
+      end
+    end
     resources :estimations, only: [:index, :show, :update, :destroy] do
       member do
         get   :devis,              to: "devis#show"          # écran de saisie (tablette)

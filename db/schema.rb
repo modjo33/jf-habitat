@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_12_151945) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_13_143458) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -232,6 +232,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_12_151945) do
     t.index ["estimation_id"], name: "index_pieces_on_estimation_id"
   end
 
+  create_table "rdvs", force: :cascade do |t|
+    t.string "adresse"
+    t.boolean "all_day", default: false, null: false
+    t.string "categorie", default: "visite_metre", null: false
+    t.bigint "client_id"
+    t.datetime "created_at", null: false
+    t.datetime "ends_at"
+    t.bigint "estimation_id"
+    t.text "notes"
+    t.datetime "starts_at", null: false
+    t.string "statut", default: "prevu", null: false
+    t.string "titre", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_rdvs_on_client_id"
+    t.index ["estimation_id"], name: "index_rdvs_on_estimation_id"
+    t.index ["starts_at"], name: "index_rdvs_on_starts_at"
+  end
+
   create_table "realisations", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -298,5 +316,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_12_151945) do
   add_foreign_key "estimations", "clients"
   add_foreign_key "murs", "pieces"
   add_foreign_key "pieces", "estimations"
+  add_foreign_key "rdvs", "clients"
+  add_foreign_key "rdvs", "estimations"
   add_foreign_key "zones", "murs"
 end

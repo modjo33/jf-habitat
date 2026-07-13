@@ -21,5 +21,12 @@ class Admin::DashboardController < Admin::BaseController
     @prochaine_declaration = precedent.a_declarer? ? precedent : calcul.trimestre_courant
 
     @campagne = CampagneAds.instance
+
+    # Agenda — RDV couvrant aujourd'hui (multi-jours inclus) + prochains.
+    today = Date.current
+    @rdvs_jour = Rdv.actifs
+                    .where("starts_at <= ? AND COALESCE(ends_at, starts_at) >= ?", today.end_of_day, today.beginning_of_day)
+                    .includes(:client).chrono
+    @rdvs_a_venir = Rdv.actifs.where("starts_at > ?", today.end_of_day).includes(:client).chrono.limit(4)
   end
 end

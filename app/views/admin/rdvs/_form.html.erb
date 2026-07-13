@@ -1,0 +1,63 @@
+<%= form_with model: [:admin, rdv], class: "space-y-5", data: { controller: "rdv-form" } do |f| %>
+  <% if rdv.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 text-sm">
+      <%= rdv.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :titre, "Titre", class: "label-field" %>
+    <%= f.text_field :titre, placeholder: "ex. Visite métré — cuisine", class: "input-field", autofocus: true %>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :categorie, "Type", class: "label-field" %>
+      <%= f.select :categorie, Rdv::CATEGORIES.map { |k, v| [v[:label], k] }, {}, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :statut, "Statut", class: "label-field" %>
+      <%= f.select :statut, Rdv::STATUTS.map { |k, v| [v, k] }, {}, class: "input-field" %>
+    </div>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :starts_at, "Début", class: "label-field" %>
+      <%= f.datetime_field :starts_at, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :ends_at, "Fin (optionnel)", class: "label-field" %>
+      <%= f.datetime_field :ends_at, class: "input-field" %>
+    </div>
+  </div>
+
+  <label class="flex items-center gap-2 text-sm text-ink">
+    <%= f.check_box :all_day, class: "w-4 h-4 rounded border-border-warm text-accent" %>
+    Journée entière
+  </label>
+
+  <div>
+    <%= f.label :client_id, "Client lié (optionnel)", class: "label-field" %>
+    <%= f.select :client_id,
+          options_for_select(Client.order(:nom).map { |c| [c.nom, c.id, { data: { adresse: c.adresse_complete } }] }, rdv.client_id),
+          { include_blank: "— Aucun —" },
+          { class: "input-field", data: { "rdv-form-target": "client", action: "change->rdv-form#fillAdresse" } } %>
+  </div>
+
+  <div>
+    <%= f.label :adresse, "Adresse du RDV", class: "label-field" %>
+    <%= f.text_field :adresse, placeholder: "Adresse du chantier / rendez-vous",
+          class: "input-field", data: { "rdv-form-target": "adresse" } %>
+  </div>
+
+  <div>
+    <%= f.label :notes, "Notes / spécificités", class: "label-field" %>
+    <%= f.text_area :notes, rows: 4, placeholder: "Accès, code portail, ce qu'il y a à voir, contraintes…", class: "input-field" %>
+  </div>
+
+  <div class="flex items-center justify-between pt-2">
+    <%= link_to "Annuler", admin_rdvs_path(mois: rdv.starts_at&.strftime("%Y-%m")), class: "text-sm text-ink-light hover:text-ink" %>
+    <%= f.submit(rdv.persisted? ? "Enregistrer" : "Créer le RDV", class: "btn-primary text-sm px-6 py-2.5") %>
+  </div>
+<% end %>
