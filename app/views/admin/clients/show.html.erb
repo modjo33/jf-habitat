@@ -60,16 +60,32 @@
       <% else %>
         <div class="space-y-2">
           <% @estimations.each do |e| %>
-            <%= link_to admin_estimation_path(e), class: "flex items-center justify-between gap-3 p-3 bg-sand rounded-lg border border-border-warm/40 hover:border-accent/40 transition" do %>
-              <div class="min-w-0">
-                <div class="font-mono text-xs text-accent font-semibold"><%= e.reference %></div>
-                <div class="text-xs text-ink-light"><%= e.type_chantier_label %> · <%= e.surface_totale %> m² · <%= e.estimation_lines.count %> ligne(s)</div>
-              </div>
-              <div class="text-right shrink-0">
-                <div class="font-display text-lg text-ink"><%= number_to_currency(e.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
-                <div class="text-[10px] uppercase tracking-widest text-ink-light"><%= l(e.created_at, format: :long) %></div>
-              </div>
-            <% end %>
+            <div class="bg-sand rounded-lg border border-border-warm/40 hover:border-accent/40 transition">
+              <%= link_to admin_estimation_path(e), class: "flex items-center justify-between gap-3 p-3" do %>
+                <div class="min-w-0">
+                  <div class="font-mono text-xs text-accent font-semibold"><%= e.reference %></div>
+                  <div class="text-xs text-ink-light"><%= e.type_chantier_label %> · <%= e.surface_totale %> m² · <%= e.estimation_lines.count %> ligne(s)</div>
+                </div>
+                <div class="text-right shrink-0">
+                  <div class="font-display text-lg text-ink"><%= number_to_currency(e.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
+                  <div class="text-[10px] uppercase tracking-widest text-ink-light"><%= l(e.created_at, format: :long) %></div>
+                </div>
+              <% end %>
+
+              <% if e.devis_signe? %>
+                <div class="flex items-center justify-between gap-2 px-3 py-2 border-t border-border-warm/40">
+                  <span class="text-[11px] text-sauge font-semibold">✓ Devis signé le <%= e.devis_signe_at.strftime("%d/%m/%Y") %> · <%= eur(e.devis_total) %></span>
+                  <%= link_to "PDF du devis ↓", devis_pdf_admin_estimation_path(e), target: "_blank",
+                        class: "text-xs font-semibold text-accent hover:underline shrink-0" %>
+                </div>
+              <% elsif e.pieces.exists? %>
+                <div class="flex items-center justify-between gap-2 px-3 py-2 border-t border-border-warm/40">
+                  <span class="text-[11px] text-ink-light">Devis en cours (non signé) · <%= eur(e.devis_total) %></span>
+                  <%= link_to "Aperçu PDF ↓", devis_pdf_admin_estimation_path(e), target: "_blank",
+                        class: "text-xs font-semibold text-accent hover:underline shrink-0" %>
+                </div>
+              <% end %>
+            </div>
           <% end %>
         </div>
       <% end %>

@@ -40,7 +40,7 @@ class Admin::ClientsController < Admin::BaseController
 
   def show
     @notes       = @client.client_notes.recent
-    @estimations = @client.estimations.order(created_at: :desc)
+    @estimations = @client.estimations.order(created_at: :desc).with_attached_devis_signature
   end
 
   def update
