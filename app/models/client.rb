@@ -52,7 +52,8 @@ class Client < ApplicationRecord
 
   # Valeur totale des devis du client = devis manuel éventuel + estimations en ligne.
   def total_devis_envoyes
-    (montant_devis_manuel || 0) + estimations.sum(:total_ttc)
+    # Montant du devis terrain s'il existe, sinon chiffrage web (via ca_montant).
+    (montant_devis_manuel || 0) + estimations.ca_montant
   end
 
   def a_relancer?

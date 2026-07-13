@@ -1,0 +1,25 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6">
+    <%= link_to "← Retour au lead", admin_estimation_path(@estimation), class: "text-sm text-ink-light hover:text-ink" %>
+    <h1 class="h-display text-3xl text-ink mt-2">Envoyer le devis</h1>
+    <p class="text-ink-light mt-1">À <strong><%= @estimation.nom %></strong> · <%= @estimation.email %></p>
+  </div>
+
+  <div class="card-premium p-6">
+    <div class="mb-4 flex items-center justify-between p-3 bg-sand rounded-lg">
+      <span class="text-sm text-ink">📎 devis-jf-habitat-<%= @estimation.reference %>.pdf<% if @estimation.devis_total.to_d.positive? %> · <%= eur(@estimation.devis_total) %><% end %></span>
+      <%= link_to "Aperçu", devis_document_pdf_admin_estimation_path(@estimation), target: "_blank", class: "text-xs font-semibold text-accent hover:underline" %>
+    </div>
+
+    <%= form_with url: devis_envoyer_admin_estimation_path(@estimation), method: :post do %>
+      <label class="label-field">Message (modifiable)</label>
+      <%= text_area_tag :message, @message, rows: 11, class: "input-field", style: "line-height:1.5;" %>
+      <p class="text-xs text-ink-light mt-1">Le PDF du devis sera joint automatiquement. Une copie t'est envoyée.</p>
+      <div class="flex items-center justify-between mt-5">
+        <%= link_to "Annuler", admin_clients_path, class: "text-sm text-ink-light hover:text-ink" %>
+        <%= submit_tag "✉️ Envoyer à #{@estimation.email}", class: "btn-primary",
+              data: { turbo_confirm: "Confirmer l'envoi du devis à #{@estimation.email} ?" } %>
+      </div>
+    <% end %>
+  </div>
+</div>

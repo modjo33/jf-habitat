@@ -70,7 +70,7 @@
                   <div class="text-xs text-ink-light"><%= e.type_chantier_label %> · <%= e.surface_totale %> m² · <%= e.estimation_lines.count %> ligne(s)</div>
                 </div>
                 <div class="text-right shrink-0">
-                  <div class="font-display text-lg text-ink"><%= number_to_currency(e.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
+                  <div class="font-display text-lg text-ink"><%= number_to_currency(e.ca_montant, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
                   <div class="text-[10px] uppercase tracking-widest text-ink-light"><%= l(e.created_at, format: :long) %></div>
                 </div>
               <% end %>
@@ -94,8 +94,7 @@
                   <span class="text-[11px] text-ink font-semibold">📎 Devis prêt à envoyer<% if e.devis_total.to_d.positive? %> · <%= eur(e.devis_total) %><% end %></span>
                   <div class="flex items-center gap-3 shrink-0">
                     <%= link_to "Télécharger", devis_document_pdf_admin_estimation_path(e), target: "_blank", class: "text-xs font-semibold text-accent hover:underline" %>
-                    <%= button_to "✉️ Envoyer au client", devis_envoyer_admin_estimation_path(e),
-                          form: { data: { turbo_confirm: "Envoyer le devis à #{e.email} ?" } },
+                    <%= link_to "✉️ Envoyer au client", devis_envoi_admin_estimation_path(e),
                           class: "text-xs font-semibold bg-accent text-white px-3 py-1.5 rounded-full hover:bg-accent-dark" %>
                   </div>
                 </div>

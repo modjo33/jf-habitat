@@ -51,13 +51,22 @@ class Admin::DevisController < Admin::BaseController
               type: "application/pdf", disposition: "inline"
   end
 
+  # Écran de composition du mail (message pré-rempli, modifiable).
+  def envoi
+    @message = "Bonjour #{@estimation.nom},\n\n"\
+               "Suite à notre échange, veuillez trouver ci-joint votre devis détaillé "\
+               "pour les travaux à réaliser.\n\n"\
+               "Je reste à votre disposition pour toute question ou ajustement.\n\n"\
+               "Bien cordialement,\nJohan — JF Habitat"
+  end
+
   # Envoie le devis (PDF) au client par mail.
   def envoyer
     unless @estimation.devis_document&.data.present?
       return redirect_back fallback_location: admin_estimation_path(@estimation),
                            alert: "Aucun devis PDF à envoyer."
     end
-    LeadMailer.devis_document(@estimation).deliver_now
+    LeadMailer.devis_document(@estimation, params[:message]).deliver_now
     @estimation.update(statut: "devis_envoye") if @estimation.statut == "nouveau" || @estimation.statut == "contacte"
     if (c = @estimation.client) && %w[nouveau contacte rdv_pris].include?(c.statut)
       c.update(statut: "devis_envoye")

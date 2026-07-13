@@ -1,12 +1,16 @@
+<% if @message.present? %>
+<%= @message %>
+<% else %>
 Bonjour <%= @estimation.nom %>,
 
 Suite à notre échange, veuillez trouver votre devis en pièce jointe (PDF), détaillant l'ensemble des travaux à réaliser.
 
-Référence : <%= @estimation.reference %>
-
-Je reste à votre disposition pour toute question ou ajustement. Pour valider le devis, vous pouvez simplement répondre à cet e-mail.
+Je reste à votre disposition pour toute question ou ajustement.
 
 Bien cordialement,
 Johan — JF Habitat
-Artisan peintre · plaquiste · parqueteur
-06 73 28 16 07 · contact@jfhabitat.fr
+<% end %>
+
+--
+Référence du devis : <%= @estimation.reference %>
+JF Habitat · Artisan peintre · plaquiste · parqueteur · 06 73 28 16 07 · contact@jfhabitat.fr
