@@ -39,6 +39,25 @@ class Admin::DevisController < Admin::BaseController
     end
   end
 
+  # Envoie le devis (PDF attaché) au client par mail.
+  def envoyer
+    unless @estimation.devis_document.attached?
+      return redirect_back fallback_location: admin_estimation_path(@estimation),
+                           alert: "Aucun devis PDF attaché à envoyer."
+    end
+    LeadMailer.devis_document(@estimation).deliver_now
+    @estimation.update(statut: "devis_envoye") if @estimation.statut == "nouveau" || @estimation.statut == "contacte"
+    if (c = @estimation.client) && %w[nouveau contacte rdv_pris].include?(c.statut)
+      c.update(statut: "devis_envoye")
+    end
+    redirect_back fallback_location: admin_estimation_path(@estimation),
+                  notice: "Devis envoyé à #{@estimation.email}."
+  rescue => e
+    Rails.logger.error "[Devis] envoi échoué : #{e.class} #{e.message}"
+    redirect_back fallback_location: admin_estimation_path(@estimation),
+                  alert: "Échec de l'envoi du devis. Réessayez."
+  end
+
   # Récap client (lecture seule) + pavé de signature, ou état signé.
   def presentation
   end

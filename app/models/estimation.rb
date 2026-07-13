@@ -28,6 +28,7 @@ class Estimation < ApplicationRecord
   has_many :pieces, -> { order(:position, :id) }, dependent: :destroy
   has_many_attached :photos
   has_one_attached :devis_signature
+  has_one_attached :devis_document # PDF du devis prêt à envoyer au client
   accepts_nested_attributes_for :estimation_lines, allow_destroy: true
 
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }
@@ -130,15 +131,15 @@ class Estimation < ApplicationRecord
     devis_signe_at.present? && devis_signature.attached?
   end
 
-  # Montant retenu pour le chiffre d'affaires : le devis terrain **signé** s'il
-  # existe (montant réel négocié sur place), sinon le chiffrage web (total_ttc).
+  # Montant retenu pour le chiffre d'affaires : le devis terrain (montant réel
+  # négocié) dès qu'il existe, sinon le chiffrage web (total_ttc).
   def ca_montant
-    devis_signe_at.present? ? devis_total.to_d : total_ttc.to_d
+    devis_total.to_d.positive? ? devis_total.to_d : total_ttc.to_d
   end
 
   # Version agrégée (SQL) — utilisable sur une relation : Estimation.where(...).ca_montant.
   def self.ca_montant
-    sum(Arel.sql("CASE WHEN devis_signe_at IS NOT NULL THEN devis_total ELSE total_ttc END")).to_d
+    sum(Arel.sql("CASE WHEN devis_total > 0 THEN devis_total ELSE total_ttc END")).to_d
   end
 
   # Enregistre la signature du client, verrouille le devis et passe le lead

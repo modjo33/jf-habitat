@@ -88,6 +88,18 @@
                         class: "text-xs font-semibold text-accent hover:underline shrink-0" %>
                 </div>
               <% end %>
+
+              <% if e.devis_document.attached? %>
+                <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-t border-accent/30 bg-accent-soft/50">
+                  <span class="text-[11px] text-ink font-semibold">📎 Devis prêt à envoyer<% if e.devis_total.to_d.positive? %> · <%= eur(e.devis_total) %><% end %></span>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <%= link_to "Télécharger", url_for(e.devis_document), target: "_blank", class: "text-xs font-semibold text-accent hover:underline" %>
+                    <%= button_to "✉️ Envoyer au client", devis_envoyer_admin_estimation_path(e),
+                          form: { data: { turbo_confirm: "Envoyer le devis à #{e.email} ?" } },
+                          class: "text-xs font-semibold bg-accent text-white px-3 py-1.5 rounded-full hover:bg-accent-dark" %>
+                  </div>
+                </div>
+              <% end %>
             </div>
           <% end %>
         </div>
