@@ -47,7 +47,7 @@ Rails.application.routes.draw do
     resources :deductions, only: [:create, :update, :destroy]
     resources :zones,      only: [:create, :update, :destroy]
 
-    resources :clients, only: [:index, :show, :update, :new, :create] do
+    resources :clients, only: [:index, :show, :update, :new, :create, :destroy] do
       collection { get :kanban }
       resources :notes, only: [:create, :destroy], controller: "client_notes"
     end

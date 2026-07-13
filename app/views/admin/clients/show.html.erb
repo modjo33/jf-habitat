@@ -17,6 +17,9 @@
         <div>Créé le <%= l(@client.created_at, format: :long) %></div>
         <div>Dernière interaction : <%= time_ago_in_words(@client.derniere_interaction_at || @client.updated_at) %> ago</div>
       </div>
+      <%= button_to "Supprimer ce client", admin_client_path(@client), method: :delete,
+            data: { turbo_confirm: "Supprimer définitivement « #{@client.nom} » ? Ses estimations seront conservées (déliées)." },
+            class: "text-xs text-red-500 hover:text-red-700 hover:underline mt-1" %>
     </div>
   </div>
 </div>

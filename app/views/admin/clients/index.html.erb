@@ -31,6 +31,7 @@
           <th class="px-4 py-3 font-semibold">Estimations</th>
           <th class="px-4 py-3 font-semibold">Prochaine action</th>
           <th class="px-4 py-3 font-semibold">Maj</th>
+          <th class="px-4 py-3 font-semibold"></th>
         </tr>
       </thead>
       <tbody>
@@ -61,6 +62,11 @@
               <% end %>
             </td>
             <td class="px-4 py-3 text-xs text-ink-light"><%= time_ago_in_words(c.updated_at) %></td>
+            <td class="px-4 py-3 text-right" data-no-row-link>
+              <%= button_to admin_client_path(c), method: :delete, title: "Supprimer ce client",
+                    data: { turbo_confirm: "Supprimer le client « #{c.nom} » ? Ses estimations seront conservées." },
+                    class: "text-ink-light/40 hover:text-red-500 transition" do %>🗑<% end %>
+            </td>
           </tr>
         <% end %>
       </tbody>

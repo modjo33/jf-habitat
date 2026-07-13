@@ -1,5 +1,5 @@
 class Admin::ClientsController < Admin::BaseController
-  before_action :set_client, only: [:show, :update]
+  before_action :set_client, only: [:show, :update, :destroy]
 
   def index
     @q          = params[:q].to_s.strip
@@ -55,6 +55,12 @@ class Admin::ClientsController < Admin::BaseController
       @estimations = @client.estimations.order(created_at: :desc)
       render :show, status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    nom = @client.nom
+    @client.destroy # estimations conservées (nullify), notes supprimées
+    redirect_to admin_clients_path, notice: "Client « #{nom} » supprimé."
   end
 
   private
