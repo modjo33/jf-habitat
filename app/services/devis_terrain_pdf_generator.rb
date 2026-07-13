@@ -40,26 +40,8 @@ class DevisTerrainPdfGenerator
   private
 
   def render_header(pdf)
-    pdf.font_size 22
-    pdf.text "JF Habitat", style: :bold, color: hex(INK)
-    pdf.font_size 10
-    pdf.fill_color hex(INK_SOFT)
-    pdf.text "Artisan peintre · plaquiste · parqueteur"
-
-    pdf.move_down 20
-    pdf.bounding_box([pdf.bounds.right - 200, pdf.cursor + 40], width: 200, height: 50) do
-      pdf.fill_color hex(SAND)
-      pdf.fill_rectangle [0, 50], 200, 50
-      pdf.fill_color hex(INK)
-      pdf.text_box "DEVIS", at: [10, 40], size: 9, style: :bold
-      pdf.text_box @estimation.reference, at: [10, 26], size: 12, style: :bold
-      pdf.text_box Time.current.strftime("%d/%m/%Y"), at: [10, 12], size: 9, color: hex(INK_SOFT)
-    end
-
-    pdf.stroke_color hex(INK)
-    pdf.line_width 0.5
-    pdf.stroke_horizontal_rule
-    pdf.move_down 18
+    DevisPdfBranding.render_brand_header(pdf, titre: "DEVIS",
+      reference: @estimation.reference, date: Time.current.strftime("%d/%m/%Y"))
   end
 
   def render_client_block(pdf)
@@ -199,7 +181,7 @@ class DevisTerrainPdfGenerator
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule
     pdf.move_down 4
-    pdf.text "JF Habitat — www.jfhabitat.fr", align: :center, size: 7
+    pdf.text DevisPdfBranding.identity_line, align: :center, size: 7
   end
 
   def exceptionnels_label(mur)
