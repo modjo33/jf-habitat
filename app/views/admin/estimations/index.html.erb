@@ -46,7 +46,10 @@
               <div class="text-ink-light"><%= e.telephone %></div>
             </td>
             <td class="px-4 py-3 text-ink-soft"><%= e.type_chantier_label %> · <%= e.delai_label %></td>
-            <td class="px-4 py-3 font-bold text-ink"><%= number_to_currency(e.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></td>
+            <td class="px-4 py-3 font-bold text-ink">
+              <%= number_to_currency(e.ca_montant, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
+              <% if e.devis_total.to_d.positive? %><span class="block text-[10px] font-normal text-accent uppercase tracking-wider">devis</span><% end %>
+            </td>
             <td class="px-4 py-3"><%= render "statut_badge", statut: e.statut %></td>
             <td class="px-4 py-3 text-xs text-ink-light"><%= e.created_at.strftime("%d/%m/%Y") %></td>
           </tr>
