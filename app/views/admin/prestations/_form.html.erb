@@ -1,0 +1,42 @@
+<%= form_with model: [:admin, prestation], class: "space-y-5" do |f| %>
+  <% if prestation.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 text-sm">
+      <%= prestation.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :nom, "Nom de la prestation", class: "label-field" %>
+    <%= f.text_field :nom, placeholder: "ex. Sous-couche d'impression opacifiante", class: "input-field", autofocus: true %>
+  </div>
+
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <%= f.label :categorie, "Catégorie", class: "label-field" %>
+      <%= f.select :categorie, Prestation::CATEGORIES.map { |k, v| [v, k] }, {}, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :unite, "Unité", class: "label-field" %>
+      <%= f.select :unite, Prestation::UNITES.map { |k, v| [v, k] }, {}, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :prix, "Prix par défaut (€)", class: "label-field" %>
+      <%= f.number_field :prix, step: "0.01", inputmode: "decimal", class: "input-field" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :description, "Description (texte affiché sur le devis)", class: "label-field" %>
+    <%= f.text_area :description, rows: 3, placeholder: "ex. Application d'une sous-couche opacifiante pour masquer l'ancienne teinte.", class: "input-field" %>
+  </div>
+
+  <label class="flex items-center gap-2 text-sm text-ink">
+    <%= f.check_box :actif, class: "w-4 h-4 rounded border-border-warm text-accent" %>
+    Active (proposée dans les devis)
+  </label>
+
+  <div class="flex items-center justify-between pt-2">
+    <%= link_to "Annuler", admin_prestations_path, class: "text-sm text-ink-light hover:text-ink" %>
+    <%= f.submit(prestation.persisted? ? "Enregistrer" : "Ajouter", class: "btn-primary text-sm px-6 py-2.5") %>
+  </div>
+<% end %>

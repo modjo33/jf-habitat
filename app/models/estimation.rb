@@ -26,6 +26,7 @@ class Estimation < ApplicationRecord
   belongs_to :client, optional: true
   has_many :estimation_lines, dependent: :destroy
   has_many :pieces, -> { order(:position, :id) }, dependent: :destroy
+  has_many :devis_lignes, -> { order(:position, :id) }, dependent: :destroy
   has_many_attached :photos
   has_one_attached :devis_signature
   # PDF du devis prêt à envoyer, stocké en base (table dédiée) plutôt que sur
@@ -90,13 +91,21 @@ class Estimation < ApplicationRecord
   # Recalcul bottom-up : murs → pièces → total devis. Écrit en base via
   # update_columns pour ne pas déclencher les callbacks du chiffrage web.
   def devis_recompute!
-    pieces.includes(murs: %i[deductions zones]).each do |piece|
-      piece.murs.each do |m|
-        m.update_columns(surface_nette: m.surface_nette_calc, total: m.total_calc)
+    brut =
+      if devis_lignes.exists?
+        # Nouveau modèle : lignes de devis libres.
+        devis_lignes.each { |l| l.update_columns(total: l.total_calc) }
+        devis_lignes.sum(:total).to_d.round(2)
+      else
+        # Ancien modèle assisté : pièces → murs.
+        pieces.includes(murs: %i[deductions zones]).each do |piece|
+          piece.murs.each do |m|
+            m.update_columns(surface_nette: m.surface_nette_calc, total: m.total_calc)
+          end
+          piece.update_column(:total, piece.murs.sum { |m| m.total.to_d }.round(2))
+        end
+        pieces.sum { |p| p.total.to_d }.round(2)
       end
-      piece.update_column(:total, piece.murs.sum { |m| m.total.to_d }.round(2))
-    end
-    brut       = pieces.sum { |p| p.total.to_d }.round(2)
     # La remise s'applique au sous-total complet (travaux + trajet + consommables).
     sous_total = brut + devis_extras_total
     total      = [sous_total - devis_remise_for(sous_total), 0.to_d].max.round(2)

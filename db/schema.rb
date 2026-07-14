@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_13_182115) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_14_064829) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -114,6 +114,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_182115) do
     t.bigint "estimation_id", null: false
     t.datetime "updated_at", null: false
     t.index ["estimation_id"], name: "index_devis_documents_on_estimation_id", unique: true
+  end
+
+  create_table "devis_lignes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.bigint "estimation_id", null: false
+    t.string "libelle", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "prestation_id"
+    t.decimal "prix_unitaire", precision: 10, scale: 2, default: "0.0"
+    t.decimal "quantite", precision: 10, scale: 3, default: "1.0"
+    t.string "section", default: "Travaux", null: false
+    t.decimal "total", precision: 10, scale: 2, default: "0.0"
+    t.string "unite", default: "forfait", null: false
+    t.datetime "updated_at", null: false
+    t.index ["estimation_id", "position"], name: "index_devis_lignes_on_estimation_id_and_position"
+    t.index ["estimation_id"], name: "index_devis_lignes_on_estimation_id"
+    t.index ["prestation_id"], name: "index_devis_lignes_on_prestation_id"
   end
 
   create_table "encaissements", force: :cascade do |t|
@@ -240,6 +258,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_182115) do
     t.index ["estimation_id"], name: "index_pieces_on_estimation_id"
   end
 
+  create_table "prestations", force: :cascade do |t|
+    t.boolean "actif", default: true, null: false
+    t.string "categorie", default: "autre", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "nom", null: false
+    t.integer "position", default: 0, null: false
+    t.decimal "prix", precision: 10, scale: 2, default: "0.0"
+    t.string "unite", default: "m2", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "rdvs", force: :cascade do |t|
     t.string "adresse"
     t.boolean "all_day", default: false, null: false
@@ -320,6 +350,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_182115) do
   add_foreign_key "client_notes", "clients"
   add_foreign_key "deductions", "murs"
   add_foreign_key "devis_documents", "estimations"
+  add_foreign_key "devis_lignes", "estimations"
+  add_foreign_key "devis_lignes", "prestations"
   add_foreign_key "encaissements", "clients"
   add_foreign_key "estimation_lines", "estimations"
   add_foreign_key "estimations", "clients"

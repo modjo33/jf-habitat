@@ -1,0 +1,38 @@
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div>
+    <h1 class="h-display text-3xl text-ink">Bibliothèque de prestations</h1>
+    <p class="text-ink-light mt-1">Les actions réutilisables que tu insères dans tes devis en un clic (libellé, description, prix).</p>
+  </div>
+  <%= link_to "+ Nouvelle prestation", new_admin_prestation_path, class: "btn-primary text-sm px-5 py-2.5" %>
+</div>
+
+<% if @prestations_par_categorie.blank? %>
+  <div class="card-premium p-10 text-center text-ink-light">La bibliothèque est vide. Ajoute ta première prestation.</div>
+<% else %>
+  <div class="space-y-8">
+    <% Prestation::CATEGORIES.each do |cat_key, cat_label| %>
+      <% items = @prestations_par_categorie[cat_key] || [] %>
+      <% next if items.empty? %>
+      <div>
+        <h2 class="font-display text-xl text-ink mb-3"><%= cat_label %></h2>
+        <div class="card-premium overflow-hidden">
+          <% items.each do |p| %>
+            <div class="flex items-center gap-4 p-4 border-b border-border-warm/40 last:border-0 <%= 'opacity-50' unless p.actif %>">
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-ink"><%= p.nom %></div>
+                <% if p.description.present? %><div class="text-xs text-ink-light truncate max-w-2xl"><%= p.description %></div><% end %>
+              </div>
+              <div class="text-sm text-ink-soft whitespace-nowrap shrink-0">
+                <%= p.prix.to_d.positive? ? "#{eur(p.prix)} / #{p.unite_label}" : p.unite_label %>
+              </div>
+              <%= link_to "Modifier", edit_admin_prestation_path(p), class: "text-xs font-semibold text-accent hover:underline shrink-0" %>
+              <%= button_to "🗑", admin_prestation_path(p), method: :delete,
+                    form: { data: { turbo_confirm: "Supprimer « #{p.nom} » de la bibliothèque ?" } },
+                    class: "text-ink-light/40 hover:text-red-500 shrink-0" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

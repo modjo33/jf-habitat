@@ -19,6 +19,7 @@ Rails.application.routes.draw do
     root to: "dashboard#index"
     resources :tarifs, except: :show
     resources :gammes, only: :index
+    resources :prestations, except: :show
     resources :rdvs, except: :show do
       collection do
         get :semaine
