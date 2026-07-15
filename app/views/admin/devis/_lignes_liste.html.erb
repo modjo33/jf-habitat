@@ -1,0 +1,77 @@
+<%# Liste des lignes de devis, groupées par section. Rendue dans #devis_lignes_liste. %>
+<% prestations    = Prestation.actives.ordered %>
+<% lignes         = estimation.devis_lignes.ordered.to_a %>
+<% derniere_sec   = lignes.last&.section.presence || "Travaux" %>
+
+<div id="devis_lignes_liste">
+  <% if lignes.empty? %>
+    <div class="card-premium p-8 text-center max-w-xl mx-auto mb-6">
+      <p class="font-display text-xl text-ink-soft mb-1">Devis vierge</p>
+      <p class="text-sm text-ink-light">Piochez une prestation dans votre bibliothèque, ou ajoutez une ligne libre.</p>
+    </div>
+  <% end %>
+
+  <% lignes.group_by(&:section).each do |section, section_lignes| %>
+    <section class="mb-6">
+      <div class="flex items-center justify-between gap-3 mb-2 px-1">
+        <%= form_with url: renommer_section_admin_devis_lignes_path, method: :patch,
+              data: { controller: "autosave" }, class: "flex-1" do %>
+          <%= hidden_field_tag :estimation_id, estimation.id %>
+          <%= hidden_field_tag :ancienne, section %>
+          <%= text_field_tag :nouvelle, section,
+                class: "w-full bg-transparent border-0 border-b border-transparent hover:border-border-warm focus:border-accent px-0 py-1 font-display text-lg text-ink focus:outline-none focus:ring-0",
+                data: { action: "change->autosave#save" } %>
+        <% end %>
+        <span class="shrink-0 text-sm font-semibold text-ink-light tabular-nums">
+          <%= eur(section_lignes.sum { |l| l.total.to_d }) %>
+        </span>
+      </div>
+
+      <div class="space-y-2">
+        <%= render partial: "admin/devis/ligne", collection: section_lignes, as: :ligne %>
+      </div>
+
+      <%= button_to admin_devis_lignes_path(estimation_id: estimation.id, section: section),
+            class: "mt-2 ml-1 text-xs font-medium text-accent hover:underline", form: { class: "inline" } do %>
+        + Ligne dans « <%= section %> »
+      <% end %>
+    </section>
+  <% end %>
+
+  <%# ---- Contrôles d'ajout ---- %>
+  <div class="mt-6 flex flex-wrap items-center gap-3 pb-4">
+    <details class="relative">
+      <summary class="btn-primary cursor-pointer list-none select-none">＋ Piocher dans la bibliothèque</summary>
+      <div class="absolute z-30 mt-2 left-0 w-80 max-h-96 overflow-y-auto bg-cream border border-border-warm rounded-xl shadow-premium p-3">
+        <% if prestations.empty? %>
+          <p class="text-sm text-ink-light p-2">Bibliothèque vide — <%= link_to "en ajouter", admin_prestations_path, class: "text-accent underline" %>.</p>
+        <% end %>
+        <% prestations.group_by(&:categorie).each do |cat, prestas| %>
+          <div class="text-[10px] uppercase tracking-[0.15em] text-ink-light mt-3 first:mt-1 mb-1 px-1">
+            <%= Prestation::CATEGORIES[cat] || cat %>
+          </div>
+          <% prestas.each do |p| %>
+            <%= button_to admin_devis_lignes_path(estimation_id: estimation.id, prestation_id: p.id, section: derniere_sec),
+                  class: "w-full flex justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-sand text-sm text-left",
+                  form: { class: "block" } do %>
+              <span class="text-ink"><%= p.nom %></span>
+              <span class="shrink-0 text-ink-light tabular-nums">
+                <%= p.forfait? ? "#{eur(p.prix)} forfait" : "#{eur(p.prix)}/#{p.unite_label}" %>
+              </span>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </details>
+
+    <%= button_to "＋ Ligne vierge", admin_devis_lignes_path(estimation_id: estimation.id, section: derniere_sec),
+          class: "btn-ghost", form: { class: "inline" } %>
+
+    <%= form_with url: admin_devis_lignes_path, method: :post, class: "flex items-center gap-1" do %>
+      <%= hidden_field_tag :estimation_id, estimation.id %>
+      <%= text_field_tag :section, nil, placeholder: "Nouvelle section",
+            class: "input-field !py-1.5 !text-sm w-40" %>
+      <%= submit_tag "＋", class: "btn-ghost !px-3 !py-1.5", title: "Ajouter une section" %>
+    <% end %>
+  </div>
+</div>

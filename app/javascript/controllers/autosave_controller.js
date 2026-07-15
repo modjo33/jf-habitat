@@ -9,7 +9,8 @@ export default class extends Controller {
     prices: { type: Object, default: {} },   // barème { "prestation|gamme" => prix }
     kind:   { type: String, default: "mur" }
   }
-  static targets = ["prix", "chantier", "gamme", "dimA", "dimB", "rowSurface"]
+  static targets = ["prix", "chantier", "gamme", "dimA", "dimB", "rowSurface",
+                    "qte", "pu", "unite", "lineTotal"]
 
   // Persiste (à la sortie du champ). Pas de re-render pendant la frappe.
   save() {
@@ -24,6 +25,20 @@ export default class extends Controller {
     const b = parseFloat(String(this.dimBTarget.value).replace(",", ".")) || 0
     const s = (a * b).toFixed(2).replace(/\.?0+$/, "").replace(".", ",")
     this.rowSurfaceTarget.textContent = s === "" ? "0" : s
+  }
+
+  // Devis en lignes libres : total de la ligne (qté × prix, ou prix si forfait)
+  // recalculé en direct pendant la frappe — juste du texte, pas de saut.
+  liveLigne() {
+    if (!this.hasLineTotalTarget) return
+    const num = (el) => parseFloat(String(el?.value ?? "").replace(",", ".")) || 0
+    const forfait = this.hasUniteTarget && this.uniteTarget.value === "forfait"
+    const pu = num(this.puTarget)
+    const total = forfait ? pu : num(this.qteTarget) * pu
+    this.lineTotalTarget.textContent =
+      total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
+    // Une ligne au forfait n'utilise pas la quantité : on la grise.
+    if (this.hasQteTarget) this.qteTarget.disabled = forfait
   }
 
   // Sélectionne le contenu au focus : sur tablette, tu touches la case et ton

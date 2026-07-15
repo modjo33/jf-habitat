@@ -5,6 +5,13 @@ class Admin::DevisController < Admin::BaseController
   def show
   end
 
+  # Éditeur de devis en lignes libres (Vague 1) : bibliothèque + sections.
+  def lignes
+    @estimation.devis_recompute! if @estimation.devis_lignes.exists?
+    @estimation.reload
+    @prestations = Prestation.actives.ordered
+  end
+
   # Pré-remplit les pièces depuis l'estimation web du client.
   def prefill
     @estimation.devis_prefill_from_web!

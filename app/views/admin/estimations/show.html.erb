@@ -15,7 +15,8 @@
     <div class="flex flex-col items-end gap-2">
       <div class="flex gap-2">
         <%= link_to "📅 Planifier une visite", new_admin_rdv_path(estimation_id: @estimation.id), class: "btn-secondary text-sm px-4 py-2.5" %>
-        <%= link_to "Faire le devis →", devis_admin_estimation_path(@estimation), class: "btn-primary text-sm px-5 py-2.5" %>
+        <%= link_to "Devis assisté →", devis_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-4 py-2.5" %>
+        <%= link_to "Devis détaillé →", devis_lignes_admin_estimation_path(@estimation), class: "btn-primary text-sm px-5 py-2.5" %>
       </div>
       <%= form_with model: @estimation, url: admin_estimation_path(@estimation), method: :patch, class: "flex gap-2" do |f| %>
         <%= f.select :statut, Estimation::STATUTS.map { |s| [s.tr("_", " ").capitalize, s] }, {}, class: "input-field text-sm py-2" %>
@@ -32,7 +33,11 @@
       <div class="font-display text-3xl text-ink"><%= eur(@estimation.devis_total) %></div>
       <div class="text-xs text-ink-light">TVA non applicable · le chiffrage web ci-dessous (<%= eur(@estimation.total_ttc) %>) est la première estimation en ligne du client.</div>
     </div>
-    <%= link_to "Voir / modifier le devis →", devis_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
+    <% if @estimation.devis_lignes.exists? %>
+      <%= link_to "Voir / modifier le devis →", devis_lignes_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
+    <% else %>
+      <%= link_to "Voir / modifier le devis →", devis_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
+    <% end %>
   </div>
 <% end %>
 
