@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_14_064829) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_15_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -178,7 +178,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_064829) do
     t.decimal "coef_region", precision: 5, scale: 3, default: "1.0"
     t.datetime "created_at", null: false
     t.string "delai"
+    t.integer "devis_acompte_pct"
     t.boolean "devis_actif", default: false, null: false
+    t.text "devis_conditions"
     t.decimal "devis_consommables", precision: 10, scale: 2, default: "0.0"
     t.string "devis_consommables_libelle"
     t.string "devis_remise_type"

@@ -32,6 +32,7 @@ Rails.application.routes.draw do
         post  :devis_prefill,      to: "devis#prefill"       # pré-remplissage depuis l'estimation web
         patch :devis_remise,       to: "devis#remise"        # remise (% ou montant)
         patch :devis_extras,       to: "devis#extras"        # trajet + consommables
+        patch :devis_conditions,   to: "devis#conditions"    # acompte + modalités de paiement
         get   :devis_presentation, to: "devis#presentation"  # récap client + signature
         post  :devis_sign,         to: "devis#sign"          # enregistrer la signature
         post  :devis_resend,       to: "devis#resend"        # renvoyer le mail signé

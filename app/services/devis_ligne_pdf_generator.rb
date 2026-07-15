@@ -22,6 +22,8 @@ class DevisLignePdfGenerator
     render_client_block(pdf)
     render_lignes(pdf)
     render_totals(pdf)
+    render_conditions(pdf)
+    render_signature(pdf)
     render_footer(pdf)
     pdf
   end
@@ -157,11 +159,60 @@ class DevisLignePdfGenerator
     pdf.move_down 10
   end
 
+  # Conditions de paiement : acompte à la commande + solde + modalités libres.
+  def render_conditions(pdf)
+    acompte = @estimation.devis_acompte_montant.to_d.positive?
+    texte   = @estimation.devis_conditions.to_s.strip
+    return if !acompte && texte.blank?
+
+    pdf.move_down 6
+    pdf.fill_color hex(INK)
+    pdf.font_size 10
+    pdf.text "CONDITIONS DE PAIEMENT", style: :bold
+    pdf.move_down 4
+    pdf.fill_color hex(INK_SOFT)
+    pdf.font_size 9
+    if acompte
+      pdf.text "Acompte à la commande (#{@estimation.devis_acompte_pct.to_i} %) : "\
+               "#{format_eur(@estimation.devis_acompte_montant)}"
+      pdf.text "Solde à la fin des travaux : #{format_eur(@estimation.devis_solde_montant)}"
+    end
+    if texte.present?
+      pdf.move_down 2
+      texte.each_line { |l| pdf.text l.strip } # respecte les retours à la ligne saisis
+    end
+    pdf.move_down 8
+  end
+
+  # Bloc « Bon pour accord » + image de la signature horodatée (si signé).
+  def render_signature(pdf)
+    return unless @estimation.devis_signe?
+
+    pdf.move_down 6
+    pdf.stroke_color "DDDDDD"
+    pdf.stroke_horizontal_rule
+    pdf.move_down 10
+    pdf.fill_color hex(INK)
+    pdf.font_size 10
+    pdf.text "Bon pour accord", style: :bold
+    pdf.fill_color hex(INK_SOFT)
+    pdf.font_size 9
+    pdf.text "Signé par #{@estimation.devis_signataire} le #{@estimation.devis_signe_at.strftime('%d/%m/%Y à %H:%M')}"
+    begin
+      png = @estimation.devis_signature.download
+      pdf.move_down 6
+      pdf.image StringIO.new(png), width: 180
+    rescue => e
+      Rails.logger.warn "[DevisLignePDF] signature non rendue : #{e.message}"
+    end
+  end
+
   def render_footer(pdf)
     pdf.move_cursor_to 60
     pdf.fill_color hex(INK_SOFT)
     pdf.font_size 7
-    pdf.text "Devis valable 3 mois. Micro-entreprise, TVA non applicable (art. 293 B du CGI)."
+    proof = @estimation.devis_signe? ? " · Signature électronique enregistrée (IP #{@estimation.devis_signature_ip})." : ""
+    pdf.text "Devis valable 3 mois. Micro-entreprise, TVA non applicable (art. 293 B du CGI).#{proof}"
     pdf.move_down 6
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule

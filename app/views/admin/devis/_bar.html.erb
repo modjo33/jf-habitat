@@ -19,7 +19,7 @@
           <% end %>
         </div>
       </details>
-      <% if estimation.devis_remise_montant.to_d > 0 || estimation.devis_extras_total.to_d > 0 %>
+      <% if estimation.devis_remise_montant.to_d > 0 || estimation.devis_extras_total.to_d > 0 || estimation.devis_acompte_montant.to_d > 0 %>
         <div class="text-xs text-sand/60 flex flex-wrap gap-x-3 gap-y-0.5">
           <span>Travaux <%= eur(estimation.devis_total_brut) %></span>
           <% if estimation.devis_trajet_total.to_d > 0 %>
@@ -31,6 +31,9 @@
           <% if estimation.devis_remise_montant.to_d > 0 %>
             <span class="text-accent">remise − <%= eur(estimation.devis_remise_montant) %></span>
           <% end %>
+          <% if estimation.devis_acompte_montant.to_d > 0 %>
+            <span class="text-sand/80">acompte <%= estimation.devis_acompte_pct.to_i %> % = <%= eur(estimation.devis_acompte_montant) %></span>
+          <% end %>
         </div>
       <% end %>
     </div>
@@ -41,15 +44,9 @@
         <span class="font-display text-3xl text-accent"><%= eur(estimation.devis_total) %></span>
         <span class="text-[10px] text-sand/40 ml-1">TVA non applicable · art. 293 B CGI</span>
       </div>
-      <% if estimation.devis_lignes.exists? %>
-        <%= link_to "Générer le PDF →", devis_document_generer_admin_estimation_path(estimation),
-              data: { turbo_method: :post, turbo_confirm: "Générer le PDF du devis à partir des lignes ?" },
-              class: "shrink-0 bg-accent text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-accent-dark transition" %>
-      <% else %>
-        <%= link_to (estimation.devis_signe? ? "Devis signé ✓" : "Conclure →"),
-              devis_presentation_admin_estimation_path(estimation),
-              class: "shrink-0 bg-accent text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-accent-dark transition" %>
-      <% end %>
+      <%= link_to (estimation.devis_signe? ? "Devis signé ✓" : "Conclure →"),
+            devis_presentation_admin_estimation_path(estimation),
+            class: "shrink-0 bg-accent text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-accent-dark transition" %>
     </div>
   </div>
 </div>

@@ -1,6 +1,7 @@
 <div class="max-w-3xl mx-auto pb-16">
   <div class="mb-6 flex items-center justify-between">
-    <%= link_to "← Modifier le devis", devis_admin_estimation_path(@estimation),
+    <%= link_to "← Modifier le devis",
+          (@estimation.devis_lignes? ? devis_lignes_admin_estimation_path(@estimation) : devis_admin_estimation_path(@estimation)),
           class: "text-sm text-ink-light hover:text-ink" %>
     <%= link_to "Voir le PDF ↗", devis_pdf_admin_estimation_path(@estimation), target: "_blank",
           class: "text-xs font-semibold px-4 py-2 rounded-full border border-border-warm hover:bg-ink hover:text-sand transition" %>
@@ -17,29 +18,54 @@
 
   <!-- Récapitulatif des travaux -->
   <div class="card-premium p-6 mb-6">
-    <% @estimation.pieces.each do |piece| %>
-      <div class="mb-5 last:mb-0">
-        <div class="flex items-baseline justify-between border-b border-ink/10 pb-2 mb-2">
-          <h3 class="font-display text-lg text-ink"><%= piece.nom %></h3>
-          <span class="font-semibold text-ink"><%= eur(piece.total) %></span>
-        </div>
-        <% piece.murs.each do |mur| %>
-          <div class="flex items-start justify-between py-1.5 text-sm">
-            <div>
-              <span class="font-medium text-ink"><%= mur.libelle %></span>
-              <span class="text-ink-light">· <%= mur.prestation_label %> · <%= mur.gamme_label %></span>
-              <div class="text-xs text-ink-light"><%= number_with_precision(mur.surface_nette, precision: 2, strip_insignificant_zeros: true, separator: ",") %> m² × <%= eur(mur.prix_peinture_m2) %>/m²</div>
-            </div>
-            <span class="text-ink whitespace-nowrap"><%= eur(mur.peinture_total) %></span>
+    <% if @estimation.devis_lignes? %>
+      <% @estimation.devis_lignes.ordered.group_by(&:section).each do |section, lignes| %>
+        <div class="mb-5 last:mb-0">
+          <div class="flex items-baseline justify-between border-b border-ink/10 pb-2 mb-2">
+            <h3 class="font-display text-lg text-ink"><%= section.presence || "Travaux" %></h3>
+            <span class="font-semibold text-ink"><%= eur(lignes.sum { |l| l.total.to_d }) %></span>
           </div>
-          <% if mur.prep_total.positive? %>
-            <div class="flex items-center justify-between py-1 text-xs text-ink-light pl-2">
-              <span>+ Travaux exceptionnels (<%= mur.libelle %>)</span>
-              <span><%= eur(mur.prep_total) %></span>
+          <% lignes.each do |ligne| %>
+            <div class="flex items-start justify-between py-1.5 text-sm">
+              <div>
+                <span class="font-medium text-ink"><%= ligne.libelle %></span>
+                <% unless ligne.forfait? %>
+                  <div class="text-xs text-ink-light"><%= number_with_precision(ligne.quantite, precision: 2, strip_insignificant_zeros: true, separator: ",") %> <%= ligne.unite_label %> × <%= eur(ligne.prix_unitaire) %></div>
+                <% end %>
+                <% if ligne.description.present? %>
+                  <div class="text-xs text-ink-light/80"><%= ligne.description %></div>
+                <% end %>
+              </div>
+              <span class="text-ink whitespace-nowrap"><%= eur(ligne.total) %></span>
             </div>
           <% end %>
-        <% end %>
-      </div>
+        </div>
+      <% end %>
+    <% else %>
+      <% @estimation.pieces.each do |piece| %>
+        <div class="mb-5 last:mb-0">
+          <div class="flex items-baseline justify-between border-b border-ink/10 pb-2 mb-2">
+            <h3 class="font-display text-lg text-ink"><%= piece.nom %></h3>
+            <span class="font-semibold text-ink"><%= eur(piece.total) %></span>
+          </div>
+          <% piece.murs.each do |mur| %>
+            <div class="flex items-start justify-between py-1.5 text-sm">
+              <div>
+                <span class="font-medium text-ink"><%= mur.libelle %></span>
+                <span class="text-ink-light">· <%= mur.prestation_label %> · <%= mur.gamme_label %></span>
+                <div class="text-xs text-ink-light"><%= number_with_precision(mur.surface_nette, precision: 2, strip_insignificant_zeros: true, separator: ",") %> m² × <%= eur(mur.prix_peinture_m2) %>/m²</div>
+              </div>
+              <span class="text-ink whitespace-nowrap"><%= eur(mur.peinture_total) %></span>
+            </div>
+            <% if mur.prep_total.positive? %>
+              <div class="flex items-center justify-between py-1 text-xs text-ink-light pl-2">
+                <span>+ Travaux exceptionnels (<%= mur.libelle %>)</span>
+                <span><%= eur(mur.prep_total) %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
     <% end %>
 
     <% detail = @estimation.devis_remise_montant.to_d.positive? || @estimation.devis_extras_total.to_d.positive? %>
@@ -64,6 +90,20 @@
       <div class="text-right text-[11px] text-ink-light">TVA non applicable, art. 293 B du CGI</div>
     </div>
   </div>
+
+  <!-- Conditions de paiement -->
+  <% if @estimation.devis_acompte_montant.to_d.positive? || @estimation.devis_conditions.present? %>
+    <div class="card-premium p-6 mb-6">
+      <h3 class="font-display text-lg text-ink mb-3">Conditions de paiement</h3>
+      <% if @estimation.devis_acompte_montant.to_d.positive? %>
+        <div class="flex justify-between text-sm py-1"><span class="text-ink-light">Acompte à la commande (<%= @estimation.devis_acompte_pct.to_i %> %)</span><span class="font-medium text-ink"><%= eur(@estimation.devis_acompte_montant) %></span></div>
+        <div class="flex justify-between text-sm py-1 border-t border-ink/5"><span class="text-ink-light">Solde à la fin des travaux</span><span class="font-medium text-ink"><%= eur(@estimation.devis_solde_montant) %></span></div>
+      <% end %>
+      <% if @estimation.devis_conditions.present? %>
+        <p class="text-sm text-ink-soft mt-2 whitespace-pre-line"><%= @estimation.devis_conditions %></p>
+      <% end %>
+    </div>
+  <% end %>
 
   <!-- Signature -->
   <% if @estimation.devis_signe? %>
@@ -104,6 +144,15 @@
 
         <%= submit_tag "Valider et signer le devis", class: "btn-primary w-full !justify-center mt-5" %>
         <p class="text-[11px] text-ink-light text-center mt-2">Signature électronique horodatée. Micro-entreprise, TVA non applicable (art. 293 B du CGI).</p>
+      <% end %>
+
+      <% if @estimation.devis_lignes? %>
+        <div class="mt-5 pt-4 border-t border-border-warm text-center">
+          <p class="text-xs text-ink-light mb-2">Le client n'est pas sur place ?</p>
+          <%= button_to "Envoyer le devis par mail (sans signature) →",
+                devis_document_generer_admin_estimation_path(@estimation),
+                class: "text-sm font-semibold text-accent hover:underline" %>
+        </div>
       <% end %>
     </div>
   <% end %>

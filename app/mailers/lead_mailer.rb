@@ -30,7 +30,7 @@ class LeadMailer < ApplicationMailer
   # Devis signé sur place : PDF joint, envoyé au client + copie interne.
   def devis_signe(estimation)
     @estimation = estimation
-    pdf = DevisTerrainPdfGenerator.new(estimation).generate.render
+    pdf = estimation.devis_pdf_generator.generate.render
     attachments["devis-jf-habitat-#{estimation.reference}.pdf"] = { mime_type: "application/pdf", content: pdf }
     mail to: estimation.email,
          cc: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),

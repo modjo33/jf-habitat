@@ -142,6 +142,27 @@ class Estimation < ApplicationRecord
     devis_signe_at.present? && devis_signature.attached?
   end
 
+  # Un devis « en lignes libres » (Vague 1) plutôt que le devis assisté pièce/mur.
+  def devis_lignes?
+    devis_lignes.exists?
+  end
+
+  # Générateur PDF adapté au type de devis (lignes libres vs pièces/murs).
+  def devis_pdf_generator
+    (devis_lignes? ? DevisLignePdfGenerator : DevisTerrainPdfGenerator).new(self)
+  end
+
+  # Acompte à la commande demandé (€), calculé sur le total du devis.
+  def devis_acompte_montant
+    return 0.to_d if devis_acompte_pct.to_i <= 0
+    (devis_total.to_d * devis_acompte_pct.to_i / 100).round(2)
+  end
+
+  # Solde restant dû après l'acompte.
+  def devis_solde_montant
+    (devis_total.to_d - devis_acompte_montant).round(2)
+  end
+
   # Montant retenu pour le chiffre d'affaires : le devis terrain (montant réel
   # négocié) dès qu'il existe, sinon le chiffrage web (total_ttc).
   def ca_montant

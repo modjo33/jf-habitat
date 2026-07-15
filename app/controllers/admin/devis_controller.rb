@@ -47,6 +47,18 @@ class Admin::DevisController < Admin::BaseController
     end
   end
 
+  # Conditions de paiement : acompte (%) + modalités libres (échéances…).
+  def conditions
+    @estimation.update!(conditions_params)
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace("devis_total_bar",
+          partial: "admin/devis/bar", locals: { estimation: @estimation })
+      end
+      format.html { redirect_to devis_lignes_admin_estimation_path(@estimation) }
+    end
+  end
+
   # Trajet + consommables (frais du chantier).
   def extras
     @estimation.update!(extras_params)
@@ -132,10 +144,10 @@ class Admin::DevisController < Admin::BaseController
     redirect_to devis_presentation_admin_estimation_path(@estimation)
   end
 
-  # Téléchargement / aperçu du PDF (signé si signature présente).
+  # Téléchargement / aperçu du PDF (signé si signature présente). Le générateur
+  # est choisi selon le type de devis (lignes libres vs pièces/murs).
   def pdf
-    generator = DevisTerrainPdfGenerator.new(@estimation)
-    send_data generator.generate.render,
+    send_data @estimation.devis_pdf_generator.generate.render,
               filename: "devis-jf-habitat-#{@estimation.reference}.pdf",
               type: "application/pdf", disposition: "inline"
   end
@@ -160,6 +172,10 @@ class Admin::DevisController < Admin::BaseController
   def extras_params
     params.require(:estimation).permit(:devis_trajet_prix_jour, :devis_trajet_jours,
                                        :devis_consommables, :devis_consommables_libelle)
+  end
+
+  def conditions_params
+    params.require(:estimation).permit(:devis_acompte_pct, :devis_conditions)
   end
 
   def remise_params

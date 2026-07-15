@@ -1,0 +1,32 @@
+<div class="card-premium p-5 mb-4">
+  <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold mb-3">Conditions de paiement</div>
+  <%= form_with url: devis_conditions_admin_estimation_path(estimation), method: :patch,
+        data: { controller: "autosave" } do %>
+    <div class="grid sm:grid-cols-2 gap-5">
+      <!-- Acompte -->
+      <div>
+        <span class="label-field !text-xs !mb-1">Acompte à la commande</span>
+        <div class="flex items-center gap-1.5 text-sm">
+          <%= number_field_tag "estimation[devis_acompte_pct]", vide_si_zero(estimation.devis_acompte_pct),
+                step: "1", min: "0", max: "100", inputmode: "numeric", placeholder: "0",
+                data: { action: "change->autosave#save focus->autosave#select" },
+                class: "input-field !py-1.5 !px-2 w-20 text-center" %>
+          <span class="text-ink-light">% =</span>
+          <span class="font-semibold text-ink whitespace-nowrap"><%= eur(estimation.devis_acompte_montant) %></span>
+          <% if estimation.devis_acompte_montant.to_d.positive? %>
+            <span class="text-ink-light text-xs">· solde <%= eur(estimation.devis_solde_montant) %></span>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Modalités libres -->
+      <div>
+        <span class="label-field !text-xs !mb-1">Modalités (échéances, moyens de paiement…)</span>
+        <%= text_area_tag "estimation[devis_conditions]", estimation.devis_conditions, rows: 2,
+              placeholder: "ex. Solde à la réception. Paiement par virement ou chèque.",
+              data: { action: "change->autosave#save" },
+              class: "input-field !py-1.5 !px-2 w-full text-sm" %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -19,4 +19,9 @@
 
 <%= render "admin/devis/lignes_liste", estimation: @estimation %>
 
+<div class="mt-8 max-w-3xl">
+  <%= render "admin/devis/extras", estimation: @estimation %>
+  <%= render "admin/devis/conditions", estimation: @estimation %>
+</div>
+
 <%= render "admin/devis/bar", estimation: @estimation %>
