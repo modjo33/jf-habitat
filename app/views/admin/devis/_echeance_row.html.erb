@@ -1,0 +1,20 @@
+<%# Une ligne d'échéancier : libellé + %, montant calculé en direct. %>
+<div class="flex items-center gap-2" data-echeancier-target="row">
+  <input type="text" name="echeances[][libelle]" value="<%= libelle %>"
+         placeholder="Libellé (ex. Acompte à la commande)"
+         class="input-field !py-1.5 flex-1"
+         data-action="change->autosave#save">
+  <div class="flex items-center gap-1 shrink-0">
+    <input type="number" name="echeances[][pct]" value="<%= pct %>"
+           step="1" min="0" max="100" inputmode="numeric" placeholder="reste"
+           class="input-field !py-1.5 !px-2 w-16 text-center" title="Laisser vide = le solde"
+           data-echeancier-target="pct"
+           data-action="input->echeancier#live change->autosave#save focus->autosave#select">
+    <span class="text-ink-light text-xs">%</span>
+  </div>
+  <span class="w-24 text-right font-semibold text-ink tabular-nums shrink-0"
+        data-echeancier-target="montant"><%= eur(montant) %></span>
+  <button type="button" data-action="echeancier#remove"
+          class="px-1 text-ink-light hover:text-red-600 no-underline shrink-0"
+          aria-label="Supprimer l'échéance">✕</button>
+</div>

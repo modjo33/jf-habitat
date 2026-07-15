@@ -59,6 +59,24 @@ class Admin::DevisController < Admin::BaseController
     end
   end
 
+  # Échéancier de paiement (liste de versements en %) + modalités libres.
+  def echeances
+    @estimation.devis_conditions = params.dig(:estimation, :devis_conditions)
+    @estimation.devis_echeances  = echeances_param
+    @estimation.save!
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace("devis_conditions_card",
+            partial: "admin/devis/conditions", locals: { estimation: @estimation }),
+          turbo_stream.replace("devis_total_bar",
+            partial: "admin/devis/bar", locals: { estimation: @estimation })
+        ]
+      end
+      format.html { redirect_to devis_lignes_admin_estimation_path(@estimation) }
+    end
+  end
+
   # Trajet + consommables (frais du chantier).
   def extras
     @estimation.update!(extras_params)
@@ -172,6 +190,17 @@ class Admin::DevisController < Admin::BaseController
   def extras_params
     params.require(:estimation).permit(:devis_trajet_prix_jour, :devis_trajet_jours,
                                        :devis_consommables, :devis_consommables_libelle)
+  end
+
+  # Normalise l'échéancier reçu (tableau de { libelle, pct }) : on retire les
+  # lignes vides et on stocke le % en chaîne (nil = « le reste »).
+  def echeances_param
+    Array(params[:echeances]).filter_map do |e|
+      lib = e[:libelle].to_s.strip
+      pct = e[:pct].to_s.strip
+      next if lib.blank? && pct.blank?
+      { "libelle" => lib, "pct" => (pct.blank? ? nil : pct) }
+    end
   end
 
   def conditions_params

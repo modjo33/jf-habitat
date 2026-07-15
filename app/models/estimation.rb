@@ -23,17 +23,24 @@ class Estimation < ApplicationRecord
 
   DEVIS_REMISE_TYPES = %w[pourcentage montant].freeze
 
-  # Modèles de conditions de paiement pré-remplis (acompte % + modalités),
-  # sélectionnables dans l'éditeur de devis pour éviter de tout retaper.
+  # Modèles d'échéancier pré-remplis, sélectionnables dans l'éditeur de devis
+  # pour éviter de tout retaper. Une échéance sans `pct` = « le reste » (solde).
   CONDITIONS_PRESETS = [
     { label: "30 % à la commande, solde à réception",
-      acompte: 30, texte: "Acompte de 30 % à la signature du devis.\nSolde à la réception des travaux." },
+      echeances: [{ libelle: "Acompte à la commande", pct: 30 },
+                  { libelle: "Solde à la réception des travaux", pct: nil }] },
     { label: "40 % à la commande, solde en fin de chantier",
-      acompte: 40, texte: "Acompte de 40 % à la commande.\nSolde à la fin des travaux, à réception." },
+      echeances: [{ libelle: "Acompte à la commande", pct: 40 },
+                  { libelle: "Solde à la fin des travaux", pct: nil }] },
+    { label: "30 % début, 20 % milieu, solde à la fin",
+      echeances: [{ libelle: "À la signature / début de chantier", pct: 30 },
+                  { libelle: "En milieu de chantier", pct: 20 },
+                  { libelle: "Solde à la fin du chantier", pct: nil }] },
     { label: "50 % / 50 %",
-      acompte: 50, texte: "Acompte de 50 % à la commande.\nSolde de 50 % à la fin du chantier." },
+      echeances: [{ libelle: "Acompte à la commande", pct: 50 },
+                  { libelle: "Solde à la fin du chantier", pct: nil }] },
     { label: "Paiement intégral à réception",
-      acompte: 0,  texte: "Paiement en totalité à la réception des travaux.\nRèglement par virement ou chèque." }
+      echeances: [{ libelle: "Paiement à la réception des travaux", pct: nil }] }
   ].freeze
 
   belongs_to :client, optional: true
@@ -174,6 +181,29 @@ class Estimation < ApplicationRecord
   # Solde restant dû après l'acompte.
   def devis_solde_montant
     (devis_total.to_d - devis_acompte_montant).round(2)
+  end
+
+  # Un échéancier de paiement est renseigné (au moins une ligne avec un libellé).
+  def devis_echeancier?
+    Array(devis_echeances).any? { |e| e["libelle"].to_s.strip.present? }
+  end
+
+  # Échéancier calculé : chaque versement avec son montant en €. Une ligne sans
+  # pourcentage vaut « le reste » (total − somme des versements chiffrés).
+  def devis_echeances_list
+    rows = Array(devis_echeances).select { |e| e["libelle"].to_s.strip.present? || e["pct"].to_s.strip.present? }
+    return [] if rows.empty?
+
+    total    = devis_total.to_d
+    attribue = rows.sum { |e| e["pct"].to_s.strip.present? ? (total * e["pct"].to_d / 100) : 0.to_d }
+    rows.map do |e|
+      pct_present = e["pct"].to_s.strip.present?
+      {
+        libelle: e["libelle"].to_s.strip,
+        pct:     pct_present ? e["pct"].to_d : nil,
+        montant: pct_present ? (total * e["pct"].to_d / 100).round(2) : (total - attribue).round(2)
+      }
+    end
   end
 
   # Montant retenu pour le chiffre d'affaires : le devis terrain (montant réel

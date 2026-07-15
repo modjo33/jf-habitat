@@ -42,6 +42,7 @@
 
 <% if @estimation.pieces.any? %>
   <%= render "admin/devis/extras", estimation: @estimation %>
+  <%= render "admin/devis/conditions", estimation: @estimation %>
 <% end %>
 
 <%= render "admin/devis/bar", estimation: @estimation %>

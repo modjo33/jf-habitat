@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_15_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_15_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -183,6 +183,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_15_100000) do
     t.text "devis_conditions"
     t.decimal "devis_consommables", precision: 10, scale: 2, default: "0.0"
     t.string "devis_consommables_libelle"
+    t.jsonb "devis_echeances", default: [], null: false
     t.string "devis_remise_type"
     t.decimal "devis_remise_valeur", precision: 10, scale: 2, default: "0.0"
     t.string "devis_signataire"

@@ -159,11 +159,13 @@ class DevisLignePdfGenerator
     pdf.move_down 10
   end
 
-  # Conditions de paiement : acompte à la commande + solde + modalités libres.
+  # Conditions de paiement : échéancier (versements %) OU acompte + solde
+  # (ancien modèle), suivi des modalités libres.
   def render_conditions(pdf)
-    acompte = @estimation.devis_acompte_montant.to_d.positive?
-    texte   = @estimation.devis_conditions.to_s.strip
-    return if !acompte && texte.blank?
+    echeances = @estimation.devis_echeances_list
+    acompte   = @estimation.devis_acompte_montant.to_d.positive?
+    texte     = @estimation.devis_conditions.to_s.strip
+    return if echeances.empty? && !acompte && texte.blank?
 
     pdf.move_down 6
     pdf.fill_color hex(INK)
@@ -172,7 +174,12 @@ class DevisLignePdfGenerator
     pdf.move_down 4
     pdf.fill_color hex(INK_SOFT)
     pdf.font_size 9
-    if acompte
+    if echeances.any?
+      echeances.each do |e|
+        libelle = e[:pct] ? "#{e[:libelle]} (#{fmt_pct(e[:pct])} %)" : e[:libelle]
+        pdf.text "#{libelle} : #{format_eur(e[:montant])}"
+      end
+    elsif acompte
       pdf.text "Acompte à la commande (#{@estimation.devis_acompte_pct.to_i} %) : "\
                "#{format_eur(@estimation.devis_acompte_montant)}"
       pdf.text "Solde à la fin des travaux : #{format_eur(@estimation.devis_solde_montant)}"
@@ -232,6 +239,12 @@ class DevisLignePdfGenerator
 
   def fmt_num(amount)
     format("%.2f", amount.to_f).gsub(".", ",")
+  end
+
+  # Pourcentage sans décimale superflue : 30 → "30", 12.5 → "12,5".
+  def fmt_pct(pct)
+    d = pct.to_d
+    (d == d.to_i ? d.to_i : d.to_f).to_s.gsub(".", ",")
   end
 
   # Échappe les entités pour l'inline_format de Prawn (libellés/descriptions saisis).

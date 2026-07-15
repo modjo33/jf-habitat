@@ -1,41 +1,47 @@
-<div class="card-premium p-5 mb-4">
-  <%= form_with url: devis_conditions_admin_estimation_path(estimation), method: :patch,
-        data: { controller: "autosave conditions-preset" } do %>
+<div class="card-premium p-5 mb-4" id="devis_conditions_card">
+  <%= form_with url: devis_echeances_admin_estimation_path(estimation), method: :patch,
+        data: { controller: "autosave echeancier",
+                "echeancier-total-value": estimation.devis_total.to_f } do %>
     <div class="flex items-center justify-between gap-3 mb-3">
-      <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold">Conditions de paiement</div>
-      <select data-action="change->conditions-preset#apply"
-              class="input-field !py-1 !px-2 !text-xs w-auto max-w-[14rem]" title="Appliquer un modèle">
+      <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold">Échéancier de paiement</div>
+      <select data-action="change->echeancier#applyPreset"
+              class="input-field !py-1 !px-2 !text-xs w-auto max-w-[16rem]" title="Appliquer un modèle">
         <option value="">Modèle…</option>
         <% Estimation::CONDITIONS_PRESETS.each do |preset| %>
-          <option value="apply" data-acompte="<%= preset[:acompte] %>" data-texte="<%= preset[:texte] %>"><%= preset[:label] %></option>
+          <option value="apply" data-echeances="<%= preset[:echeances].to_json %>"><%= preset[:label] %></option>
         <% end %>
       </select>
     </div>
-    <div class="grid sm:grid-cols-2 gap-5">
-      <!-- Acompte -->
-      <div>
-        <span class="label-field !text-xs !mb-1">Acompte à la commande</span>
-        <div class="flex items-center gap-1.5 text-sm">
-          <%= number_field_tag "estimation[devis_acompte_pct]", vide_si_zero(estimation.devis_acompte_pct),
-                step: "1", min: "0", max: "100", inputmode: "numeric", placeholder: "0",
-                data: { action: "change->autosave#save focus->autosave#select", "conditions-preset-target": "acompte" },
-                class: "input-field !py-1.5 !px-2 w-20 text-center" %>
-          <span class="text-ink-light">% =</span>
-          <span class="font-semibold text-ink whitespace-nowrap"><%= eur(estimation.devis_acompte_montant) %></span>
-          <% if estimation.devis_acompte_montant.to_d.positive? %>
-            <span class="text-ink-light text-xs">· solde <%= eur(estimation.devis_solde_montant) %></span>
-          <% end %>
-        </div>
-      </div>
 
-      <!-- Modalités libres -->
-      <div>
-        <span class="label-field !text-xs !mb-1">Modalités (échéances, moyens de paiement…)</span>
-        <%= text_area_tag "estimation[devis_conditions]", estimation.devis_conditions, rows: 2,
-              placeholder: "ex. Solde à la réception. Paiement par virement ou chèque.",
-              data: { action: "change->autosave#save", "conditions-preset-target": "texte" },
-              class: "input-field !py-1.5 !px-2 w-full text-sm" %>
-      </div>
+    <% list = estimation.devis_echeances_list %>
+    <% list = [{ libelle: "", pct: nil, montant: 0 }] if list.empty? %>
+    <div class="space-y-2" data-echeancier-target="rows">
+      <% list.each do |e| %>
+        <%= render "admin/devis/echeance_row", libelle: e[:libelle], pct: e[:pct], montant: e[:montant] %>
+      <% end %>
     </div>
+
+    <div class="flex items-center justify-between gap-3 mt-2">
+      <button type="button" data-action="echeancier#add"
+              class="text-xs font-medium text-accent hover:underline">＋ Ajouter une échéance</button>
+      <span class="text-[11px] text-accent" data-echeancier-target="warn"></span>
+    </div>
+
+    <%# Gabarit d'une ligne vierge, cloné par le contrôleur (inerte, non soumis). %>
+    <template data-echeancier-target="template">
+      <%= render "admin/devis/echeance_row", libelle: "", pct: "", montant: 0 %>
+    </template>
+
+    <div class="mt-4">
+      <span class="label-field !text-xs !mb-1">Modalités complémentaires (moyens de paiement, remarques…)</span>
+      <%= text_area_tag "estimation[devis_conditions]", estimation.devis_conditions, rows: 2,
+            placeholder: "ex. Règlement par virement ou chèque. Facture à la fin des travaux.",
+            data: { action: "change->autosave#save" },
+            class: "input-field !py-1.5 !px-2 w-full text-sm" %>
+    </div>
+
+    <p class="text-[11px] text-ink-light mt-2">
+      Astuce : laissez le % vide sur une échéance pour qu'elle vaille automatiquement <strong>le solde restant</strong>.
+    </p>
   <% end %>
 </div>
