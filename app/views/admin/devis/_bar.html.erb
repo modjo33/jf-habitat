@@ -41,9 +41,15 @@
         <span class="font-display text-3xl text-accent"><%= eur(estimation.devis_total) %></span>
         <span class="text-[10px] text-sand/40 ml-1">TVA non applicable · art. 293 B CGI</span>
       </div>
-      <%= link_to (estimation.devis_signe? ? "Devis signé ✓" : "Conclure →"),
-            devis_presentation_admin_estimation_path(estimation),
-            class: "shrink-0 bg-accent text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-accent-dark transition" %>
+      <% if estimation.devis_lignes.exists? %>
+        <%= link_to "Générer le PDF →", devis_document_generer_admin_estimation_path(estimation),
+              data: { turbo_method: :post, turbo_confirm: "Générer le PDF du devis à partir des lignes ?" },
+              class: "shrink-0 bg-accent text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-accent-dark transition" %>
+      <% else %>
+        <%= link_to (estimation.devis_signe? ? "Devis signé ✓" : "Conclure →"),
+              devis_presentation_admin_estimation_path(estimation),
+              class: "shrink-0 bg-accent text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-accent-dark transition" %>
+      <% end %>
     </div>
   </div>
 </div>

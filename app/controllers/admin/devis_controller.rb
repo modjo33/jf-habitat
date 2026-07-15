@@ -12,6 +12,21 @@ class Admin::DevisController < Admin::BaseController
     @prestations = Prestation.actives.ordered
   end
 
+  # Génère le PDF détaillé depuis les lignes libres et le stocke en base
+  # (DevisDocument) → l'écran d'envoi peut alors le prévisualiser et l'expédier.
+  def generer_document
+    unless @estimation.devis_lignes.exists?
+      return redirect_to devis_lignes_admin_estimation_path(@estimation),
+                         alert: "Ajoutez au moins une ligne avant de générer le PDF."
+    end
+    @estimation.devis_recompute!
+    pdf = DevisLignePdfGenerator.new(@estimation.reload).generate.render
+    doc = @estimation.devis_document || @estimation.build_devis_document
+    doc.update!(data: pdf)
+    redirect_to devis_envoi_admin_estimation_path(@estimation),
+                notice: "PDF du devis généré — prévisualisez-le puis envoyez-le au client."
+  end
+
   # Pré-remplit les pièces depuis l'estimation web du client.
   def prefill
     @estimation.devis_prefill_from_web!

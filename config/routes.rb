@@ -37,6 +37,7 @@ Rails.application.routes.draw do
         post  :devis_resend,       to: "devis#resend"        # renvoyer le mail signé
         get   :devis_pdf,          to: "devis#pdf"           # télécharger le PDF
         get   :devis_lignes,       to: "devis#lignes"        # éditeur de devis en lignes libres
+        post  :devis_document_generer, to: "devis#generer_document"  # génère le PDF (lignes) → DevisDocument
         get   :devis_envoi,        to: "devis#envoi"         # écran de composition du mail
         post  :devis_envoyer,      to: "devis#envoyer"       # envoyer le devis (doc joint) au client
         get   :devis_document_pdf, to: "devis#document_pdf"  # télécharger le PDF du devis (base)
