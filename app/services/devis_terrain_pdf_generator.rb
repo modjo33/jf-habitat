@@ -20,6 +20,7 @@ class DevisTerrainPdfGenerator
     render_client_block(pdf)
     render_pieces(pdf)
     render_totals(pdf)
+    render_conditions(pdf)
     render_signature(pdf)
     render_footer(pdf)
     pdf
@@ -146,6 +147,31 @@ class DevisTerrainPdfGenerator
       pdf.text "TVA non applicable, art. 293 B du CGI", size: 8, align: :right
     end
     pdf.move_down 10
+  end
+
+  # Conditions de paiement : acompte à la commande + solde + modalités libres.
+  def render_conditions(pdf)
+    acompte = @estimation.devis_acompte_montant.to_d.positive?
+    texte   = @estimation.devis_conditions.to_s.strip
+    return if !acompte && texte.blank?
+
+    pdf.move_down 6
+    pdf.fill_color hex(INK)
+    pdf.font_size 10
+    pdf.text "CONDITIONS DE PAIEMENT", style: :bold
+    pdf.move_down 4
+    pdf.fill_color hex(INK_SOFT)
+    pdf.font_size 9
+    if acompte
+      pdf.text "Acompte à la commande (#{@estimation.devis_acompte_pct.to_i} %) : "\
+               "#{format_eur(@estimation.devis_acompte_montant)}"
+      pdf.text "Solde à la fin des travaux : #{format_eur(@estimation.devis_solde_montant)}"
+    end
+    if texte.present?
+      pdf.move_down 2
+      texte.each_line { |l| pdf.text l.strip } # respecte les retours à la ligne saisis
+    end
+    pdf.move_down 8
   end
 
   def render_signature(pdf)
