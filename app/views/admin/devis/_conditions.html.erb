@@ -1,7 +1,16 @@
 <div class="card-premium p-5 mb-4">
-  <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold mb-3">Conditions de paiement</div>
   <%= form_with url: devis_conditions_admin_estimation_path(estimation), method: :patch,
-        data: { controller: "autosave" } do %>
+        data: { controller: "autosave conditions-preset" } do %>
+    <div class="flex items-center justify-between gap-3 mb-3">
+      <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold">Conditions de paiement</div>
+      <select data-action="change->conditions-preset#apply"
+              class="input-field !py-1 !px-2 !text-xs w-auto max-w-[14rem]" title="Appliquer un modèle">
+        <option value="">Modèle…</option>
+        <% Estimation::CONDITIONS_PRESETS.each do |preset| %>
+          <option value="apply" data-acompte="<%= preset[:acompte] %>" data-texte="<%= preset[:texte] %>"><%= preset[:label] %></option>
+        <% end %>
+      </select>
+    </div>
     <div class="grid sm:grid-cols-2 gap-5">
       <!-- Acompte -->
       <div>
@@ -9,7 +18,7 @@
         <div class="flex items-center gap-1.5 text-sm">
           <%= number_field_tag "estimation[devis_acompte_pct]", vide_si_zero(estimation.devis_acompte_pct),
                 step: "1", min: "0", max: "100", inputmode: "numeric", placeholder: "0",
-                data: { action: "change->autosave#save focus->autosave#select" },
+                data: { action: "change->autosave#save focus->autosave#select", "conditions-preset-target": "acompte" },
                 class: "input-field !py-1.5 !px-2 w-20 text-center" %>
           <span class="text-ink-light">% =</span>
           <span class="font-semibold text-ink whitespace-nowrap"><%= eur(estimation.devis_acompte_montant) %></span>
@@ -24,7 +33,7 @@
         <span class="label-field !text-xs !mb-1">Modalités (échéances, moyens de paiement…)</span>
         <%= text_area_tag "estimation[devis_conditions]", estimation.devis_conditions, rows: 2,
               placeholder: "ex. Solde à la réception. Paiement par virement ou chèque.",
-              data: { action: "change->autosave#save" },
+              data: { action: "change->autosave#save", "conditions-preset-target": "texte" },
               class: "input-field !py-1.5 !px-2 w-full text-sm" %>
       </div>
     </div>

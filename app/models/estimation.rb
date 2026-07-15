@@ -23,6 +23,19 @@ class Estimation < ApplicationRecord
 
   DEVIS_REMISE_TYPES = %w[pourcentage montant].freeze
 
+  # Modèles de conditions de paiement pré-remplis (acompte % + modalités),
+  # sélectionnables dans l'éditeur de devis pour éviter de tout retaper.
+  CONDITIONS_PRESETS = [
+    { label: "30 % à la commande, solde à réception",
+      acompte: 30, texte: "Acompte de 30 % à la signature du devis.\nSolde à la réception des travaux." },
+    { label: "40 % à la commande, solde en fin de chantier",
+      acompte: 40, texte: "Acompte de 40 % à la commande.\nSolde à la fin des travaux, à réception." },
+    { label: "50 % / 50 %",
+      acompte: 50, texte: "Acompte de 50 % à la commande.\nSolde de 50 % à la fin du chantier." },
+    { label: "Paiement intégral à réception",
+      acompte: 0,  texte: "Paiement en totalité à la réception des travaux.\nRèglement par virement ou chèque." }
+  ].freeze
+
   belongs_to :client, optional: true
   has_many :estimation_lines, dependent: :destroy
   has_many :pieces, -> { order(:position, :id) }, dependent: :destroy

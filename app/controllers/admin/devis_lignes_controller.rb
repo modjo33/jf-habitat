@@ -1,5 +1,5 @@
 class Admin::DevisLignesController < Admin::BaseController
-  before_action :set_estimation, only: %i[create renommer_section]
+  before_action :set_estimation, only: %i[create renommer_section reordonner]
   before_action :set_ligne,      only: %i[update destroy]
 
   # Ajoute une ligne : vierge, ou pré-remplie depuis la bibliothèque (prestation_id).
@@ -44,6 +44,17 @@ class Admin::DevisLignesController < Admin::BaseController
   def destroy
     @ligne.destroy
     recompute_and_render
+  end
+
+  # Réordonne les lignes selon l'ordre d'ids fourni (glisser-déposer) : la
+  # position devient l'index dans la liste. Pas de re-render (le DOM a déjà bougé).
+  def reordonner
+    ids = Array(params[:ids]).map(&:to_i)
+    lignes = @estimation.devis_lignes.where(id: ids).index_by(&:id)
+    ids.each_with_index do |id, i|
+      lignes[id]&.update_column(:position, i + 1)
+    end
+    head :no_content
   end
 
   # Renomme une section : reporte le nouveau nom sur toutes ses lignes.

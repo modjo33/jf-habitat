@@ -47,7 +47,10 @@ Rails.application.routes.draw do
 
     # Devis en lignes libres (Vague 1).
     resources :devis_lignes, only: [:create, :update, :destroy] do
-      collection { patch :renommer_section }
+      collection do
+        patch :renommer_section
+        patch :reordonner            # réordonnancement par glisser-déposer
+      end
     end
 
     # Devis terrain : structure imbriquée pièce → mur → déduction.
@@ -58,6 +61,7 @@ Rails.application.routes.draw do
 
     resources :clients, only: [:index, :show, :update, :new, :create, :destroy] do
       collection { get :kanban }
+      member { patch :statut }   # changement de colonne kanban (drag-and-drop)
       resources :notes, only: [:create, :destroy], controller: "client_notes"
     end
 

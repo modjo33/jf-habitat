@@ -1,5 +1,5 @@
 class Admin::ClientsController < Admin::BaseController
-  before_action :set_client, only: [:show, :update, :destroy]
+  before_action :set_client, only: [:show, :update, :destroy, :statut]
 
   def index
     @q          = params[:q].to_s.strip
@@ -55,6 +55,16 @@ class Admin::ClientsController < Admin::BaseController
       @estimations = @client.estimations.order(created_at: :desc)
       render :show, status: :unprocessable_entity
     end
+  end
+
+  # Déplacement d'une carte dans le Kanban : ne change que le statut commercial.
+  def statut
+    nouveau = params[:statut].to_s
+    unless Client::STATUTS.key?(nouveau)
+      return render json: { error: "statut invalide" }, status: :unprocessable_entity
+    end
+    @client.update_columns(statut: nouveau, derniere_interaction_at: Time.current)
+    head :no_content
   end
 
   def destroy

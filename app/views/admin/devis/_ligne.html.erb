@@ -1,6 +1,9 @@
-<%= tag.div id: dom_id(ligne), class: "border border-border-warm rounded-xl bg-cream p-3" do %>
+<%= tag.div id: dom_id(ligne), data: { sortable_item: ligne.id }, class: "border border-border-warm rounded-xl bg-cream p-3" do %>
   <%= form_with model: [:admin, ligne], data: { controller: "autosave" } do |f| %>
     <div class="flex flex-wrap items-start gap-2">
+      <button type="button" data-action="pointerdown->sortable#start"
+              class="shrink-0 pt-2 px-0.5 text-ink-light/40 hover:text-accent cursor-grab active:cursor-grabbing touch-none leading-none select-none"
+              aria-label="Réordonner la ligne" title="Glisser pour réordonner">⠿</button>
       <div class="flex-1 min-w-[12rem]">
         <%= f.text_field :libelle, placeholder: "Libellé de la prestation",
               class: "input-field !py-1.5 font-medium",

@@ -3,7 +3,10 @@
 <% lignes         = estimation.devis_lignes.ordered.to_a %>
 <% derniere_sec   = lignes.last&.section.presence || "Travaux" %>
 
-<div id="devis_lignes_liste">
+<div id="devis_lignes_liste"
+     data-controller="sortable"
+     data-sortable-url-value="<%= reordonner_admin_devis_lignes_path %>"
+     data-estimation-id="<%= estimation.id %>">
   <% if lignes.empty? %>
     <div class="card-premium p-8 text-center max-w-xl mx-auto mb-6">
       <p class="font-display text-xl text-ink-soft mb-1">Devis vierge</p>
