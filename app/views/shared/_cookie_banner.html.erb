@@ -1,21 +1,30 @@
 <% unless cookies[:cookie_consent].in?(%w[granted denied]) %>
+  <%# Compact sur mobile (le bandeau mangeait ~39 % de l'écran et recouvrait le
+      CTA du wizard) ; mise en page d'origine à partir de md. Le contrôleur
+      publie sa hauteur dans --cookie-banner-h pour que .wizard-stage réserve
+      l'espace correspondant. %>
   <div id="cookie-banner"
        data-controller="cookie-consent"
-       class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-50 bg-white border border-ink/10 rounded-2xl shadow-2xl p-5">
-    <p class="text-sm text-ink/80 leading-relaxed mb-4">
-      Nous utilisons des cookies pour mesurer l'audience de notre site et améliorer votre expérience.
-      Vous pouvez accepter, refuser ou en savoir plus dans notre
-      <%= link_to "politique de confidentialité", politique_confidentialite_path, class: "underline hover:text-ink" %>.
-    </p>
-    <div class="flex flex-col sm:flex-row gap-2">
-      <button data-action="cookie-consent#accept"
-              class="flex-1 bg-ink text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-ink-soft transition">
-        Accepter
-      </button>
-      <button data-action="cookie-consent#deny"
-              class="flex-1 bg-white border border-ink/15 text-ink text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-sand transition">
-        Refuser
-      </button>
+       class="fixed bottom-0 left-0 right-0 md:bottom-4 md:left-auto md:right-6 md:max-w-md z-50 bg-white border-t md:border border-ink/10 md:rounded-2xl shadow-2xl px-4 py-3 md:p-5">
+    <div class="flex items-center gap-2.5 md:gap-3 md:block">
+      <p class="flex-1 min-w-0 text-[11px] md:text-sm text-ink/80 leading-tight md:leading-relaxed md:mb-4">
+        <span class="md:hidden">Cookies de mesure d'audience —
+          <%= link_to "en savoir plus", politique_confidentialite_path, class: "underline hover:text-ink" %>
+        </span>
+        <span class="hidden md:inline">Nous utilisons des cookies pour mesurer l'audience de notre site et améliorer votre expérience.
+        Vous pouvez accepter, refuser ou en savoir plus dans notre
+        <%= link_to "politique de confidentialité", politique_confidentialite_path, class: "underline hover:text-ink" %>.</span>
+      </p>
+      <div class="flex shrink-0 gap-2 md:flex-col lg:flex-row">
+        <button data-action="cookie-consent#accept"
+                class="bg-ink text-white text-xs md:text-sm font-semibold px-3.5 md:px-4 py-2 md:py-2.5 rounded-lg hover:bg-ink-soft transition md:flex-1">
+          Accepter
+        </button>
+        <button data-action="cookie-consent#deny"
+                class="bg-white border border-ink/15 text-ink text-xs md:text-sm font-semibold px-3.5 md:px-4 py-2 md:py-2.5 rounded-lg hover:bg-sand transition md:flex-1">
+          Refuser
+        </button>
+      </div>
     </div>
   </div>
 <% end %>

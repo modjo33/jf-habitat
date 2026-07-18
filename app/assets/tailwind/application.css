@@ -102,8 +102,11 @@
   .wizard-topbar {
     @apply sticky top-0 z-30 flex items-center px-5 lg:px-8 py-3 bg-sand/90 backdrop-blur border-b border-border-warm/60;
   }
+  /* padding-bottom = espace réservé au bandeau cookies (cf. cookie_consent_controller),
+     sinon le bandeau recouvre le CTA "Continuer" sur mobile. */
   .wizard-stage {
     @apply flex-1 flex items-center justify-center px-5 lg:px-8 py-12;
+    padding-bottom: calc(3rem + var(--cookie-banner-h, 0px));
   }
   .wizard-step {
     @apply w-full max-w-2xl mx-auto flex flex-col items-center text-center;

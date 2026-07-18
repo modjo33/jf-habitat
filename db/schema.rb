@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_15_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_18_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -196,9 +196,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_15_120000) do
     t.decimal "devis_trajet_prix_jour", precision: 10, scale: 2, default: "0.0"
     t.string "email", null: false
     t.integer "etage", default: 0, null: false
+    t.string "gclid"
+    t.string "landing_page"
     t.text "message"
     t.string "nom", null: false
     t.string "reference", null: false
+    t.string "referrer"
     t.string "statut", default: "nouveau", null: false
     t.decimal "surface_totale", precision: 10, scale: 2, default: "0.0"
     t.string "telephone", null: false
@@ -207,11 +210,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_15_120000) do
     t.decimal "tva_taux", precision: 5, scale: 2, default: "10.0"
     t.string "type_chantier"
     t.datetime "updated_at", null: false
+    t.string "utm_campaign"
+    t.string "utm_content"
+    t.string "utm_medium"
+    t.string "utm_source"
+    t.string "utm_term"
     t.string "ville"
     t.index ["client_id"], name: "index_estimations_on_client_id"
     t.index ["created_at"], name: "index_estimations_on_created_at"
     t.index ["email"], name: "index_estimations_on_email"
+    t.index ["gclid"], name: "index_estimations_on_gclid"
     t.index ["reference"], name: "index_estimations_on_reference", unique: true
+    t.index ["utm_source"], name: "index_estimations_on_utm_source"
   end
 
   create_table "media_slots", force: :cascade do |t|

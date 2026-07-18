@@ -110,10 +110,32 @@ export default class extends Controller {
     this.next()
   }
 
+  // Nombre d'écrans par pièce dans le <template> (type, travaux, dimensions, gamme).
+  get screensPerPiece() {
+    if (this._spp === undefined) {
+      const frag = this.hasPieceTemplateTarget ? this.pieceTemplateTarget.content : null
+      this._spp = frag ? frag.querySelectorAll(".wizard-step").length : 4
+    }
+    return this._spp
+  }
+
+  // Total anticipé : tant que les écrans "pièce" ne sont pas générés, on les
+  // projette à partir du nombre saisi. Sans ça le dénominateur explose d'un coup
+  // après l'écran nb_pieces (3/10 → 4/22) et la barre RECULE — abandon assuré
+  // juste avant la partie la plus longue du formulaire.
+  get projectedTotal() {
+    const current = this.steps.length
+    const generated = this.element.querySelectorAll("[data-piece-index]").length
+    if (generated > 0) return current
+    const nb = Math.max(1, Math.min(parseInt(this.hasNbPiecesTarget ? this.nbPiecesTarget.value || "1" : "1", 10) || 1, 12))
+    return current + nb * this.screensPerPiece
+  }
+
   updateProgress() {
-    const pct = Math.round((this.index / (this.steps.length - 1)) * 100)
+    const total = this.projectedTotal
+    const pct = Math.round((this.index / Math.max(1, total - 1)) * 100)
     if (this.hasProgressBarTarget) this.progressBarTarget.style.width = `${pct}%`
-    if (this.hasProgressTextTarget) this.progressTextTarget.textContent = `${this.index + 1} / ${this.steps.length}`
+    if (this.hasProgressTextTarget) this.progressTextTarget.textContent = `${this.index + 1} / ${total}`
   }
 
   // ---- Validation ---------------------------------------------------------

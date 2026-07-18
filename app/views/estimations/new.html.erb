@@ -98,7 +98,7 @@
       <h2 class="wizard-question">Combien de pièces à traiter ?</h2>
       <div class="max-w-[10rem]">
         <%= number_field_tag :nb_pieces, 1, min: 1, max: 12, step: 1,
-              data: { wizard_target: "nbPieces" },
+              data: { wizard_target: "nbPieces", action: "input->wizard#updateProgress change->wizard#updateProgress" },
               class: "input-field text-center text-3xl font-display" %>
       </div>
       <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>

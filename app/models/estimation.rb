@@ -162,6 +162,34 @@ class Estimation < ApplicationRecord
     devis_signe_at.present? && devis_signature.attached?
   end
 
+  # ---- Origine du lead ------------------------------------------------------
+
+  # Un gclid ne peut venir que d'un clic sur une annonce Google Ads.
+  def issu_de_google_ads?
+    gclid.present? || utm_source.to_s.casecmp?("google") && utm_medium.to_s.casecmp?("cpc")
+  end
+
+  # Libellé court pour le CRM. `nil` = lead antérieur au tracking (18/07/2026)
+  # ou visiteur sans marqueur de campagne (direct / SEO / lien externe).
+  def source_label
+    return "Google Ads" if issu_de_google_ads?
+    return "#{utm_source} · #{utm_medium}".strip.delete_suffix(" ·") if utm_source.present?
+    return "Référent : #{URI.parse(referrer).host}" if referrer.present? && (URI.parse(referrer).host rescue nil)
+    nil
+  rescue URI::InvalidURIError
+    nil
+  end
+
+  def source_details
+    {
+      "Campagne" => utm_campaign,
+      "Mot-clé"  => utm_term,
+      "Contenu"  => utm_content,
+      "Atterrissage" => landing_page,
+      "gclid"    => gclid
+    }.compact_blank
+  end
+
   # Un devis « en lignes libres » (Vague 1) plutôt que le devis assisté pièce/mur.
   def devis_lignes?
     devis_lignes.exists?

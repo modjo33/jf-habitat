@@ -89,6 +89,29 @@
       </dl>
     </div>
 
+    <div class="card-premium p-6">
+      <h2 class="font-display text-xl text-ink mb-4">Origine du lead</h2>
+      <% if (src = @estimation.source_label) %>
+        <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide mb-3
+                     <%= @estimation.issu_de_google_ads? ? "bg-accent/15 text-accent" : "bg-ink/10 text-ink-soft" %>">
+          <%= src %>
+        </span>
+        <dl class="space-y-2 text-sm">
+          <% @estimation.source_details.each do |label, value| %>
+            <div>
+              <dt class="text-xs uppercase tracking-wider text-ink-light font-semibold"><%= label %></dt>
+              <dd class="break-all font-mono text-xs text-ink-soft"><%= value %></dd>
+            </div>
+          <% end %>
+        </dl>
+      <% else %>
+        <p class="text-sm text-ink-light">
+          Aucun marqueur de campagne — accès direct, référencement naturel, ou lead antérieur
+          à la mise en place du tracking (18/07/2026).
+        </p>
+      <% end %>
+    </div>
+
     <%= button_to "Supprimer ce lead", admin_estimation_path(@estimation), method: :delete, data: { turbo_confirm: "Supprimer définitivement ce lead ?" }, class: "w-full text-sm text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg border border-red-200" %>
   </div>
 </div>

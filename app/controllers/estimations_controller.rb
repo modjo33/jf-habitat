@@ -25,6 +25,7 @@ class EstimationsController < ApplicationController
   def create
     @estimation = Estimation.new(estimation_params)
     @estimation.tva_taux ||= 10.0
+    @estimation.assign_attributes(source_attributes)
 
     if @estimation.save
       attach_or_create_client(@estimation)
