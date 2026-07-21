@@ -21,9 +21,13 @@ class Admin::EncaissementsController < Admin::BaseController
     @encaissement = Encaissement.new(
       date_encaissement: Date.current,
       client_id: params[:client_id],
+      facture_id: params[:facture_id],
       montant: params[:montant]
     )
-    if @encaissement.client
+    if @encaissement.facture
+      @encaissement.libelle ||= "Facture #{@encaissement.facture.numero} — #{@encaissement.facture.client.nom}"
+      @encaissement.reference ||= @encaissement.facture.numero
+    elsif @encaissement.client
       @encaissement.libelle ||= "Chantier #{@encaissement.client.nom}"
     end
   end
@@ -60,7 +64,7 @@ class Admin::EncaissementsController < Admin::BaseController
   end
 
   def encaissement_params
-    params.require(:encaissement).permit(:date_encaissement, :montant, :mode_reglement, :libelle, :reference, :client_id)
+    params.require(:encaissement).permit(:date_encaissement, :montant, :mode_reglement, :libelle, :reference, :client_id, :facture_id)
   end
 
   def livre_des_recettes_csv

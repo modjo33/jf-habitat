@@ -27,8 +27,15 @@
       <%= f.label :mode_reglement, "Mode de règlement", class: "label-field" %>
       <%= f.select :mode_reglement, Encaissement::MODES.invert.to_a, {}, { class: "input-field" } %>
     </div>
-    <div class="md:col-span-2">
-      <%= f.label :reference, "Référence facture (optionnel)", class: "label-field" %>
+    <div>
+      <%= f.label :facture_id, "Facture rattachée (optionnel)", class: "label-field" %>
+      <%= f.collection_select :facture_id, Facture.recentes.includes(:client), :id,
+            ->(fa) { "#{fa.numero} — #{fa.client.nom}" },
+            { include_blank: "— aucune —" }, { class: "input-field" } %>
+      <p class="text-[11px] text-ink-light mt-1">Rattacher le paiement met à jour le solde de la facture.</p>
+    </div>
+    <div>
+      <%= f.label :reference, "Référence libre (optionnel)", class: "label-field" %>
       <%= f.text_field :reference, placeholder: "ex : FAC-20260706-01", class: "input-field" %>
     </div>
   </div>

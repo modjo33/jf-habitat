@@ -7,6 +7,7 @@ class Encaissement < ApplicationRecord
   }.freeze
 
   belongs_to :client, optional: true
+  belongs_to :facture, optional: true
 
   validates :date_encaissement, presence: true
   validates :libelle, presence: true, length: { maximum: 200 }

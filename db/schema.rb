@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_18_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_21_080000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -138,6 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_090000) do
     t.bigint "client_id"
     t.datetime "created_at", null: false
     t.date "date_encaissement", null: false
+    t.bigint "facture_id"
     t.string "libelle", null: false
     t.string "mode_reglement", default: "virement", null: false
     t.decimal "montant", precision: 10, scale: 2, null: false
@@ -145,6 +146,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_090000) do
     t.datetime "updated_at", null: false
     t.index ["client_id"], name: "index_encaissements_on_client_id"
     t.index ["date_encaissement"], name: "index_encaissements_on_date_encaissement"
+    t.index ["facture_id"], name: "index_encaissements_on_facture_id"
   end
 
   create_table "estimation_lines", force: :cascade do |t|
@@ -222,6 +224,41 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_090000) do
     t.index ["gclid"], name: "index_estimations_on_gclid"
     t.index ["reference"], name: "index_estimations_on_reference", unique: true
     t.index ["utm_source"], name: "index_estimations_on_utm_source"
+  end
+
+  create_table "facture_lignes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.bigint "facture_id", null: false
+    t.string "libelle", null: false
+    t.integer "position", default: 0, null: false
+    t.decimal "prix_unitaire", precision: 10, scale: 2
+    t.decimal "quantite", precision: 10, scale: 2
+    t.string "section"
+    t.decimal "total", precision: 10, scale: 2, default: "0.0", null: false
+    t.string "unite", default: "m2", null: false
+    t.datetime "updated_at", null: false
+    t.index ["facture_id"], name: "index_facture_lignes_on_facture_id"
+  end
+
+  create_table "factures", force: :cascade do |t|
+    t.string "chantier_adresse"
+    t.bigint "client_id", null: false
+    t.text "conditions"
+    t.datetime "created_at", null: false
+    t.date "date_emission", null: false
+    t.datetime "envoyee_at"
+    t.bigint "estimation_id"
+    t.string "numero", null: false
+    t.string "objet"
+    t.binary "pdf_data"
+    t.datetime "pdf_genere_at"
+    t.string "statut", default: "brouillon", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_factures_on_client_id"
+    t.index ["date_emission"], name: "index_factures_on_date_emission"
+    t.index ["estimation_id"], name: "index_factures_on_estimation_id"
+    t.index ["numero"], name: "index_factures_on_numero", unique: true
   end
 
   create_table "media_slots", force: :cascade do |t|
@@ -366,8 +403,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_090000) do
   add_foreign_key "devis_lignes", "estimations"
   add_foreign_key "devis_lignes", "prestations"
   add_foreign_key "encaissements", "clients"
+  add_foreign_key "encaissements", "factures"
   add_foreign_key "estimation_lines", "estimations"
   add_foreign_key "estimations", "clients"
+  add_foreign_key "facture_lignes", "factures"
+  add_foreign_key "factures", "clients"
+  add_foreign_key "factures", "estimations"
   add_foreign_key "murs", "pieces"
   add_foreign_key "pieces", "estimations"
   add_foreign_key "rdvs", "clients"

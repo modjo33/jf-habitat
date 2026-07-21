@@ -176,5 +176,26 @@
             new_admin_encaissement_path(client_id: @client.id, montant: @client.montant_devis_manuel),
             class: "mt-4 block text-center text-xs font-bold bg-accent text-sand px-4 py-2.5 rounded-lg hover:opacity-90 transition" %>
     </div>
+
+    <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mb-3">Factures</div>
+      <% factures = Facture.where(client_id: @client.id).recentes %>
+      <% if factures.any? %>
+        <ul class="space-y-2.5 mb-4">
+          <% factures.each do |f| %>
+            <li class="flex items-center justify-between gap-2">
+              <%= link_to f.numero, admin_facture_path(f), class: "text-sm font-semibold text-accent hover:underline" %>
+              <span class="text-xs text-ink-light whitespace-nowrap"><%= number_to_currency(f.total, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+              <%= render "admin/factures/badge_etat", facture: f %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-xs text-ink-light mb-4">Aucune facture émise.</p>
+      <% end %>
+      <%= link_to "🧾 Nouvelle facture",
+            new_admin_facture_path(client_id: @client.id),
+            class: "block text-center text-xs font-bold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition" %>
+    </div>
   </div>
 </div>

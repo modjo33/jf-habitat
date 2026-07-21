@@ -1,0 +1,82 @@
+<% montant = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
+
+<div class="flex items-start justify-between mb-10">
+  <div>
+    <div class="eyebrow mb-2">Compta</div>
+    <h1 class="h-display text-4xl text-ink">Factures</h1>
+    <p class="text-ink-light mt-2">Vos factures clients, numérotées et archivées. Le solde se calcule tout seul depuis les encaissements.</p>
+  </div>
+  <div class="shrink-0">
+    <%= link_to "+ Nouvelle facture", new_admin_facture_path,
+          class: "text-sm font-bold bg-accent text-sand px-4 py-2.5 rounded-lg hover:opacity-90 transition" %>
+  </div>
+</div>
+
+<div class="card-premium p-6 mb-6 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <% annees = (Facture.minimum(:date_emission)&.year || Date.current.year)..Date.current.year %>
+    <% annees.to_a.reverse.each do |a| %>
+      <%= link_to a, admin_factures_path(annee: a),
+            class: "text-sm px-3 py-1.5 rounded-lg border transition #{a == @annee ? 'bg-ink text-sand border-ink font-bold' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+    <% end %>
+  </div>
+  <div class="flex gap-8 text-right">
+    <div>
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Facturé <%= @annee %></div>
+      <div class="font-display text-2xl text-ink"><%= montant.(@total_annee) %></div>
+    </div>
+    <div>
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Encaissé</div>
+      <div class="font-display text-2xl text-green-700"><%= montant.(@encaisse_annee) %></div>
+    </div>
+    <div>
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Reste dû</div>
+      <div class="font-display text-2xl <%= @impaye_annee.positive? ? 'text-accent' : 'text-ink-light' %>"><%= montant.(@impaye_annee) %></div>
+    </div>
+  </div>
+</div>
+
+<div class="card-premium p-7">
+  <% if @factures.empty? %>
+    <div class="text-center py-12 text-ink-light">
+      Aucune facture en <%= @annee %>.
+      <%= link_to "Créer la première →", new_admin_facture_path, class: "text-accent font-semibold hover:underline" %>
+    </div>
+  <% else %>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+          <th class="py-3 font-semibold">Numéro</th>
+          <th class="py-3 font-semibold">Date</th>
+          <th class="py-3 font-semibold">Client</th>
+          <th class="py-3 font-semibold">Objet</th>
+          <th class="py-3 font-semibold text-right">Total</th>
+          <th class="py-3 font-semibold text-right">Reste dû</th>
+          <th class="py-3 font-semibold">État</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @factures.each do |f| %>
+          <tr class="border-b border-border-warm/40 hover:bg-sand transition">
+            <td class="py-3 font-semibold text-ink whitespace-nowrap">
+              <%= link_to f.numero, admin_facture_path(f), class: "text-accent hover:underline" %>
+            </td>
+            <td class="py-3 text-ink-soft whitespace-nowrap"><%= l f.date_emission, format: "%d/%m/%Y" %></td>
+            <td class="py-3"><%= link_to f.client.nom, admin_client_path(f.client), class: "text-accent hover:underline" %></td>
+            <td class="py-3 text-ink-soft"><%= f.objet.presence || "—" %></td>
+            <td class="py-3 text-right font-semibold text-ink whitespace-nowrap"><%= montant.(f.total) %></td>
+            <td class="py-3 text-right whitespace-nowrap <%= f.solde.positive? ? 'text-accent font-semibold' : 'text-ink-light' %>">
+              <%= f.solde.positive? ? montant.(f.solde) : "—" %>
+            </td>
+            <td class="py-3"><%= render "admin/factures/badge_etat", facture: f %></td>
+            <td class="py-3 text-right whitespace-nowrap">
+              <%= link_to "PDF", pdf_admin_facture_path(f), target: "_blank", rel: "noopener",
+                    class: "text-xs font-semibold text-ink-light hover:text-accent" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

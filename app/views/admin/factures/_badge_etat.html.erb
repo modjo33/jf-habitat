@@ -1,0 +1,12 @@
+<%
+  couleurs = {
+    "Payée"        => "bg-green-100 text-green-800",
+    "Acompte reçu" => "bg-amber-100 text-amber-800",
+    "À régler"     => "bg-accent/10 text-accent",
+    "Annulée"      => "bg-ink/10 text-ink-light"
+  }
+  etat = facture.etat_reglement
+%>
+<span class="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full <%= couleurs[etat] %>">
+  <%= etat %>
+</span>

@@ -1,0 +1,80 @@
+<%= form_with model: [:admin, facture], class: "space-y-6" do |f| %>
+  <% if facture.errors.any? %>
+    <div class="card-premium p-5 border-l-4 border-red-500">
+      <ul class="text-sm text-red-700 space-y-1">
+        <% facture.errors.full_messages.each do |m| %><li><%= m %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="card-premium p-7">
+    <h2 class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mb-5">En-tête</h2>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div>
+        <%= f.label :client_id, "Client", class: "block text-sm font-semibold text-ink mb-1.5" %>
+        <%= f.collection_select :client_id, Client.order(:nom), :id, :nom,
+              { prompt: "Choisir un client…" }, class: "input-field w-full" %>
+      </div>
+      <div>
+        <%= f.label :date_emission, "Date d'émission", class: "block text-sm font-semibold text-ink mb-1.5" %>
+        <%= f.date_field :date_emission, class: "input-field w-full" %>
+        <% if facture.new_record? %>
+          <p class="text-xs text-ink-light mt-1">Numéro attribué à l'enregistrement : <%= Facture.prochain_numero %></p>
+        <% end %>
+      </div>
+      <div>
+        <%= f.label :objet, "Objet", class: "block text-sm font-semibold text-ink mb-1.5" %>
+        <%= f.text_field :objet, placeholder: "Rénovation peinture d'une chambre", class: "input-field w-full" %>
+      </div>
+      <div>
+        <%= f.label :chantier_adresse, "Adresse du chantier", class: "block text-sm font-semibold text-ink mb-1.5" %>
+        <%= f.text_field :chantier_adresse, class: "input-field w-full" %>
+      </div>
+      <div>
+        <%= f.label :statut, "Statut", class: "block text-sm font-semibold text-ink mb-1.5" %>
+        <%= f.select :statut, Facture::STATUTS.map { |k, v| [v, k] }, {}, class: "input-field w-full" %>
+      </div>
+      <%= f.hidden_field :estimation_id %>
+    </div>
+  </div>
+
+  <div class="card-premium p-7">
+    <div class="flex items-baseline justify-between mb-5">
+      <h2 class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Lignes</h2>
+      <p class="text-xs text-ink-light">Unité « forfait » → le prix vaut le total. Les lignes sans désignation sont ignorées.</p>
+    </div>
+
+    <div class="space-y-3">
+      <%= f.fields_for :facture_lignes do |lf| %>
+        <%= render "admin/factures/ligne_fields", lf: lf %>
+      <% end %>
+
+      <%# Lignes vierges pour ajouter sans JS : remplir celles dont on a besoin.
+          child_index NUMÉRIQUE et décalé : Strong Parameters rejette les clés
+          non numériques dans un hash *_attributes, et l'offset évite d'écraser
+          les lignes existantes (indexées 0..n-1 par fields_for). %>
+      <% 4.times do |i| %>
+        <%= f.fields_for :facture_lignes, FactureLigne.new(unite: "m2",
+              position: facture.facture_lignes.size + i), child_index: 1000 + i do |lf| %>
+          <%= render "admin/factures/ligne_fields", lf: lf, vierge: true %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card-premium p-7">
+    <h2 class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mb-4">Conditions particulières</h2>
+    <%= f.text_area :conditions, rows: 3, class: "input-field w-full",
+          placeholder: "Ex. Solde payable sous 15 jours par virement." %>
+    <p class="text-xs text-ink-light mt-2">
+      Les mentions légales obligatoires (TVA 293 B, pénalités de retard, indemnité 40 €) sont ajoutées automatiquement au PDF.
+    </p>
+  </div>
+
+  <div class="flex gap-3">
+    <%= f.submit facture.new_record? ? "Créer la facture" : "Enregistrer",
+          class: "text-sm font-bold bg-accent text-sand px-6 py-3 rounded-lg hover:opacity-90 transition cursor-pointer" %>
+    <%= link_to "Annuler", facture.new_record? ? admin_factures_path : admin_facture_path(facture),
+          class: "text-sm font-semibold border border-border-warm text-ink px-6 py-3 rounded-lg hover:bg-sand transition" %>
+  </div>
+<% end %>

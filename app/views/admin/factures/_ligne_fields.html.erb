@@ -1,0 +1,27 @@
+<% vierge = local_assigns.fetch(:vierge, false) %>
+<div class="grid grid-cols-12 gap-2 items-start <%= "opacity-70" if vierge %>">
+  <div class="col-span-2">
+    <%= lf.text_field :section, placeholder: "Section", class: "input-field w-full text-sm" %>
+  </div>
+  <div class="col-span-4 space-y-2">
+    <%= lf.text_field :libelle, placeholder: "Désignation", class: "input-field w-full text-sm" %>
+    <%= lf.text_field :description, placeholder: "Description (facultatif)", class: "input-field w-full text-xs" %>
+  </div>
+  <div class="col-span-2">
+    <%= lf.text_field :quantite, placeholder: "Qté", class: "input-field w-full text-sm text-center" %>
+  </div>
+  <div class="col-span-1">
+    <%= lf.select :unite, FactureLigne::UNITES.map { |k, v| [v, k] }, {}, class: "input-field w-full text-sm" %>
+  </div>
+  <div class="col-span-2">
+    <%= lf.text_field :prix_unitaire, placeholder: "P.U.", class: "input-field w-full text-sm text-right" %>
+  </div>
+  <div class="col-span-1 pt-2 text-right">
+    <% unless vierge || lf.object.new_record? %>
+      <label class="text-xs text-red-700 cursor-pointer">
+        <%= lf.check_box :_destroy, class: "align-middle" %> suppr.
+      </label>
+    <% end %>
+  </div>
+  <%= lf.hidden_field :position %>
+</div>

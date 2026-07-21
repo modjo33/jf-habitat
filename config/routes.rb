@@ -68,6 +68,12 @@ Rails.application.routes.draw do
 
     patch "campagne-ads", to: "campagne_ads#update", as: :campagne_ads
 
+    resources :factures do
+      member do
+        get  :pdf
+        post :regenerer
+      end
+    end
     resources :encaissements, except: [:show]
     get    "declarations",               to: "declarations#index",               as: :declarations
     post   "declarations/marquer",       to: "declarations#marquer_declaree",    as: :marquer_declaration

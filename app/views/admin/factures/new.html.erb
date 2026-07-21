@@ -1,0 +1,17 @@
+<div class="mb-8">
+  <%= link_to "← Toutes les factures", admin_factures_path, class: "text-sm text-ink-light hover:text-accent" %>
+</div>
+
+<div class="mb-8">
+  <div class="eyebrow mb-2">Compta</div>
+  <h1 class="h-display text-4xl text-ink">Nouvelle facture</h1>
+  <% if @facture.estimation %>
+    <p class="text-ink-light mt-2">
+      Pré-remplie depuis le devis
+      <%= link_to @facture.estimation.reference, admin_estimation_path(@facture.estimation), class: "text-accent hover:underline" %>.
+      Ajuste ce qu'il faut avant d'enregistrer.
+    </p>
+  <% end %>
+</div>
+
+<%= render "admin/factures/form", facture: @facture %>

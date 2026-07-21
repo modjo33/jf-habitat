@@ -33,11 +33,19 @@
       <div class="font-display text-3xl text-ink"><%= eur(@estimation.devis_total) %></div>
       <div class="text-xs text-ink-light">TVA non applicable · le chiffrage web ci-dessous (<%= eur(@estimation.total_ttc) %>) est la première estimation en ligne du client.</div>
     </div>
-    <% if @estimation.devis_lignes.exists? %>
-      <%= link_to "Voir / modifier le devis →", devis_lignes_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
-    <% else %>
-      <%= link_to "Voir / modifier le devis →", devis_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
-    <% end %>
+    <div class="flex flex-wrap gap-3">
+      <% if @estimation.devis_lignes.exists? %>
+        <%= link_to "Voir / modifier le devis →", devis_lignes_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
+      <% else %>
+        <%= link_to "Voir / modifier le devis →", devis_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
+      <% end %>
+      <% facture = Facture.find_by(estimation_id: @estimation.id) %>
+      <% if facture %>
+        <%= link_to "🧾 Facture #{facture.numero} →", admin_facture_path(facture), class: "btn-primary text-sm px-5 py-2.5" %>
+      <% elsif @estimation.client %>
+        <%= link_to "🧾 Facturer →", new_admin_facture_path(estimation_id: @estimation.id), class: "btn-primary text-sm px-5 py-2.5" %>
+      <% end %>
+    </div>
   </div>
 <% end %>
 

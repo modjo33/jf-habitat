@@ -1,0 +1,10 @@
+<div class="mb-8">
+  <%= link_to "← Retour à la facture", admin_facture_path(@facture), class: "text-sm text-ink-light hover:text-accent" %>
+</div>
+
+<div class="mb-8">
+  <div class="eyebrow mb-2">Compta</div>
+  <h1 class="h-display text-4xl text-ink">Modifier <%= @facture.numero %></h1>
+</div>
+
+<%= render "admin/factures/form", facture: @facture %>
