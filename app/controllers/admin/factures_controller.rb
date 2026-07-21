@@ -1,5 +1,5 @@
 class Admin::FacturesController < Admin::BaseController
-  before_action :set_facture, only: [:show, :edit, :update, :destroy, :pdf, :regenerer]
+  before_action :set_facture, only: [:show, :edit, :update, :destroy, :pdf, :envoi, :envoyer, :regenerer]
 
   def index
     @annee = params[:annee].presence&.to_i || Date.current.year
@@ -54,11 +54,33 @@ class Admin::FacturesController < Admin::BaseController
 
   # PDF servi depuis la base (Cloudinary ne délivre pas les PDF — cf. DevisDocument).
   def pdf
-    @facture.regenerer_pdf! if @facture.pdf_data.blank?
-    send_data @facture.pdf_data,
+    send_data @facture.pdf_frais,
               filename: "#{@facture.numero}.pdf",
               type: "application/pdf",
               disposition: params[:download] ? "attachment" : "inline"
+  end
+
+  # Écran d'envoi : aperçu du PDF + message d'accompagnement modifiable.
+  def envoi
+    @facture.regenerer_pdf! unless @facture.pdf_a_jour?
+  end
+
+  def envoyer
+    if @facture.client.email.blank?
+      return redirect_to admin_facture_path(@facture),
+                         alert: "Ce client n'a pas d'adresse e-mail. Ajoutez-la sur sa fiche."
+    end
+
+    LeadMailer.facture(@facture, params[:message]).deliver_now
+    @facture.update(envoyee_at: Time.current,
+                    statut: @facture.statut == "brouillon" ? "emise" : @facture.statut)
+    @facture.client.touch(:derniere_interaction_at)
+    redirect_to admin_facture_path(@facture),
+                notice: "Facture #{@facture.numero} envoyée à #{@facture.client.email}."
+  rescue => e
+    Rails.logger.error "[Facture] envoi échoué : #{e.class} #{e.message}"
+    redirect_to admin_facture_path(@facture),
+                alert: "Échec de l'envoi de la facture. Réessayez."
   end
 
   def regenerer

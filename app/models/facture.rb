@@ -120,7 +120,24 @@ class Facture < ApplicationRecord
 
   def regenerer_pdf!
     pdf = FacturePdfGenerator.new(self).generate
-    update!(pdf_data: pdf.render, pdf_genere_at: Time.current)
+    update_columns(pdf_data: pdf.render, pdf_genere_at: Time.current)
+  end
+
+  # Le PDF affiche le solde : il périme dès qu'une ligne change ou qu'un
+  # règlement est encaissé. Sans ça, on enverrait au client un « solde à
+  # régler » obsolète (montant total alors qu'un acompte a été versé).
+  def pdf_a_jour?
+    return false if pdf_data.blank? || pdf_genere_at.blank?
+
+    dernier = [updated_at,
+               facture_lignes.maximum(:updated_at),
+               encaissements.maximum(:updated_at)].compact.max
+    dernier.nil? || dernier <= pdf_genere_at
+  end
+
+  def pdf_frais
+    regenerer_pdf! unless pdf_a_jour?
+    pdf_data
   end
 
   private

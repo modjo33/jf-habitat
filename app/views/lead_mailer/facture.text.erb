@@ -1,0 +1,24 @@
+<% if @message.present? %>
+<%= @message %>
+<% else %>
+Bonjour <%= @facture.client.nom.to_s.strip %>,
+<% if @facture.payee? %>
+Veuillez trouver en pièce jointe votre facture acquittée (PDF), pour les travaux réalisés. Je vous remercie de votre confiance.
+<% else %>
+Veuillez trouver en pièce jointe votre facture (PDF), détaillant les travaux réalisés.
+<% if @facture.montant_encaisse.positive? %>
+Compte tenu de l'acompte de <%= number_to_currency(@facture.montant_encaisse) %> déjà versé, le solde restant dû s'élève à <%= number_to_currency(@facture.solde) %>, payable à réception.
+<% else %>
+Le montant à régler s'élève à <%= number_to_currency(@facture.total) %>, payable à réception de la facture.
+<% end %>
+<% end %>
+Je reste à votre disposition pour toute question.
+
+Bien cordialement,
+Johan — JF Habitat
+<% end %>
+
+--
+Facture n° <%= @facture.numero %> du <%= l @facture.date_emission, format: "%d/%m/%Y" %>
+TVA non applicable, art. 293 B du CGI
+JF Habitat · Artisan peintre · plaquiste · parqueteur · 06 73 28 16 07 · contact@jfhabitat.fr

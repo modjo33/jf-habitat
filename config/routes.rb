@@ -71,6 +71,8 @@ Rails.application.routes.draw do
     resources :factures do
       member do
         get  :pdf
+        get  :envoi
+        post :envoyer
         post :regenerer
       end
     end

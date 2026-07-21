@@ -1,0 +1,30 @@
+<div style="font-family: Arial, sans-serif; color: #0F2A44; max-width: 560px;">
+  <% if @message.present? %>
+    <div style="white-space: pre-wrap; line-height: 1.5;"><%= @message %></div>
+  <% else %>
+    <h2 style="color: #0F2A44;">Bonjour <%= @facture.client.nom.to_s.strip %>,</h2>
+    <% if @facture.payee? %>
+      <p>Veuillez trouver en pièce jointe <strong>votre facture acquittée</strong> (PDF),
+        pour les travaux réalisés. Je vous remercie de votre confiance.</p>
+    <% else %>
+      <p>Veuillez trouver en pièce jointe <strong>votre facture</strong> (PDF),
+        détaillant les travaux réalisés.</p>
+      <% if @facture.montant_encaisse.positive? %>
+        <p>Compte tenu de l'acompte de <strong><%= number_to_currency(@facture.montant_encaisse) %></strong>
+          déjà versé, le solde restant dû s'élève à
+          <strong><%= number_to_currency(@facture.solde) %></strong>, payable à réception.</p>
+      <% else %>
+        <p>Le montant à régler s'élève à <strong><%= number_to_currency(@facture.total) %></strong>,
+          payable à réception de la facture.</p>
+      <% end %>
+    <% end %>
+    <p>Je reste à votre disposition pour toute question.</p>
+    <p style="margin-top: 24px;">Bien cordialement,<br><strong>Johan — JF Habitat</strong></p>
+  <% end %>
+
+  <p style="margin-top: 20px; color: #4A6785; font-size: 13px;">
+    Facture n° <strong><%= @facture.numero %></strong> du <%= l @facture.date_emission, format: "%d/%m/%Y" %><br>
+    TVA non applicable, art. 293 B du CGI<br>
+    JF Habitat · Artisan peintre · plaquiste · parqueteur · 06 73 28 16 07 · contact@jfhabitat.fr
+  </p>
+</div>

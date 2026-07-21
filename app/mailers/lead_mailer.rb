@@ -37,6 +37,20 @@ class LeadMailer < ApplicationMailer
          subject: "Votre devis signé · JF Habitat · #{estimation.reference}"
   end
 
+  # Facture envoyée au client : PDF joint (depuis Facture#pdf_data, régénéré
+  # si besoin), copie interne. `message` remplace le corps par défaut.
+  def facture(facture, message = nil)
+    @facture = facture
+    @message = message.presence
+    attachments["#{facture.numero}.pdf"] = {
+      mime_type: "application/pdf", content: facture.pdf_frais
+    }
+    objet = facture.payee? ? "Votre facture acquittée" : "Votre facture"
+    mail to: facture.client.email,
+         cc: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
+         subject: "#{objet} · JF Habitat · #{facture.numero}"
+  end
+
   private
 
   def number_to_currency(amount, unit: "€")

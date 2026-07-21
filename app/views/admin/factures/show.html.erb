@@ -23,9 +23,17 @@
     <%= link_to "⬇ Télécharger", pdf_admin_facture_path(@facture, download: 1),
           class: "text-sm font-semibold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition" %>
     <%= link_to "Modifier", edit_admin_facture_path(@facture),
+          class: "text-sm font-semibold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition" %>
+    <%= link_to (@facture.envoyee_at ? "✉️ Renvoyer" : "✉️ Envoyer au client"), envoi_admin_facture_path(@facture),
           class: "text-sm font-bold bg-accent text-sand px-4 py-2.5 rounded-lg hover:opacity-90 transition" %>
   </div>
 </div>
+
+<% if @facture.envoyee_at %>
+  <div class="mb-6 text-sm text-ink-light">
+    ✉️ Envoyée au client le <%= l @facture.envoyee_at, format: "%d/%m/%Y à %H:%M" %>.
+  </div>
+<% end %>
 
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 space-y-6">
