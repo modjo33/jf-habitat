@@ -118,6 +118,44 @@ class Facture < ApplicationRecord
     lignes
   end
 
+  # Message de remerciement pré-rempli dans l'écran d'envoi : ce que Johan voit
+  # est exactement ce que le client reçoit (il peut l'ajuster avant d'envoyer).
+  def message_remerciement
+    prenom = client.nom.to_s.strip
+    lignes = ["Bonjour #{prenom},", ""]
+    lignes << "Merci de m'avoir confié vos travaux. Ce fut un plaisir d'intervenir " \
+              "chez vous, et j'espère que le résultat vous plaît."
+    lignes << ""
+    if payee?
+      lignes << "Vous trouverez en pièce jointe votre facture acquittée (PDF). " \
+                "Je vous remercie pour votre règlement."
+    else
+      lignes << "Vous trouverez en pièce jointe votre facture (PDF), détaillant " \
+                "les travaux réalisés."
+      lignes << ""
+      lignes << if montant_encaisse.positive?
+                  "Compte tenu de l'acompte de #{eur(montant_encaisse)} déjà versé, " \
+                  "le solde restant dû s'élève à #{eur(solde)}, payable à réception."
+                else
+                  "Le montant à régler s'élève à #{eur(total)}, payable à réception " \
+                  "de la facture."
+                end
+    end
+    lignes += ["", "Je reste à votre disposition pour toute question, et bien sûr " \
+                   "si un nouveau projet vous vient à l'esprit.", "",
+               "Bien cordialement,", "Johan — JF Habitat"]
+    # NB : la demande d'avis Google n'est PAS dans ce texte — elle est ajoutée
+    # en encart par le mailer, après la signature, pour ne pas concurrencer la
+    # demande de règlement et pour éviter un doublon si ce message est réédité.
+    lignes.join("\n")
+  end
+
+  # Lien « laisser un avis » de la fiche Google Business Profile.
+  # Absent de l'environnement → aucune demande d'avis n'est ajoutée (fail-closed).
+  def self.lien_avis_google
+    ENV["GOOGLE_REVIEW_URL"].presence
+  end
+
   def regenerer_pdf!
     pdf = FacturePdfGenerator.new(self).generate
     update_columns(pdf_data: pdf.render, pdf_genere_at: Time.current)
@@ -141,6 +179,10 @@ class Facture < ApplicationRecord
   end
 
   private
+
+  def eur(montant)
+    "#{format('%.2f', montant.to_f).tr('.', ',')} €"
+  end
 
   def attribuer_numero
     self.numero = self.class.prochain_numero(date_emission || Date.current) if numero.blank?

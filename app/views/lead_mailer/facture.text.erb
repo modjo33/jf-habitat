@@ -2,20 +2,26 @@
 <%= @message %>
 <% else %>
 Bonjour <%= @facture.client.nom.to_s.strip %>,
+
+Merci de m'avoir confié vos travaux. Ce fut un plaisir d'intervenir chez vous, et j'espère que le résultat vous plaît.
 <% if @facture.payee? %>
-Veuillez trouver en pièce jointe votre facture acquittée (PDF), pour les travaux réalisés. Je vous remercie de votre confiance.
+Vous trouverez en pièce jointe votre facture acquittée (PDF). Je vous remercie pour votre règlement.
 <% else %>
-Veuillez trouver en pièce jointe votre facture (PDF), détaillant les travaux réalisés.
+Vous trouverez en pièce jointe votre facture (PDF), détaillant les travaux réalisés.
 <% if @facture.montant_encaisse.positive? %>
 Compte tenu de l'acompte de <%= number_to_currency(@facture.montant_encaisse) %> déjà versé, le solde restant dû s'élève à <%= number_to_currency(@facture.solde) %>, payable à réception.
 <% else %>
 Le montant à régler s'élève à <%= number_to_currency(@facture.total) %>, payable à réception de la facture.
 <% end %>
 <% end %>
-Je reste à votre disposition pour toute question.
+Je reste à votre disposition pour toute question, et bien sûr si un nouveau projet vous vient à l'esprit.
 
 Bien cordialement,
 Johan — JF Habitat
+<% end %>
+<% if Facture.lien_avis_google %>
+P.S. — Si vous êtes satisfait du travail, un avis Google me rendrait un grand service : c'est ce qui permet à un artisan indépendant comme moi de se faire connaître. Cela ne prend qu'une minute :
+<%= Facture.lien_avis_google %>
 <% end %>
 
 --

@@ -33,10 +33,23 @@
       </div>
 
       <%= form_with url: envoyer_admin_facture_path(@facture), method: :post do %>
-        <label class="label-field">Message (laisser vide pour le texte par défaut)</label>
-        <%= text_area_tag :message, nil, rows: 9, class: "input-field", style: "line-height:1.5;",
-              placeholder: "Par défaut : rappel du montant à régler (ou de l'acompte déjà versé) et des coordonnées." %>
-        <p class="text-xs text-ink-light mt-1">Le PDF est joint automatiquement. Une copie t'est envoyée en copie.</p>
+        <label class="label-field">Message (modifiable)</label>
+        <%= text_area_tag :message, @facture.message_remerciement, rows: 14,
+              class: "input-field", style: "line-height:1.5;" %>
+        <p class="text-xs text-ink-light mt-1">
+          Message de remerciement pré-rempli, adapté à l'état de la facture. Le PDF est joint
+          automatiquement et tu reçois une copie.
+        </p>
+        <% if Facture.lien_avis_google %>
+          <p class="text-xs text-ink-light mt-2 pl-3 border-l-2 border-accent/40">
+            ⭐ Un encart « Laisser un avis Google » est ajouté automatiquement sous ta signature.
+          </p>
+        <% else %>
+          <p class="text-xs text-ink-light mt-2 pl-3 border-l-2 border-border-warm">
+            💡 Aucune demande d'avis n'est envoyée : la variable <code>GOOGLE_REVIEW_URL</code>
+            n'est pas renseignée.
+          </p>
+        <% end %>
         <div class="flex items-center justify-between mt-5">
           <%= link_to "Annuler", admin_facture_path(@facture), class: "text-sm text-ink-light hover:text-ink" %>
           <%= submit_tag "✉️ Envoyer à #{@facture.client.email}", class: "btn-primary cursor-pointer",

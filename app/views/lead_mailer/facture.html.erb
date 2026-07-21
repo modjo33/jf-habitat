@@ -3,11 +3,15 @@
     <div style="white-space: pre-wrap; line-height: 1.5;"><%= @message %></div>
   <% else %>
     <h2 style="color: #0F2A44;">Bonjour <%= @facture.client.nom.to_s.strip %>,</h2>
+
+    <p><strong>Merci de m'avoir confié vos travaux.</strong> Ce fut un plaisir
+      d'intervenir chez vous, et j'espère que le résultat vous plaît.</p>
+
     <% if @facture.payee? %>
-      <p>Veuillez trouver en pièce jointe <strong>votre facture acquittée</strong> (PDF),
-        pour les travaux réalisés. Je vous remercie de votre confiance.</p>
+      <p>Vous trouverez en pièce jointe <strong>votre facture acquittée</strong> (PDF).
+        Je vous remercie pour votre règlement.</p>
     <% else %>
-      <p>Veuillez trouver en pièce jointe <strong>votre facture</strong> (PDF),
+      <p>Vous trouverez en pièce jointe <strong>votre facture</strong> (PDF),
         détaillant les travaux réalisés.</p>
       <% if @facture.montant_encaisse.positive? %>
         <p>Compte tenu de l'acompte de <strong><%= number_to_currency(@facture.montant_encaisse) %></strong>
@@ -18,8 +22,25 @@
           payable à réception de la facture.</p>
       <% end %>
     <% end %>
-    <p>Je reste à votre disposition pour toute question.</p>
+
+    <p>Je reste à votre disposition pour toute question, et bien sûr si un
+      nouveau projet vous vient à l'esprit.</p>
     <p style="margin-top: 24px;">Bien cordialement,<br><strong>Johan — JF Habitat</strong></p>
+  <% end %>
+
+  <% if Facture.lien_avis_google %>
+    <div style="margin-top: 28px; padding: 18px 20px; background: #FAF7F2; border-left: 3px solid #E6752A;">
+      <p style="margin: 0 0 12px; font-size: 14px; line-height: 1.5;">
+        <strong>Satisfait du travail ?</strong> Un avis Google me rendrait un grand service :
+        c'est ce qui permet à un artisan indépendant comme moi de se faire connaître.
+        Cela ne prend qu'une minute.
+      </p>
+      <a href="<%= Facture.lien_avis_google %>"
+         style="display: inline-block; background: #E6752A; color: #FFFFFF; text-decoration: none;
+                font-weight: bold; font-size: 14px; padding: 11px 20px; border-radius: 6px;">
+        ⭐ Laisser un avis Google
+      </a>
+    </div>
   <% end %>
 
   <p style="margin-top: 20px; color: #4A6785; font-size: 13px;">
