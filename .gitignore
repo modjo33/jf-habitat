@@ -37,3 +37,7 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Documents clients nominatifs (repo public) — ne jamais committer
+/public/facture-*.pdf
+/public/devis-*.pdf
