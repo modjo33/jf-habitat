@@ -26,6 +26,7 @@
           <th class="px-4 py-3 font-semibold">Contact</th>
           <th class="px-4 py-3 font-semibold">Chantier</th>
           <th class="px-4 py-3 font-semibold">Total TTC</th>
+          <th class="px-4 py-3 font-semibold" title="Rentabilité — interne">Renta.</th>
           <th class="px-4 py-3 font-semibold">Statut</th>
           <th class="px-4 py-3 font-semibold">Date</th>
         </tr>
@@ -56,6 +57,7 @@
               <%= number_to_currency(e.ca_montant, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
               <% if e.devis_total.to_d.positive? %><span class="block text-[10px] font-normal text-accent uppercase tracking-wider">devis</span><% end %>
             </td>
+            <td class="px-4 py-3"><%= render "admin/estimations/pastille_rentabilite", estimation: e, compact: true %></td>
             <td class="px-4 py-3"><%= render "statut_badge", statut: e.statut %></td>
             <td class="px-4 py-3 text-xs text-ink-light"><%= e.created_at.strftime("%d/%m/%Y") %></td>
           </tr>

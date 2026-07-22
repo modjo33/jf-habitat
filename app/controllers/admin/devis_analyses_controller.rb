@@ -6,6 +6,7 @@ class Admin::DevisAnalysesController < Admin::BaseController
 
   def update
     @analyse.update(analyse_params)
+    @analyse.rafraichir!
     rendre_panneau
   end
 
@@ -13,6 +14,7 @@ class Admin::DevisAnalysesController < Admin::BaseController
   # jamais automatique : un devis établi ne doit pas bouger tout seul.
   def refiger
     @analyse.refiger_les_taux!
+    @analyse.rafraichir!
     rendre_panneau(notice: "Taux mis à jour.")
   end
 

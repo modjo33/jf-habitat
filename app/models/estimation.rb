@@ -134,6 +134,9 @@ class Estimation < ApplicationRecord
     sous_total = brut + devis_extras_total
     total      = [sous_total - devis_remise_for(sous_total), 0.to_d].max.round(2)
     update_columns(devis_total_brut: brut, devis_total: total)
+    # Le verdict de rentabilité dépend du montant : il périme dès que le devis
+    # change. On le rafraîchit ici plutôt que de recalculer à l'affichage.
+    devis_analyse&.rafraichir!
     total
   end
 

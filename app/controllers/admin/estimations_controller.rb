@@ -4,7 +4,9 @@ class Admin::EstimationsController < Admin::BaseController
   def index
     @q = params[:q]
     @statut = params[:statut]
-    @estimations = Estimation.order(created_at: :desc)
+    # includes(:devis_analyse) : la pastille de rentabilité lit le verdict
+    # dénormalisé, sans quoi chaque ligne déclencherait sa propre requête.
+    @estimations = Estimation.includes(:devis_analyse).order(created_at: :desc)
     @estimations = @estimations.where("nom ILIKE :q OR email ILIKE :q OR reference ILIKE :q", q: "%#{@q}%") if @q.present?
     @estimations = @estimations.where(statut: @statut) if @statut.present?
   end

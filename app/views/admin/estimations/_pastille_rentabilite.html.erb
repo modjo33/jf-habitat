@@ -1,0 +1,50 @@
+<%#
+  Pastille de rentabilité — INTERNE.
+  Lit le verdict dénormalisé (devis_analyses.niveau) : recalculer l'analyse
+  complète pour chaque ligne d'une liste ferait exploser le nombre de requêtes.
+
+  `compact: true` → juste le point coloré (listes). Sinon libellé + montant.
+%>
+<% compact = local_assigns.fetch(:compact, false) %>
+<% analyse = estimation.devis_analyse %>
+
+<% if analyse.nil? || analyse.niveau.blank? || estimation.devis_total.to_d.zero? %>
+  <% unless compact %>
+    <span class="text-xs text-ink-light">Rentabilité non calculée</span>
+  <% end %>
+<% else %>
+  <%
+    style = {
+      "vert"   => { point: "bg-green-500",  texte: "text-green-800", fond: "bg-green-50 border-green-200",  label: "Rentable" },
+      "orange" => { point: "bg-amber-500",  texte: "text-amber-800", fond: "bg-amber-50 border-amber-200",  label: "À surveiller" },
+      "rouge"  => { point: "bg-red-500",    texte: "text-red-800",   fond: "bg-red-50 border-red-200",      label: "Non rentable" }
+    }[analyse.niveau]
+  %>
+  <% if style.nil? %>
+  <% elsif compact %>
+    <span class="inline-flex items-center gap-1.5 whitespace-nowrap"
+          title="<%= style[:label] %><%= " · #{number_to_currency(analyse.benefice_net_cache, unit: '€', separator: ',', delimiter: ' ', format: '%n %u')} net" if analyse.benefice_net_cache %><%= " · à recalculer" if analyse.perime? %>">
+      <span class="w-2 h-2 rounded-full <%= style[:point] %> <%= "opacity-40" if analyse.perime? %>"></span>
+      <% if analyse.revenu_horaire_cache %>
+        <span class="text-xs <%= style[:texte] %> tabular-nums"><%= number_with_precision(analyse.revenu_horaire_cache, precision: 0) %> €/h</span>
+      <% end %>
+    </span>
+  <% else %>
+    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold <%= style[:fond] %> <%= style[:texte] %>">
+      <span class="w-2 h-2 rounded-full <%= style[:point] %>"></span>
+      <%= style[:label] %>
+      <% if analyse.benefice_net_cache %>
+        · <%= number_to_currency(analyse.benefice_net_cache, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %> net
+      <% end %>
+      <% if analyse.revenu_horaire_cache %>
+        · <%= number_with_precision(analyse.revenu_horaire_cache, precision: 0) %> €/h
+      <% end %>
+      <% if analyse.alertes_count.positive? %>
+        · <%= pluralize(analyse.alertes_count, "alerte") %>
+      <% end %>
+      <% if analyse.perime? %>
+        <span class="font-normal opacity-70">· devis modifié depuis</span>
+      <% end %>
+    </span>
+  <% end %>
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_22_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_22_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -126,16 +126,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_140000) do
   end
 
   create_table "devis_analyses", force: :cascade do |t|
+    t.integer "alertes_count", default: 0, null: false
     t.decimal "autres_frais", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "benefice_net_cache", precision: 10, scale: 2
+    t.datetime "calcule_at"
     t.decimal "cout_materiaux_saisi", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.bigint "estimation_id", null: false
     t.decimal "heures_par_jour", precision: 4, scale: 1, default: "7.0", null: false
     t.decimal "heures_saisies", precision: 8, scale: 2
     t.decimal "marge_securite_pct", precision: 5, scale: 2, default: "10.0", null: false
+    t.string "niveau"
     t.text "note"
     t.decimal "objectif_horaire", precision: 6, scale: 2, null: false
     t.decimal "part_materiaux_max_pct", precision: 5, scale: 2, default: "35.0", null: false
+    t.decimal "revenu_horaire_cache", precision: 8, scale: 2
     t.decimal "seuil_marge_alerte_pct", precision: 5, scale: 2, default: "20.0", null: false
     t.decimal "taux_cfp", precision: 4, scale: 2, null: false
     t.decimal "taux_cma", precision: 4, scale: 2, null: false
@@ -144,6 +149,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_140000) do
     t.decimal "taux_impot", precision: 5, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.index ["estimation_id"], name: "index_devis_analyses_on_estimation_id", unique: true
+    t.index ["niveau"], name: "index_devis_analyses_on_niveau"
   end
 
   create_table "devis_documents", force: :cascade do |t|

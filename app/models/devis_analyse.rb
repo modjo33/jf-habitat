@@ -82,6 +82,27 @@ class DevisAnalyse < ApplicationRecord
 
   def resultats = AnalyseRentabilite.new(self).resultats
 
+  # --- Résultat dénormalisé (pastille dans les listes) ----------------------
+
+  # Recalcule et stocke le verdict. Appelé après chaque saisie et après chaque
+  # `devis_recompute!` : le montant du devis change sans passer par l'analyse.
+  def rafraichir!
+    service = AnalyseRentabilite.new(self)
+    r = service.resultats
+    update_columns(
+      niveau: service.niveau_global.to_s,
+      benefice_net_cache: r.benefice_net,
+      revenu_horaire_cache: r.revenu_horaire,
+      alertes_count: r.alertes.size,
+      calcule_at: Time.current
+    )
+  end
+
+  # Le devis a bougé depuis le dernier calcul : la pastille peut mentir.
+  def perime?
+    calcule_at.blank? || estimation.updated_at > calcule_at
+  end
+
   # Rejoue la photographie des taux sur les réglages du jour — action explicite,
   # jamais automatique.
   def refiger_les_taux!
