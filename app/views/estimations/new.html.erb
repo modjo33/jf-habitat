@@ -208,6 +208,17 @@
         <p class="text-ink-soft font-semibold">Calcul de votre devis en cours…</p>
       </div>
 
+      <%# Ordre de grandeur affiché AVANT les coordonnées : le client doit
+          pouvoir se situer sans devoir donner son numéro à l'aveugle. Le devis
+          chiffré, lui, reste derrière le formulaire. %>
+      <div data-wizard-target="fourchette" class="hidden w-full max-w-lg mb-4">
+        <div class="px-5 py-4 bg-ink text-sand rounded-2xl text-center">
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-sand/60">Votre projet se situe entre</div>
+          <div data-wizard-target="fourchetteMontants" class="font-display text-2xl text-accent mt-1"></div>
+          <div class="text-[11px] text-sand/60 mt-1">Estimation indicative · le détail poste par poste juste en dessous</div>
+        </div>
+      </div>
+
       <!-- Récapitulatif du projet + options (ex-écran « récap ») -->
       <div data-wizard-target="recap" class="hidden w-full max-w-lg mb-4 text-left"></div>
 
@@ -308,40 +319,96 @@
     <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__"
              data-piece-type="__TYPE__" data-piece-label="__LABEL__" data-validate="dimensions">
       <div class="wizard-eyebrow">__LABEL__</div>
-      <h2 class="wizard-question">Dimensions</h2>
-      <p class="text-ink-light mb-5 max-w-md">En mètres. La surface est calculée automatiquement.</p>
+      <h2 class="wizard-question !mb-2">Quelle taille fait cette pièce ?</h2>
+      <p class="text-ink-light text-sm mb-4 max-w-md">Sa surface au sol suffit — celle du bail ou de l'annonce.</p>
 
-      <div class="w-full max-w-md space-y-4">
-        <!-- Murs : longueur × hauteur -->
+      <%# Mode simple : une seule valeur, celle que le client connaît. Demander
+          le « développé des murs » était la seule question du tunnel à laquelle
+          un particulier ne sait pas répondre. %>
+      <div data-mode="simple" class="w-full max-w-md">
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <% [["Petite", "9", "≤ 12 m²"], ["Moyenne", "16", "12 – 20 m²"], ["Grande", "25", "> 20 m²"]].each do |label, valeur, sub| %>
+            <button type="button" data-taille data-valeur="<%= valeur %>" data-action="wizard#choisirTaille"
+                    class="px-2 py-2.5 border-2 border-border-warm rounded-xl transition
+                           hover:border-accent/50 data-[selected=true]:border-accent data-[selected=true]:bg-accent/5">
+              <span class="block text-sm font-semibold text-ink"><%= label %></span>
+              <span class="block text-[11px] text-ink-light"><%= sub %></span>
+            </button>
+          <% end %>
+        </div>
+
+        <div class="p-4 bg-cream border border-border-warm rounded-xl text-left">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="label-field">Surface au sol</label>
+              <div class="flex items-center gap-2">
+                <input type="number" data-dim="surface_sol" min="1" step="0.5" inputmode="decimal" placeholder="16"
+                       data-action="input->wizard#liveSurface"
+                       class="input-field text-center no-spin">
+                <span class="text-ink-light text-sm">m²</span>
+              </div>
+            </div>
+            <div data-champ="hauteur">
+              <label class="label-field">Hauteur sous plafond</label>
+              <div class="flex items-center gap-2">
+                <input type="number" data-dim="hauteur" min="1.5" max="6" step="0.05" inputmode="decimal" value="2.5"
+                       data-action="input->wizard#liveSurface"
+                       class="input-field text-center no-spin">
+                <span class="text-ink-light text-sm">m</span>
+              </div>
+            </div>
+          </div>
+
+          <%# Le calcul s'affiche pendant la frappe : la promesse « surface
+              calculée automatiquement » n'était tenue nulle part. %>
+          <p data-surface-live class="text-sm text-ink-soft mt-3 min-h-[1.25rem]"></p>
+        </div>
+
+        <button type="button" data-action="wizard#basculerPrecis"
+                class="text-xs text-ink-light hover:text-accent underline mt-3">
+          Je préfère saisir mes dimensions exactes
+        </button>
+      </div>
+
+      <%# Mode précis : conservé pour ceux qui ont leurs mesures. %>
+      <div data-mode="precis" class="hidden w-full max-w-md space-y-4">
         <div data-dim-group="murs" class="p-4 bg-cream border border-border-warm rounded-xl text-left">
           <div class="text-xs font-bold uppercase tracking-wide text-accent mb-3">Murs · longueur × hauteur</div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="label-field">Longueur des murs (mL)</label>
-              <input type="number" data-dim="murs_L" min="0.1" step="0.05" inputmode="decimal" placeholder="14.0" class="input-field text-center">
+              <label class="label-field">Longueur des murs</label>
+              <input type="number" data-dim="murs_L" min="0.1" step="0.05" inputmode="decimal" placeholder="14"
+                     data-action="input->wizard#liveSurface" class="input-field text-center no-spin">
+              <p class="text-[11px] text-ink-light mt-1">Périmètre à peindre, en mètres.</p>
             </div>
             <div>
-              <label class="label-field">Hauteur (m)</label>
-              <input type="number" data-dim="murs_H" min="0.1" step="0.05" inputmode="decimal" placeholder="2.5" class="input-field text-center">
+              <label class="label-field">Hauteur</label>
+              <input type="number" data-dim="murs_H" min="0.1" step="0.05" inputmode="decimal" placeholder="2.5"
+                     data-action="input->wizard#liveSurface" class="input-field text-center no-spin">
             </div>
           </div>
-          <p class="text-xs text-ink-light mt-2">Longueur cumulée (développé) des murs à traiter.</p>
         </div>
 
-        <!-- Sol / plafond : longueur × largeur -->
         <div data-dim-group="sol" class="p-4 bg-cream border border-border-warm rounded-xl text-left">
           <div class="text-xs font-bold uppercase tracking-wide text-accent mb-3">Sol / plafond · longueur × largeur</div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="label-field">Longueur (m)</label>
-              <input type="number" data-dim="sol_L" min="0.1" step="0.05" inputmode="decimal" placeholder="4.0" class="input-field text-center">
+              <label class="label-field">Longueur</label>
+              <input type="number" data-dim="sol_L" min="0.1" step="0.05" inputmode="decimal" placeholder="4"
+                     data-action="input->wizard#liveSurface" class="input-field text-center no-spin">
             </div>
             <div>
-              <label class="label-field">Largeur (m)</label>
-              <input type="number" data-dim="sol_l" min="0.1" step="0.05" inputmode="decimal" placeholder="3.0" class="input-field text-center">
+              <label class="label-field">Largeur</label>
+              <input type="number" data-dim="sol_l" min="0.1" step="0.05" inputmode="decimal" placeholder="3"
+                     data-action="input->wizard#liveSurface" class="input-field text-center no-spin">
             </div>
           </div>
         </div>
+
+        <button type="button" data-action="wizard#basculerSimple"
+                class="text-xs text-ink-light hover:text-accent underline">
+          ← Revenir à la saisie simple
+        </button>
       </div>
 
       <button type="button" data-action="wizard#next" class="btn-primary wizard-cta mt-6">Continuer</button>

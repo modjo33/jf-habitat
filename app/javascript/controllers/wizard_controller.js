@@ -13,7 +13,7 @@ import { Controller } from "@hotwired/stimulus"
 // À la soumission, on assemble les estimation_lines_attributes (1 par pièce ×
 // prestation, surface calculée, options auto) et on poste sur l'action create.
 export default class extends Controller {
-  static targets = ["step", "progressBar", "progressText", "back", "piecesContainer", "pieceTemplate", "recap", "lines", "error", "loader", "devisTeaser", "devisRows", "submitBtn"]
+  static targets = ["step", "progressBar", "progressText", "back", "piecesContainer", "pieceTemplate", "recap", "lines", "error", "loader", "devisTeaser", "devisRows", "submitBtn", "fourchette", "fourchetteMontants"]
 
   // Travaux génériques proposés → résolution vers une prestation réelle + type de surface.
   static TRAVAUX = [
@@ -26,6 +26,12 @@ export default class extends Controller {
     { id: "parquet_contrecolle", label: "Parquet contrecollé",   surface: "sol" },
     { id: "parquet_massif",      label: "Parquet massif",        surface: "sol" }
   ]
+
+  // Périmètre d'une pièce déduit de sa surface au sol. Pour un rectangle de
+  // proportions courantes (4:3), périmètre ≈ 4,05 × √surface — 17,2 m pour
+  // 18 m². Approximation assumée : le client connaît ses m², jamais le
+  // développé de ses murs, et Johan affine au métré sur place.
+  static COEF_PERIMETRE = 4.05
 
   static GAMMES = [
     ["entree", "Entrée de gamme", "Finitions standards, matériaux courants"],
@@ -111,6 +117,46 @@ export default class extends Controller {
 
   onTravauxChange() { this.clearError() }
 
+  // ---- Écran « taille de la pièce » ---------------------------------------
+
+  choisirTaille(event) {
+    const btn = event.currentTarget
+    const step = btn.closest(".wizard-step")
+    step.querySelectorAll("[data-taille]").forEach(b => b.dataset.selected = "false")
+    btn.dataset.selected = "true"
+    const champ = step.querySelector('[data-dim="surface_sol"]')
+    if (champ) { champ.value = btn.dataset.valeur; this.majSurface(step) }
+    this.clearError()
+  }
+
+  basculerPrecis(event) { this.basculerMode(event.currentTarget.closest(".wizard-step"), "precis") }
+  basculerSimple(event) { this.basculerMode(event.currentTarget.closest(".wizard-step"), "simple") }
+
+  basculerMode(step, mode) {
+    step.dataset.saisie = mode
+    step.querySelector('[data-mode="simple"]')?.classList.toggle("hidden", mode !== "simple")
+    step.querySelector('[data-mode="precis"]')?.classList.toggle("hidden", mode === "simple")
+    this.configureDimensions(step)
+    this.clearError()
+  }
+
+  liveSurface(event) { this.majSurface(event.target.closest(".wizard-step")) }
+
+  // Affiche le résultat du calcul pendant la frappe. Sans ça, la promesse
+  // « la surface est calculée automatiquement » n'était tenue nulle part.
+  majSurface(step) {
+    const sortie = step.querySelector("[data-surface-live]")
+    if (!sortie) return
+    const p = this.lireDimensions(step)
+    const { hasFloor, hasWalls } = this.surfaceFlags()
+    const morceaux = []
+    if (hasWalls && p.mursSurface > 0) morceaux.push(`≈ ${this.fmt(p.mursSurface)} m² de murs`)
+    if (hasFloor && p.solSurface > 0) morceaux.push(`${this.fmt(p.solSurface)} m² au sol`)
+    sortie.textContent = morceaux.length ? `→ ${morceaux.join(" · ")} à traiter` : ""
+  }
+
+  fmt(v) { return Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) }
+
   // Sélection d'une carte (choix unique) → enregistre + avance automatiquement.
   selectCard(event) {
     const card = event.currentTarget
@@ -165,9 +211,10 @@ export default class extends Controller {
       const gamme = step.querySelector('input[name="piece_gamme"]')
       if (!gamme || !gamme.value) return this.fail(step, "Choisissez un niveau de finition.")
     } else if (kind === "dimensions") {
-      const groups = [...step.querySelectorAll("[data-dim-group]")].filter(g => !g.classList.contains("hidden"))
-      const ok = groups.every(g => [...g.querySelectorAll("[data-dim]")].every(inp => parseFloat(inp.value) > 0))
-      if (!ok) return this.fail(step, "Renseignez les dimensions demandées.")
+      const p = this.lireDimensions(step)
+      const { hasFloor, hasWalls } = this.surfaceFlags()
+      if (hasWalls && !(p.mursSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
+      if (hasFloor && !(p.solSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
     } else if (kind === "contact") {
       const nom = step.querySelector('[name="estimation[nom]"]')?.value.trim()
       const email = step.querySelector('[name="estimation[email]"]')?.value.trim()
@@ -289,12 +336,63 @@ export default class extends Controller {
     this.loaderTarget.classList.remove("hidden")
     this.devisTeaserTarget.classList.add("hidden")
     if (this.hasRecapTarget) this.recapTarget.classList.add("hidden")
+    if (this.hasFourchetteTarget) this.fourchetteTarget.classList.add("hidden")
+    this.chargerFourchette()
     clearTimeout(this._loaderTimer)
     this._loaderTimer = setTimeout(() => {
       this.loaderTarget.classList.add("hidden")
       this.devisTeaserTarget.classList.remove("hidden")
       if (this.hasRecapTarget) this.recapTarget.classList.remove("hidden")
+      if (this.hasFourchetteTarget && this._fourchette) this.afficherFourchette()
     }, 1500)
+  }
+
+  // Ordre de grandeur calculé PAR LE SERVEUR : le barème ne descend jamais
+  // dans le navigateur, et la réponse ne contient qu'un intervalle arrondi,
+  // jamais le total exact (cf. EstimationsController#gated_preview).
+  async chargerFourchette() {
+    this._fourchette = null
+    const lines = this.collectPieces().flatMap(p =>
+      this.selectedTravaux().map(id => {
+        const t = this.constructor.TRAVAUX.find(x => x.id === id)
+        if (!t) return null
+        const surface = this.computeSurface(t.surface, p)
+        if (!(surface > 0)) return null
+        return { prestation: this.resolvePrestation(t, this.chantier() === "renovation"),
+                 gamme: p.gamme, type_piece: p.type, mode_saisie: "surface", surface }
+      }).filter(Boolean))
+    if (!lines.length) return
+
+    // `lines[][clé]` et non `lines[0][clé]` : le service reçoit un Array, une
+    // clé indexée lui arriverait sous forme de paires et serait ignorée.
+    const params = new URLSearchParams()
+    lines.forEach(l => Object.entries(l).forEach(([k, v]) => params.append(`lines[][${k}]`, v)))
+    const etage = this.element.querySelector('[name="estimation[etage]"]')?.value
+    const cp = this.element.querySelector('[name="estimation[code_postal]"]')?.value
+    if (etage) params.append("etage", etage)
+    if (cp) params.append("code_postal", cp)
+
+    try {
+      const jeton = document.querySelector('meta[name="csrf-token"]')?.content
+      const r = await fetch("/estimation/preview.json", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded",
+                   ...(jeton ? { "X-CSRF-Token": jeton } : {}) },
+        body: params
+      })
+      if (!r.ok) return
+      const data = await r.json()
+      this._fourchette = data.fourchette
+      // Le loader peut déjà être terminé si la réponse a tardé.
+      if (this.hasLoaderTarget && this.loaderTarget.classList.contains("hidden")) this.afficherFourchette()
+    } catch (_) { /* pas de fourchette : le tunnel continue normalement */ }
+  }
+
+  afficherFourchette() {
+    if (!this._fourchette || !this.hasFourchetteMontantsTarget) return
+    const eur = v => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " €"
+    this.fourchetteMontantsTarget.textContent = `${eur(this._fourchette.min)} et ${eur(this._fourchette.max)}`
+    this.fourchetteTarget.classList.remove("hidden")
   }
 
   buildDevisTeaser() {
@@ -413,17 +511,38 @@ export default class extends Controller {
   collectPieces() {
     const gamme = this.gamme()
     const gammeLabel = this.gammeLabel()
-    return [...this.element.querySelectorAll("[data-piece-index]")].map(step => {
-      const dim = key => parseFloat(step.querySelector(`[data-dim="${key}"]`)?.value || 0)
+    return [...this.element.querySelectorAll("[data-piece-index]")].map(step => ({
+      index: step.dataset.pieceIndex,
+      type: step.dataset.pieceType || "autre",
+      typeLabel: step.dataset.pieceLabel || "Pièce",
+      gamme, gammeLabel,
+      ...this.lireDimensions(step)
+    }))
+  }
+
+  // Surfaces d'une pièce, quel que soit le mode de saisie.
+  // Simple : la surface au sol est donnée, le développé des murs s'en déduit.
+  // Précis : les mesures du client priment, aucune approximation.
+  lireDimensions(step) {
+    const dim = key => parseFloat(String(step.querySelector(`[data-dim="${key}"]`)?.value ?? "").replace(",", ".")) || 0
+    const arrondi = v => Math.round(v * 100) / 100
+
+    if (step.dataset.saisie === "precis") {
       return {
-        index: step.dataset.pieceIndex,
-        type: step.dataset.pieceType || "autre",
-        typeLabel: step.dataset.pieceLabel || "Pièce",
-        gamme, gammeLabel,
-        mursL: dim("murs_L"), mursH: dim("murs_H"),
-        solL: dim("sol_L"), soll: dim("sol_l")
+        mode: "precis",
+        mursSurface: arrondi(dim("murs_L") * dim("murs_H")),
+        solSurface:  arrondi(dim("sol_L") * dim("sol_l"))
       }
-    })
+    }
+    const surface = dim("surface_sol")
+    const hauteur = dim("hauteur") || 2.5
+    const perimetre = surface > 0 ? this.constructor.COEF_PERIMETRE * Math.sqrt(surface) : 0
+    return {
+      mode: "simple",
+      surfaceSol: surface, hauteur,
+      mursSurface: arrondi(perimetre * hauteur),
+      solSurface:  arrondi(surface)
+    }
   }
 
   resolvePrestation(t, reno) {
@@ -432,10 +551,8 @@ export default class extends Controller {
     return t.id
   }
 
-  // Murs : longueur (développé) × hauteur. Sols / plafonds : longueur × largeur.
   computeSurface(kind, p) {
-    const s = kind === "murs" ? p.mursL * p.mursH : p.solL * p.soll
-    return Math.round(s * 100) / 100
+    return kind === "murs" ? (p.mursSurface || 0) : (p.solSurface || 0)
   }
 
   surfaceFlags() {
@@ -447,12 +564,15 @@ export default class extends Controller {
     }
   }
 
-  // Affiche le bloc « murs » seulement s'il y a des travaux de murs, et le bloc
-  // « sol/plafond » seulement s'il y a des travaux au sol ou au plafond.
+  // N'affiche que ce qui sert : pas de hauteur sous plafond quand il n'y a que
+  // du sol à poser, pas de bloc « murs » quand aucun mur n'est concerné.
   configureDimensions(step) {
     const { hasFloor, hasWalls } = this.surfaceFlags()
+    step.dataset.saisie ||= "simple"
+    step.querySelector('[data-champ="hauteur"]')?.classList.toggle("hidden", !hasWalls)
     step.querySelector('[data-dim-group="murs"]')?.classList.toggle("hidden", !hasWalls)
     step.querySelector('[data-dim-group="sol"]')?.classList.toggle("hidden", !hasFloor)
+    this.majSurface(step)
   }
 
   escape(s) { const d = document.createElement("div"); d.textContent = s ?? ""; return d.innerHTML }

@@ -85,8 +85,27 @@ class EstimationsController < ApplicationController
     {
       lines: safe_lines,
       surface_totale: preview[:surface_totale],
-      count: preview[:count] || safe_lines.size
+      count: preview[:count] || safe_lines.size,
+      fourchette: fourchette(preview[:total_ttc])
     }
+  end
+
+  # Ordre de grandeur, jamais le montant exact : le client doit pouvoir se
+  # situer avant de laisser ses coordonnées, sans que le devis chiffré ne fuite.
+  # ±15 % arrondi à la centaine — un intervalle assez large pour rester une
+  # fourchette, assez précis pour qu'il sache si c'est dans son budget.
+  MARGE_FOURCHETTE = 0.15
+  PAS_ARRONDI = 100
+
+  def fourchette(total)
+    total = total.to_f
+    return nil unless total.positive?
+    bas  = ((total * (1 - MARGE_FOURCHETTE)) / PAS_ARRONDI).floor * PAS_ARRONDI
+    haut = ((total * (1 + MARGE_FOURCHETTE)) / PAS_ARRONDI).ceil * PAS_ARRONDI
+    bas = 0 if bas.negative?
+    # Toujours un intervalle : sinon on afficherait le montant exact.
+    haut = bas + PAS_ARRONDI if haut <= bas
+    { min: bas, max: haut }
   end
 
   def estimation_params

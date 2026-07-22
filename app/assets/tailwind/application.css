@@ -128,6 +128,17 @@
      petit ou d'une question de plus pour que le bouton repasse sous le bandeau
      et que le tap parte dans « Accepter ». Mesuré le 22/07 : bouton recouvert
      de 27 px sur iPhone 13, hors écran sur SE — tunnel bloqué dans les deux cas. */
+  /* Les flèches ↑↓ des champs numériques sont inutilisables au doigt et
+     invitent aux fausses manipulations sur mobile. */
+  .no-spin::-webkit-outer-spin-button,
+  .no-spin::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spin {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
   .wizard-cta {
     position: sticky;
     bottom: calc(var(--cookie-banner-h, 0px) + 0.75rem);
