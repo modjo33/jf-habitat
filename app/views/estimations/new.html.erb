@@ -211,11 +211,16 @@
       <div data-wizard-target="recap" class="hidden w-full max-w-lg mb-4 text-left"></div>
 
       <!-- Devis chiffré flouté tant que les coordonnées ne sont pas saisies -->
-      <div data-wizard-target="devisTeaser" class="hidden relative w-full max-w-lg mb-6">
-        <div data-wizard-target="devisRows" class="space-y-2 p-5 bg-cream border border-border-warm rounded-2xl text-left"></div>
-        <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-sand/40 backdrop-blur-[1px]">
-          <span class="text-2xl">🔒</span>
-          <p class="text-ink font-semibold text-center px-6 max-w-xs">Complétez vos coordonnées ci-dessous pour afficher votre devis détaillé.</p>
+      <%# Les montants sont déjà masqués ligne à ligne (devis-blur) : un calque
+          par-dessus rendait le récapitulatif illisible sur mobile. Le message
+          passe en pied de carte, où il se lit. %>
+      <div data-wizard-target="devisTeaser" class="hidden w-full max-w-lg mb-6">
+        <div class="bg-cream border border-border-warm rounded-2xl overflow-hidden">
+          <div data-wizard-target="devisRows" class="space-y-2 p-5 text-left"></div>
+          <div class="flex items-center gap-3 px-5 py-3 bg-sand border-t border-border-warm text-left">
+            <span class="text-lg shrink-0">🔒</span>
+            <p class="text-sm font-semibold text-ink">Complétez vos coordonnées ci-dessous pour afficher votre devis détaillé.</p>
+          </div>
         </div>
       </div>
 
