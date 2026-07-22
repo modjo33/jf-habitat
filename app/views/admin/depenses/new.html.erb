@@ -1,0 +1,16 @@
+<div class="mb-8">
+  <%= link_to "← Toutes les dépenses", admin_depenses_path, class: "text-sm text-ink-light hover:text-accent" %>
+</div>
+
+<div class="mb-8">
+  <div class="eyebrow mb-2">Compta</div>
+  <h1 class="h-display text-4xl text-ink">Nouvelle dépense</h1>
+  <% if @depense.estimation %>
+    <p class="text-ink-light mt-2">
+      Rattachée au chantier
+      <%= link_to @depense.estimation.reference, admin_estimation_path(@depense.estimation), class: "text-accent hover:underline" %>.
+    </p>
+  <% end %>
+</div>
+
+<%= render "admin/depenses/form", depense: @depense %>

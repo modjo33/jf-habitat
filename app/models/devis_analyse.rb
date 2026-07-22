@@ -27,12 +27,45 @@ class DevisAnalyse < ApplicationRecord
   end
 
   # --- Valeurs retenues ------------------------------------------------------
+  #
+  # Ordre de priorité du coût matière : ce que Johan a saisi > ce que les
+  # dépenses réelles disent > l'estimation du barème. Le réel prime sur la
+  # prévision dès qu'il existe.
+  def heures = heures_saisies.presence&.to_d || heures_auto
 
-  def heures        = heures_saisies.presence&.to_d || heures_auto
-  def cout_materiaux = cout_materiaux_saisi.presence&.to_d || cout_materiaux_auto
+  def cout_materiaux
+    return cout_materiaux_saisi.to_d if cout_materiaux_saisi.present?
+    return cout_materiaux_reel if depenses_reelles?
+    cout_materiaux_auto
+  end
 
-  def heures_estimees?     = heures_saisies.blank?
-  def materiaux_estimes?   = cout_materiaux_saisi.blank?
+  def heures_estimees? = heures_saisies.blank?
+
+  def materiaux_estimes? = cout_materiaux_saisi.blank? && !depenses_reelles?
+
+  # --- Coût réellement constaté (module Dépenses) ---------------------------
+
+  def depenses_reelles? = estimation.depenses.exists?
+
+  # Matériaux + outillage + sous-traitance : ce qui est imputable au chantier.
+  # Le carburant relève du déplacement, déjà facturé à part sur le devis.
+  def cout_materiaux_reel
+    estimation.depenses.where(categorie: %w[materiaux outillage sous_traitance]).sum(:montant).to_d
+  end
+
+  def depenses_total = estimation.depenses.sum(:montant).to_d
+
+  # Écart entre ce que le barème annonçait et ce que le chantier a coûté.
+  # C'est lui qui permet de recaler le barème sur la réalité.
+  def ecart_materiaux
+    return nil unless depenses_reelles?
+    (cout_materiaux_reel - cout_materiaux_auto).round(2)
+  end
+
+  def ecart_materiaux_pct
+    return nil unless depenses_reelles? && cout_materiaux_auto.positive?
+    (ecart_materiaux / cout_materiaux_auto * 100).round(1)
+  end
 
   # --- Dérivation depuis le barème ------------------------------------------
 

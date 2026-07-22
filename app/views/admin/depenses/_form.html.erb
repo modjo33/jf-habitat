@@ -1,0 +1,68 @@
+<%= form_with model: [:admin, depense], multipart: true do |f| %>
+  <% if depense.errors.any? %>
+    <div class="mb-6 bg-accent-soft border border-accent/30 text-ink px-4 py-3 rounded-lg text-sm">
+      <%= depense.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <%= hidden_field_tag :retour, params[:retour] if params[:retour].present? %>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :date_depense, "Date de la dépense", class: "label-field" %>
+      <%= f.date_field :date_depense, class: "input-field", required: true %>
+    </div>
+    <div>
+      <%= f.label :montant, "Montant TTC (€)", class: "label-field" %>
+      <%= f.text_field :montant, placeholder: "ex : 128,40", inputmode: "decimal", class: "input-field", required: true %>
+      <p class="text-[11px] text-ink-light mt-1">TVA comprise : en franchise en base, elle n'est pas récupérable.</p>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :libelle, "Libellé", class: "label-field" %>
+      <%= f.text_field :libelle, placeholder: "ex : Peinture mate blanche 3×10 L", class: "input-field", required: true %>
+    </div>
+    <div>
+      <%= f.label :fournisseur, "Fournisseur (optionnel)", class: "label-field" %>
+      <%= f.text_field :fournisseur, placeholder: "ex : Leroy Merlin", class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :categorie, "Catégorie", class: "label-field" %>
+      <%= f.select :categorie, Depense::CATEGORIES.map { |k, v| [v, k] }, {}, class: "input-field" %>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :estimation_id, "Chantier (optionnel)", class: "label-field" %>
+      <%= f.collection_select :estimation_id,
+            Estimation.order(created_at: :desc).limit(60), :id,
+            ->(e) { "#{e.reference} — #{e.nom.to_s.strip}" },
+            { include_blank: "— frais généraux (non rattachés à un chantier) —" },
+            { class: "input-field" } %>
+      <p class="text-[11px] text-ink-light mt-1">Rattacher permet de comparer le coût prévu et le coût réel du chantier.</p>
+    </div>
+    <div class="md:col-span-2">
+      <%= label_tag "depense_justificatif", "Justificatif (optionnel)", class: "label-field" %>
+      <%= file_field_tag "depense[justificatif]", accept: "image/*,application/pdf",
+            class: "block w-full text-sm text-ink-soft file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent-dark cursor-pointer" %>
+      <p class="text-[11px] text-ink-light mt-1">
+        Photo du ticket prise au téléphone, ou PDF de la facture fournisseur.
+        <% if depense.justificatif? %>
+          <span class="text-ink font-semibold">— un justificatif est déjà joint, en envoyer un nouveau le remplacera.</span>
+        <% end %>
+      </p>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :note, "Note (optionnel)", class: "label-field" %>
+      <%= f.text_area :note, rows: 2, class: "input-field" %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4 mt-8">
+    <%= f.submit depense.persisted? ? "Mettre à jour" : "Enregistrer la dépense",
+          class: "bg-accent text-sand text-sm font-bold px-6 py-3 rounded-lg hover:opacity-90 transition cursor-pointer" %>
+    <%= link_to "Annuler", admin_depenses_path, class: "text-sm text-ink-light hover:text-ink" %>
+    <% if depense.persisted? %>
+      <%= button_to "Supprimer", admin_depense_path(depense), method: :delete,
+            form: { data: { turbo_confirm: "Supprimer cette dépense ?" }, class: "ml-auto" },
+            class: "text-sm font-semibold text-red-700 hover:underline" %>
+    <% end %>
+  </div>
+<% end %>

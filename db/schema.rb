@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_22_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_22_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -106,6 +106,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_090000) do
     t.datetime "updated_at", null: false
     t.index ["mur_id", "position"], name: "index_deductions_on_mur_id_and_position"
     t.index ["mur_id"], name: "index_deductions_on_mur_id"
+  end
+
+  create_table "depenses", force: :cascade do |t|
+    t.string "categorie", default: "materiaux", null: false
+    t.datetime "created_at", null: false
+    t.date "date_depense", null: false
+    t.bigint "estimation_id"
+    t.string "fournisseur"
+    t.binary "justificatif_pdf"
+    t.string "justificatif_pdf_nom"
+    t.string "libelle", null: false
+    t.decimal "montant", precision: 10, scale: 2, null: false
+    t.text "note"
+    t.datetime "updated_at", null: false
+    t.index ["categorie"], name: "index_depenses_on_categorie"
+    t.index ["date_depense"], name: "index_depenses_on_date_depense"
+    t.index ["estimation_id"], name: "index_depenses_on_estimation_id"
   end
 
   create_table "devis_analyses", force: :cascade do |t|
@@ -434,6 +451,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_090000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "client_notes", "clients"
   add_foreign_key "deductions", "murs"
+  add_foreign_key "depenses", "estimations"
   add_foreign_key "devis_analyses", "estimations"
   add_foreign_key "devis_documents", "estimations"
   add_foreign_key "devis_lignes", "estimations"

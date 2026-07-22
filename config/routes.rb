@@ -78,6 +78,9 @@ Rails.application.routes.draw do
       end
     end
     resources :encaissements, except: [:show]
+    resources :depenses, except: [:show] do
+      member { get :justificatif }
+    end
     get    "declarations",               to: "declarations#index",               as: :declarations
     post   "declarations/marquer",       to: "declarations#marquer_declaree",    as: :marquer_declaration
     delete "declarations/periodes/:id",  to: "declarations#annuler_declaration", as: :annuler_declaration

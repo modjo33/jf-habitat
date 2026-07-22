@@ -1,0 +1,104 @@
+<% montant = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
+
+<div class="flex items-start justify-between mb-10">
+  <div>
+    <div class="eyebrow mb-2">Compta</div>
+    <h1 class="h-display text-4xl text-ink">Dépenses</h1>
+    <p class="text-ink-light mt-2">Ce que les chantiers te coûtent vraiment — pour savoir ta marge et recaler ton barème.</p>
+  </div>
+  <div class="shrink-0">
+    <%= link_to "+ Nouvelle dépense", new_admin_depense_path,
+          class: "text-sm font-bold bg-accent text-sand px-4 py-2.5 rounded-lg hover:opacity-90 transition" %>
+  </div>
+</div>
+
+<div class="card-premium p-5 mb-6 border-l-4 border-ink/20">
+  <p class="text-sm text-ink-soft">
+    <strong class="text-ink">À savoir :</strong> en micro-entreprise, l'abattement forfaitaire de 50 % remplace les frais
+    réels — ces montants ne réduisent <strong>ni ton impôt ni tes cotisations</strong>. Ils servent à connaître ta marge
+    réelle et à ajuster tes prix. Montants <strong>TTC</strong> : en franchise en base, la TVA payée au fournisseur fait
+    partie du coût.
+  </p>
+</div>
+
+<div class="card-premium p-6 mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div class="flex items-center gap-2">
+    <% annees = (Depense.minimum(:date_depense)&.year || Date.current.year)..Date.current.year %>
+    <% annees.to_a.reverse.each do |a| %>
+      <%= link_to a, admin_depenses_path(annee: a, categorie: params[:categorie]),
+            class: "text-sm px-3 py-1.5 rounded-lg border transition #{a == @annee ? 'bg-ink text-sand border-ink font-bold' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+    <% end %>
+  </div>
+  <div class="text-right">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Total dépensé <%= @annee %></div>
+    <div class="font-display text-2xl text-ink"><%= montant.(@total_annee) %></div>
+  </div>
+</div>
+
+<% if @par_categorie.any? %>
+  <div class="flex flex-wrap gap-2 mb-6">
+    <%= link_to "Toutes", admin_depenses_path(annee: @annee),
+          class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{params[:categorie].blank? ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+    <% @par_categorie.each do |cat, total| %>
+      <%= link_to admin_depenses_path(annee: @annee, categorie: cat),
+            class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{params[:categorie] == cat ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" do %>
+        <%= Depense::CATEGORIES[cat] %> · <%= montant.(total) %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="card-premium p-7">
+  <% if @depenses.empty? %>
+    <div class="text-center py-12 text-ink-light">
+      Aucune dépense en <%= @annee %><%= " dans cette catégorie" if params[:categorie].present? %>.
+      <%= link_to "Enregistrer la première →", new_admin_depense_path, class: "text-accent font-semibold hover:underline" %>
+    </div>
+  <% else %>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+          <th class="py-3 font-semibold">Date</th>
+          <th class="py-3 font-semibold">Libellé</th>
+          <th class="py-3 font-semibold">Fournisseur</th>
+          <th class="py-3 font-semibold">Chantier</th>
+          <th class="py-3 font-semibold">Catégorie</th>
+          <th class="py-3 font-semibold text-right">Montant TTC</th>
+          <th class="py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @depenses.each do |d| %>
+          <tr class="border-b border-border-warm/40 hover:bg-sand transition">
+            <td class="py-3 text-ink-soft whitespace-nowrap"><%= l d.date_depense, format: "%d/%m/%Y" %></td>
+            <td class="py-3 font-semibold text-ink">
+              <%= d.libelle %>
+              <% if d.justificatif? %>
+                <% if d.justificatif_pdf.present? %>
+                  <%= link_to "📎", justificatif_admin_depense_path(d), target: "_blank", rel: "noopener",
+                        class: "ml-1", title: "Justificatif PDF" %>
+                <% else %>
+                  <%= link_to "📎", d.justificatif_image_url, target: "_blank", rel: "noopener",
+                        class: "ml-1", title: "Photo du justificatif" %>
+                <% end %>
+              <% end %>
+            </td>
+            <td class="py-3 text-ink-soft"><%= d.fournisseur.presence || "—" %></td>
+            <td class="py-3">
+              <% if d.estimation %>
+                <%= link_to d.estimation.reference, admin_estimation_path(d.estimation), class: "text-accent hover:underline" %>
+              <% else %>
+                <span class="text-ink-light text-xs">Frais généraux</span>
+              <% end %>
+            </td>
+            <td class="py-3 text-ink-soft text-xs"><%= d.categorie_label %></td>
+            <td class="py-3 text-right font-semibold text-ink whitespace-nowrap"><%= montant.(d.montant) %></td>
+            <td class="py-3 text-right whitespace-nowrap">
+              <%= link_to "Modifier", edit_admin_depense_path(d), class: "text-xs font-semibold text-ink-light hover:text-accent" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

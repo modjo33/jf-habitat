@@ -10,7 +10,9 @@ class AnalyseRentabilite
   ABATTEMENT_MICRO_BIC = 0.5.to_d
 
   Resultat = Struct.new(
-    :montant_devis, :cout_materiaux, :autres_frais, :cout_total,
+    :montant_devis, :cout_materiaux, :cout_materiaux_estime, :cout_materiaux_reel,
+    :ecart_materiaux, :ecart_materiaux_pct, :depenses_reelles,
+    :autres_frais, :cout_total,
     :heures, :heures_par_jour, :jours,
     :taux_cotisations_global, :taux_impot, :taux_prelevement,
     :cotisations, :provision_impot,
@@ -30,6 +32,10 @@ class AnalyseRentabilite
   def resultats
     Resultat.new(
       montant_devis: montant_devis, cout_materiaux: cout_materiaux,
+      cout_materiaux_estime: @a.cout_materiaux_auto,
+      cout_materiaux_reel: (@a.cout_materiaux_reel if @a.depenses_reelles?),
+      ecart_materiaux: @a.ecart_materiaux, ecart_materiaux_pct: @a.ecart_materiaux_pct,
+      depenses_reelles: @a.depenses_reelles?,
       autres_frais: autres_frais, cout_total: cout_total,
       heures: heures, heures_par_jour: heures_par_jour, jours: jours,
       taux_cotisations_global: taux_cotisations_global, taux_impot: taux_impot,

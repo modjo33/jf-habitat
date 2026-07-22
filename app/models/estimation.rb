@@ -54,6 +54,8 @@ class Estimation < ApplicationRecord
   has_one :devis_document, dependent: :destroy
   # Analyse de rentabilité interne (jamais exposée au client).
   has_one :devis_analyse, dependent: :destroy
+  # Dépenses réellement engagées sur ce chantier.
+  has_many :depenses, dependent: :nullify
   accepts_nested_attributes_for :estimation_lines, allow_destroy: true
 
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }

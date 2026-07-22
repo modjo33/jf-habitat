@@ -1,0 +1,10 @@
+<div class="mb-8">
+  <%= link_to "← Toutes les dépenses", admin_depenses_path, class: "text-sm text-ink-light hover:text-accent" %>
+</div>
+
+<div class="mb-8">
+  <div class="eyebrow mb-2">Compta</div>
+  <h1 class="h-display text-4xl text-ink">Modifier la dépense</h1>
+</div>
+
+<%= render "admin/depenses/form", depense: @depense %>
