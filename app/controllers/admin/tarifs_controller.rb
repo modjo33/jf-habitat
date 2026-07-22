@@ -42,6 +42,7 @@ class Admin::TarifsController < Admin::BaseController
   end
 
   def tarif_params
-    params.require(:tarif).permit(:prestation, :gamme, :prix_m2, :description, :details, :actif)
+    params.require(:tarif).permit(:prestation, :gamme, :prix_m2, :description, :details, :actif,
+                                  :rendement_m2_h, :cout_matiere_unite)
   end
 end

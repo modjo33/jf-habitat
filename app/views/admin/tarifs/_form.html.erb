@@ -28,6 +28,28 @@
         <span class="text-sm font-semibold text-ink">Actif</span>
       </label>
     </div>
+
+    <%# Barème interne : sert au calcul de rentabilité, jamais montré au client. %>
+    <div class="md:col-span-2 pt-4 mt-2 border-t border-border-warm">
+      <div class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-light mb-1">
+        Barème interne — rentabilité
+      </div>
+      <p class="text-xs text-ink-light mb-4">
+        Ton rythme réel et ce que la matière te coûte. Jamais affiché sur un devis ni une facture.
+      </p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :rendement_m2_h, "Rendement (m² par heure)", class: "label-field" %>
+          <%= f.number_field :rendement_m2_h, step: 0.01, class: "input-field", placeholder: "ex : 8" %>
+          <p class="text-[11px] text-ink-light mt-1">Vide = ce poste comptera 0 h dans l'analyse.</p>
+        </div>
+        <div>
+          <%= f.label :cout_matiere_unite, "Coût matière (€ TTC / m²)", class: "label-field" %>
+          <%= f.number_field :cout_matiere_unite, step: 0.01, class: "input-field", placeholder: "ex : 1,80" %>
+          <p class="text-[11px] text-ink-light mt-1">Prix payé au fournisseur, TVA comprise (franchise en base).</p>
+        </div>
+      </div>
+    </div>
     <div class="md:col-span-2">
       <%= f.label :description, "Description courte (résumé affiché sur la carte)", class: "label-field" %>
       <%= f.text_area :description, rows: 2, class: "input-field" %>

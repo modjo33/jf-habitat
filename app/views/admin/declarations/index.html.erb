@@ -179,6 +179,79 @@
       <%= f.check_box :versement_liberatoire, class: "h-4 w-4" %>
       <%= f.label :versement_liberatoire, "Versement libératoire de l'impôt (+ 1,7 %)", class: "text-sm text-ink" %>
     </div>
+
+    <%# ---- Rentabilité des devis (outil interne) ---- %>
+    <div class="mt-8 pt-6 border-t border-border-warm">
+      <h3 class="font-display text-lg text-ink mb-1">Rentabilité des devis</h3>
+      <p class="text-xs text-ink-light mb-5">
+        Sert uniquement à chiffrer tes devis au bon prix. Ces montants n'apparaissent jamais
+        sur un devis, une facture ou un e-mail client.
+      </p>
+
+      <div class="grid md:grid-cols-3 gap-4">
+        <div>
+          <%= f.label :revenu_mensuel_cible, "Revenu net visé (€/mois)", class: "label-field" %>
+          <%= f.text_field :revenu_mensuel_cible, class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :jours_travailles_mois, "Jours travaillés / mois", class: "label-field" %>
+          <%= f.text_field :jours_travailles_mois, class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :heures_par_jour, "Heures / jour", class: "label-field" %>
+          <%= f.text_field :heures_par_jour, class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :objectif_horaire_force, "Objectif horaire forcé (€/h)", class: "label-field" %>
+          <%= f.text_field :objectif_horaire_force, class: "input-field", placeholder: "vide = calculé" %>
+          <p class="text-[11px] text-ink-light mt-1">
+            Calculé aujourd'hui : <strong><%= number_to_currency(@reglages.objectif_horaire, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>/h</strong>
+          </p>
+        </div>
+        <div>
+          <%= f.label :taux_impot, "Provision d'impôt (%)", class: "label-field" %>
+          <%= f.text_field :taux_impot, class: "input-field" %>
+          <p class="text-[11px] text-ink-light mt-1">Appliquée à 50 % du CA (abattement micro-BIC)</p>
+        </div>
+        <div>
+          <%= f.label :heures_par_forfait, "Heures par ligne au forfait", class: "label-field" %>
+          <%= f.text_field :heures_par_forfait, class: "input-field" %>
+          <p class="text-[11px] text-ink-light mt-1">Ponçage, rebouchage… (pas de surface)</p>
+        </div>
+        <div>
+          <%= f.label :marge_securite_pct, "Marge de sécurité (%)", class: "label-field" %>
+          <%= f.text_field :marge_securite_pct, class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :seuil_marge_alerte_pct, "Alerte si marge sous (%)", class: "label-field" %>
+          <%= f.text_field :seuil_marge_alerte_pct, class: "input-field" %>
+        </div>
+        <div>
+          <%= f.label :part_materiaux_max_pct, "Alerte si matériaux au-dessus de (%)", class: "label-field" %>
+          <%= f.text_field :part_materiaux_max_pct, class: "input-field" %>
+        </div>
+      </div>
+
+      <div class="flex items-start gap-3 mt-4">
+        <%= f.check_box :deduire_are, class: "h-4 w-4 mt-0.5" %>
+        <div>
+          <%= f.label :deduire_are, "Tenir compte de l'ARE dans le revenu visé", class: "text-sm text-ink" %>
+          <p class="text-[11px] text-ink-light">
+            <% if @reglages.are_active? %>
+              Active : l'activité doit couvrir
+              <strong><%= number_to_currency(@reglages.besoin_mensuel, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></strong>
+              sur les <%= number_to_currency(@reglages.revenu_mensuel_cible, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %> visés.
+              <% if @reglages.fin_droits_are %>
+                Après le <%= l @reglages.fin_droits_are, format: "%d/%m/%Y" %>, l'objectif horaire montera automatiquement.
+              <% end %>
+            <% else %>
+              Droits ARE épuisés : l'activité doit couvrir la totalité du revenu visé.
+            <% end %>
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div class="mt-6">
       <%= f.submit "Enregistrer les réglages", class: "bg-ink text-sand text-sm font-bold px-5 py-2.5 rounded-lg hover:opacity-90 transition cursor-pointer" %>
     </div>

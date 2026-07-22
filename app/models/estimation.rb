@@ -52,6 +52,8 @@ class Estimation < ApplicationRecord
   # PDF du devis prêt à envoyer, stocké en base (table dédiée) plutôt que sur
   # Cloudinary (qui bloque la livraison des fichiers PDF).
   has_one :devis_document, dependent: :destroy
+  # Analyse de rentabilité interne (jamais exposée au client).
+  has_one :devis_analyse, dependent: :destroy
   accepts_nested_attributes_for :estimation_lines, allow_destroy: true
 
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }
@@ -238,6 +240,11 @@ class Estimation < ApplicationRecord
   # négocié) dès qu'il existe, sinon le chiffrage web (total_ttc).
   def ca_montant
     devis_total.to_d.positive? ? devis_total.to_d : total_ttc.to_d
+  end
+
+  # Analyse de rentabilité — INTERNE, jamais rendue sur un document client.
+  def analyse_rentabilite
+    devis_analyse || create_devis_analyse!
   end
 
   # Version agrégée (SQL) — utilisable sur une relation : Estimation.where(...).ca_montant.

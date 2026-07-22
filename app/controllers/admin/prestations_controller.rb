@@ -40,6 +40,7 @@ class Admin::PrestationsController < Admin::BaseController
   end
 
   def prestation_params
-    params.require(:prestation).permit(:nom, :description, :unite, :prix, :categorie, :position, :actif)
+    params.require(:prestation).permit(:nom, :description, :unite, :prix, :categorie, :position, :actif,
+                                       :rendement_m2_h, :cout_matiere_unite)
   end
 end

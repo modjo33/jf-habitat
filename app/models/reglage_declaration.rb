@@ -18,4 +18,36 @@ class ReglageDeclaration < ApplicationRecord
   def are_active?(date = Date.current)
     fin_droits_are.nil? || date <= fin_droits_are
   end
+
+  # --- Rentabilité -----------------------------------------------------------
+
+  # Ce que le chantier doit rapporter net de l'heure. Soit forcé à la main,
+  # soit déduit du revenu mensuel visé et du temps réellement travaillé.
+  def objectif_horaire(date = Date.current)
+    return objectif_horaire_force.to_d if objectif_horaire_force.to_d.positive?
+    heures = heures_travaillees_mois
+    return 0.to_d if heures.zero?
+    (besoin_mensuel(date) / heures).round(2)
+  end
+
+  # Besoin de revenu à couvrir par l'activité. Tant que l'ARE tombe, elle en
+  # couvre une partie — d'où un objectif horaire plus bas jusqu'à la fin des
+  # droits, et plus élevé après.
+  def besoin_mensuel(date = Date.current)
+    cible = revenu_mensuel_cible.to_d
+    return cible unless deduire_are? && are_active?(date)
+    [cible - are_mensuelle.to_d, 0.to_d].max
+  end
+
+  def heures_travaillees_mois
+    (jours_travailles_mois.to_d * heures_par_jour.to_d)
+  end
+
+  # Part du CA effectivement prélevée : cotisations + impôt sur le revenu
+  # imposable (50 % du CA en micro-BIC services, abattement forfaitaire).
+  ABATTEMENT_MICRO_BIC = 0.5
+
+  def taux_prelevement_global
+    (taux_global.to_d + taux_impot.to_d * ABATTEMENT_MICRO_BIC) / 100
+  end
 end

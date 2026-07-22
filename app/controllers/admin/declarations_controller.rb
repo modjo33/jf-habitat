@@ -45,6 +45,11 @@ class Admin::DeclarationsController < Admin::BaseController
   def reglages_params
     params.require(:reglage_declaration)
           .permit(:are_mensuelle, :allocation_journaliere, :fin_droits_are,
-                  :taux_cotisations, :taux_cfp, :taux_cma, :versement_liberatoire)
+                  :taux_cotisations, :taux_cfp, :taux_cma, :versement_liberatoire,
+                  # Rentabilité des devis (outil interne)
+                  :revenu_mensuel_cible, :jours_travailles_mois, :heures_par_jour,
+                  :objectif_horaire_force, :deduire_are, :taux_impot,
+                  :marge_securite_pct, :seuil_marge_alerte_pct,
+                  :part_materiaux_max_pct, :heures_par_forfait)
   end
 end

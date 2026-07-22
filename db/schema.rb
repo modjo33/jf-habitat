@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_21_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_22_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -106,6 +106,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_080000) do
     t.datetime "updated_at", null: false
     t.index ["mur_id", "position"], name: "index_deductions_on_mur_id_and_position"
     t.index ["mur_id"], name: "index_deductions_on_mur_id"
+  end
+
+  create_table "devis_analyses", force: :cascade do |t|
+    t.decimal "autres_frais", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "cout_materiaux_saisi", precision: 10, scale: 2
+    t.datetime "created_at", null: false
+    t.bigint "estimation_id", null: false
+    t.decimal "heures_par_jour", precision: 4, scale: 1, default: "7.0", null: false
+    t.decimal "heures_saisies", precision: 8, scale: 2
+    t.decimal "marge_securite_pct", precision: 5, scale: 2, default: "10.0", null: false
+    t.text "note"
+    t.decimal "objectif_horaire", precision: 6, scale: 2, null: false
+    t.decimal "part_materiaux_max_pct", precision: 5, scale: 2, default: "35.0", null: false
+    t.decimal "seuil_marge_alerte_pct", precision: 5, scale: 2, default: "20.0", null: false
+    t.decimal "taux_cfp", precision: 4, scale: 2, null: false
+    t.decimal "taux_cma", precision: 4, scale: 2, null: false
+    t.decimal "taux_cotisations", precision: 5, scale: 2, null: false
+    t.datetime "taux_figes_at", null: false
+    t.decimal "taux_impot", precision: 5, scale: 2, default: "0.0", null: false
+    t.datetime "updated_at", null: false
+    t.index ["estimation_id"], name: "index_devis_analyses_on_estimation_id", unique: true
   end
 
   create_table "devis_documents", force: :cascade do |t|
@@ -311,11 +332,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_080000) do
   create_table "prestations", force: :cascade do |t|
     t.boolean "actif", default: true, null: false
     t.string "categorie", default: "autre", null: false
+    t.decimal "cout_matiere_unite", precision: 8, scale: 2
     t.datetime "created_at", null: false
     t.text "description"
     t.string "nom", null: false
     t.integer "position", default: 0, null: false
     t.decimal "prix", precision: 10, scale: 2, default: "0.0"
+    t.decimal "rendement_m2_h", precision: 6, scale: 2
     t.string "unite", default: "m2", null: false
     t.datetime "updated_at", null: false
   end
@@ -353,10 +376,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_080000) do
     t.decimal "allocation_journaliere", precision: 6, scale: 2, default: "50.15"
     t.decimal "are_mensuelle", precision: 8, scale: 2, default: "1524.6"
     t.datetime "created_at", null: false
+    t.boolean "deduire_are", default: false, null: false
     t.date "fin_droits_are"
+    t.decimal "heures_par_forfait", precision: 5, scale: 2, default: "1.0"
+    t.decimal "heures_par_jour", precision: 4, scale: 1, default: "7.0"
+    t.decimal "jours_travailles_mois", precision: 4, scale: 1, default: "18.0"
+    t.decimal "marge_securite_pct", precision: 5, scale: 2, default: "10.0"
+    t.decimal "objectif_horaire_force", precision: 6, scale: 2
+    t.decimal "part_materiaux_max_pct", precision: 5, scale: 2, default: "35.0"
+    t.decimal "revenu_mensuel_cible", precision: 8, scale: 2, default: "2000.0"
+    t.decimal "seuil_marge_alerte_pct", precision: 5, scale: 2, default: "20.0"
     t.decimal "taux_cfp", precision: 4, scale: 2, default: "0.3"
     t.decimal "taux_cma", precision: 4, scale: 2, default: "0.48"
     t.decimal "taux_cotisations", precision: 5, scale: 2, default: "21.2"
+    t.decimal "taux_impot", precision: 5, scale: 2, default: "0.0"
     t.datetime "updated_at", null: false
     t.boolean "versement_liberatoire", default: false, null: false
   end
@@ -372,12 +405,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_080000) do
 
   create_table "tarifs", force: :cascade do |t|
     t.boolean "actif", default: true, null: false
+    t.decimal "cout_matiere_unite", precision: 8, scale: 2
     t.datetime "created_at", null: false
     t.text "description"
     t.text "details"
     t.string "gamme", null: false
     t.string "prestation", null: false
     t.decimal "prix_m2", precision: 10, scale: 2, null: false
+    t.decimal "rendement_m2_h", precision: 6, scale: 2
     t.string "unite", default: "m2", null: false
     t.datetime "updated_at", null: false
     t.index ["prestation", "gamme"], name: "index_tarifs_on_prestation_and_gamme", unique: true
@@ -399,6 +434,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_080000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "client_notes", "clients"
   add_foreign_key "deductions", "murs"
+  add_foreign_key "devis_analyses", "estimations"
   add_foreign_key "devis_documents", "estimations"
   add_foreign_key "devis_lignes", "estimations"
   add_foreign_key "devis_lignes", "prestations"
