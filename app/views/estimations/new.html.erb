@@ -71,15 +71,16 @@
     <!-- 2 · Quelles pièces (remplace « combien de pièces » + un écran de type par pièce) -->
     <section class="wizard-step hidden" data-wizard-target="step" data-step="pieces" data-validate="pieces">
       <div class="wizard-eyebrow">Votre logement</div>
-      <h2 class="wizard-question">Quelles pièces à traiter ?</h2>
-      <p class="text-ink-light text-sm mb-3">Ajoutez-en autant que nécessaire.</p>
+      <%# Marge réduite : cet écran est le plus haut du tunnel, il doit tenir
+          sans scroll sur un iPhone 13 (664 px utiles) — voir .wizard-stage. %>
+      <h2 class="wizard-question !mb-3">Quelles pièces à traiter ?</h2>
 
       <%# Lignes volontairement compactes : 7 types + le bouton doivent tenir
           SANS scroll sur un iPhone (664 px utiles), sinon le « Continuer »
           passe sous la ligne de flottaison et le tunnel se bloque. %>
       <div class="w-full max-w-md space-y-1.5">
         <% types_piece.each do |key, label| %>
-          <div class="flex items-center justify-between gap-3 px-3 py-1.5 bg-cream border border-border-warm rounded-lg transition"
+          <div class="flex items-center justify-between gap-3 px-3 py-1 bg-cream border border-border-warm rounded-lg transition"
                data-piece-row data-piece-type="<%= key %>" data-piece-label="<%= label %>">
             <span class="text-sm font-semibold text-ink text-left"><%= label %></span>
             <div class="flex items-center gap-1.5 shrink-0">
@@ -95,28 +96,28 @@
         <% end %>
       </div>
 
-      <button type="button" data-action="wizard#next" class="btn-primary mt-4">Continuer</button>
+      <button type="button" data-action="wizard#next" class="btn-primary wizard-cta mt-4">Continuer</button>
       <p data-wizard-target="error" class="wizard-error hidden"></p>
     </section>
 
     <!-- 3 · Travaux + gamme, une fois pour tout le chantier -->
     <section class="wizard-step hidden" data-wizard-target="step" data-step="travaux_gamme" data-validate="travaux_gamme">
       <div class="wizard-eyebrow">Vos travaux</div>
-      <h2 class="wizard-question">Que souhaitez-vous faire ?</h2>
-      <p class="text-ink-light mb-4">Plusieurs choix possibles.</p>
+      <h2 class="wizard-question !mb-2">Que souhaitez-vous faire ?</h2>
+      <p class="text-ink-light text-sm mb-3">Plusieurs choix possibles.</p>
 
       <div class="grid grid-cols-2 gap-2 max-w-lg w-full">
         <% travaux.each do |val, label| %>
           <label class="relative cursor-pointer">
             <input type="checkbox" name="piece_travaux" value="<%= val %>" class="peer sr-only"
                    data-action="change->wizard#onTravauxChange">
-            <span class="block p-3 border-2 border-border-warm rounded-xl text-sm font-semibold text-ink-soft transition
+            <span class="block px-3 py-2.5 border-2 border-border-warm rounded-xl text-sm font-semibold text-ink-soft transition
                          peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:text-ink hover:border-accent/50"><%= label %></span>
           </label>
         <% end %>
       </div>
 
-      <div class="w-full max-w-lg mt-6 text-left">
+      <div class="w-full max-w-lg mt-4 text-left">
         <label class="label-field">Niveau de finition</label>
         <div data-card-group data-auto-advance="false" class="grid grid-cols-3 gap-2">
           <input type="hidden" name="piece_gamme" value="milieu">
@@ -130,7 +131,7 @@
         </div>
       </div>
 
-      <button type="button" data-action="wizard#next" class="btn-primary mt-6">Continuer</button>
+      <button type="button" data-action="wizard#next" class="btn-primary wizard-cta mt-6">Continuer</button>
       <p data-wizard-target="error" class="wizard-error hidden"></p>
     </section>
 
@@ -193,7 +194,7 @@
         </div>
       </div>
 
-      <button type="button" data-action="wizard#next" class="btn-primary mt-6">Continuer</button>
+      <button type="button" data-action="wizard#next" class="btn-primary wizard-cta mt-6">Continuer</button>
     </section>
 
     <!-- 5 · Coordonnées (gate) — le récapitulatif y est intégré -->
@@ -291,7 +292,7 @@
 
       <p data-wizard-target="error" class="wizard-error hidden"></p>
 
-      <button type="button" data-action="wizard#submitForm" data-wizard-target="submitBtn" class="btn-primary mt-6">
+      <button type="button" data-action="wizard#submitForm" data-wizard-target="submitBtn" class="btn-primary wizard-cta mt-6">
         Afficher mon devis chiffré
       </button>
       <p class="text-xs text-ink-light mt-4 max-w-md leading-relaxed">
@@ -343,7 +344,7 @@
         </div>
       </div>
 
-      <button type="button" data-action="wizard#next" class="btn-primary mt-6">Continuer</button>
+      <button type="button" data-action="wizard#next" class="btn-primary wizard-cta mt-6">Continuer</button>
       <p data-wizard-target="error" class="wizard-error hidden"></p>
     </section>
   </template>

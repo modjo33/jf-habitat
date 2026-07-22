@@ -103,14 +103,35 @@
     @apply sticky top-0 z-30 flex items-center px-5 lg:px-8 py-3 bg-sand/90 backdrop-blur border-b border-border-warm/60;
   }
   /* padding-bottom = espace réservé au bandeau cookies (cf. cookie_consent_controller),
-     sinon le bandeau recouvre le CTA "Continuer" sur mobile. */
+     sinon le bandeau recouvre le CTA "Continuer" sur mobile.
+
+     ⚠️ Centrage : surtout PAS `items-center` ici. Quand un écran est plus haut
+     que la fenêtre (iPhone SE, écran « quelles pièces »), un flex centré fait
+     déborder le contenu des DEUX côtés et le bouton devient inatteignable —
+     c'est exactement le blocage du 18/07, reproduit le 22/07 sur SE et 13.
+     `flex-col` + `margin-block:auto` sur l'étape centre quand ça tient et
+     laisse défiler quand ça déborde. */
+  /* Pas d'`overflow-y: auto` ici : la scène deviendrait le conteneur de
+     défilement le plus proche, alors que c'est le document qui défile — et le
+     `position: sticky` du CTA ne s'activerait jamais (constaté sur iPhone SE). */
   .wizard-stage {
-    @apply flex-1 flex items-center justify-center px-5 lg:px-8 py-12;
+    @apply flex-1 flex flex-col px-5 lg:px-8 py-12;
     padding-bottom: calc(3rem + var(--cookie-banner-h, 0px));
   }
   .wizard-step {
     @apply w-full max-w-2xl mx-auto flex flex-col items-center text-center;
+    margin-block: auto;
     animation: fade-up 0.4s ease both;
+  }
+  /* CTA collant, TOUJOURS au-dessus du bandeau cookies.
+     Rogner les marges écran par écran ne tient pas : il suffit d'un iPhone plus
+     petit ou d'une question de plus pour que le bouton repasse sous le bandeau
+     et que le tap parte dans « Accepter ». Mesuré le 22/07 : bouton recouvert
+     de 27 px sur iPhone 13, hors écran sur SE — tunnel bloqué dans les deux cas. */
+  .wizard-cta {
+    position: sticky;
+    bottom: calc(var(--cookie-banner-h, 0px) + 0.75rem);
+    z-index: 20;
   }
   .wizard-eyebrow {
     @apply inline-block text-xs font-bold uppercase text-accent mb-3;
