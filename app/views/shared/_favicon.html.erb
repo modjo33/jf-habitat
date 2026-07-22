@@ -1,0 +1,10 @@
+<%# Icônes de l'onglet — partagées par le layout public ET le layout admin.
+    Sans ces balises, le navigateur retombe sur le `/favicon.ico` nu et ressort
+    l'icône qu'il a mémorisée pour le domaine, c'est-à-dire l'ancien point rouge
+    Rails (c'est ce qui arrivait sur tout /admin).
+    Le `?v=2` est le cache-busting qui force l'oubli de cette ancienne icône :
+    si on remplace un jour les fichiers, incrémenter la version ici. %>
+<link rel="icon" href="/favicon.ico?v=2" sizes="32x32">
+<link rel="icon" href="/icon.svg?v=2" type="image/svg+xml">
+<link rel="icon" href="/icon.png?v=2" type="image/png" sizes="512x512">
+<link rel="apple-touch-icon" href="/icon.png?v=2">
