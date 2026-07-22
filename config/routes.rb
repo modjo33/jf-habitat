@@ -82,6 +82,8 @@ Rails.application.routes.draw do
       member { get :justificatif }
     end
     # Analyse de rentabilité d'un devis (outil interne, jamais côté client)
+    get  "calibrage",           to: "calibrage#index",     as: :calibrage
+    post "calibrage/appliquer", to: "calibrage#appliquer", as: :calibrage_appliquer
     patch "estimations/:id/analyse", to: "devis_analyses#update",   as: :devis_analyse
     post  "estimations/:id/analyse/refiger", to: "devis_analyses#refiger", as: :devis_analyse_refiger
     get    "declarations",               to: "declarations#index",               as: :declarations

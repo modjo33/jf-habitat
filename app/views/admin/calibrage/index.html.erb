@@ -1,0 +1,126 @@
+<% nb = ->(v, p = 2) { v.nil? ? "—" : number_with_precision(v, precision: p, strip_insignificant_zeros: true, separator: ",") } %>
+<% c = @calibrage %>
+
+<div class="mb-8">
+  <div class="eyebrow mb-2">Configuration</div>
+  <h1 class="h-display text-4xl text-ink">Calibrage du barème</h1>
+  <p class="text-ink-light mt-2 max-w-2xl">
+    Le barème de rentabilité part d'hypothèses de métier. Cet écran le recale sur
+    <strong>tes</strong> chantiers : à chaque devis où tu as saisi tes heures réelles ou tes dépenses,
+    on mesure l'écart avec la prévision.
+  </p>
+</div>
+
+<div class="grid sm:grid-cols-2 gap-4 mb-8">
+  <div class="card-premium p-6">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Heures observées</div>
+    <div class="font-display text-3xl text-ink mt-1"><%= c.nb_observations_heures %></div>
+    <div class="text-xs text-ink-light mt-1">
+      <% if c.ratio_heures_global %>
+        Tu mets en moyenne <strong class="text-ink"><%= nb.(c.ratio_heures_global) %>×</strong> le temps prévu par le barème.
+      <% else %>
+        Aucun devis avec des heures réelles saisies.
+      <% end %>
+    </div>
+  </div>
+  <div class="card-premium p-6">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Matière observée</div>
+    <div class="font-display text-3xl text-ink mt-1"><%= c.nb_observations_matiere %></div>
+    <div class="text-xs text-ink-light mt-1">
+      <% if c.ratio_matiere_global %>
+        La matière coûte <strong class="text-ink"><%= nb.(c.ratio_matiere_global) %>×</strong> ce que le barème annonce.
+      <% else %>
+        Aucun chantier avec des dépenses saisies.
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<% if c.propositions_applicables.empty? %>
+  <div class="card-premium p-8 text-center">
+    <p class="text-ink font-semibold mb-2">Rien à recaler pour l'instant.</p>
+    <p class="text-sm text-ink-light max-w-lg mx-auto">
+      Il faut des observations réelles. Deux façons d'en produire, sur un chantier terminé :
+    </p>
+    <div class="grid sm:grid-cols-2 gap-4 mt-6 text-left max-w-2xl mx-auto">
+      <div class="p-4 bg-cream border border-border-warm rounded-xl">
+        <div class="font-semibold text-ink text-sm mb-1">Saisir tes heures</div>
+        <p class="text-xs text-ink-light">
+          Ouvre le devis, panneau « Rentabilité », champ <strong>Heures de travail</strong> : mets le temps
+          réellement passé. C'est l'observation la plus utile.
+        </p>
+      </div>
+      <div class="p-4 bg-cream border border-border-warm rounded-xl">
+        <div class="font-semibold text-ink text-sm mb-1">Saisir tes dépenses</div>
+        <p class="text-xs text-ink-light">
+          <%= link_to "Dépenses", admin_depenses_path, class: "text-accent hover:underline" %> : un total
+          matériaux par chantier suffit, inutile de photographier chaque ticket.
+        </p>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <div class="card-premium p-5 mb-6 border-l-4 border-accent">
+    <p class="text-sm text-ink-soft">
+      <strong class="text-ink">Rien n'est appliqué sans toi.</strong> Les heures sont saisies globalement par
+      chantier : l'écart est réparti sur chaque poste au prorata du temps qu'il pesait dans la prévision.
+      Un poste vu sur un seul chantier reste une indication — la colonne « obs. » dit sur combien il s'appuie.
+    </p>
+  </div>
+
+  <%= form_with url: admin_calibrage_appliquer_path, method: :post do %>
+    <div class="card-premium p-7">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+            <th class="py-3 w-8"></th>
+            <th class="py-3 font-semibold">Poste du barème</th>
+            <th class="py-3 font-semibold text-center">Obs.</th>
+            <th class="py-3 font-semibold text-right">Rendement</th>
+            <th class="py-3 font-semibold text-right">Coût matière</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% c.propositions_applicables.each do |p| %>
+            <tr class="border-b border-border-warm/40">
+              <td class="py-3">
+                <%= check_box_tag "cles[]", p.cle, true, class: "w-4 h-4 rounded border-border-warm text-accent" %>
+              </td>
+              <td class="py-3 font-semibold text-ink"><%= p.libelle %></td>
+              <td class="py-3 text-center">
+                <span class="text-xs <%= p.observations >= 3 ? 'text-ink' : 'text-ink-light' %>"><%= p.observations %></span>
+              </td>
+              <td class="py-3 text-right whitespace-nowrap">
+                <% if p.rendement_propose %>
+                  <span class="text-ink-light line-through"><%= nb.(p.rendement_actuel) %></span>
+                  <span class="mx-1 text-ink-light">→</span>
+                  <span class="font-bold text-accent"><%= nb.(p.rendement_propose) %></span>
+                  <span class="text-xs text-ink-light">m²/h</span>
+                <% else %>
+                  <span class="text-ink-light">—</span>
+                <% end %>
+              </td>
+              <td class="py-3 text-right whitespace-nowrap">
+                <% if p.matiere_proposee %>
+                  <span class="text-ink-light line-through"><%= nb.(p.matiere_actuelle) %></span>
+                  <span class="mx-1 text-ink-light">→</span>
+                  <span class="font-bold text-accent"><%= nb.(p.matiere_proposee) %></span>
+                  <span class="text-xs text-ink-light">€/m²</span>
+                <% else %>
+                  <span class="text-ink-light">—</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <div class="mt-6 flex flex-wrap items-center gap-4">
+        <%= submit_tag "Appliquer au barème",
+              class: "bg-accent text-sand text-sm font-bold px-6 py-3 rounded-lg hover:opacity-90 transition cursor-pointer",
+              data: { turbo_confirm: "Mettre à jour le barème avec les postes cochés ? Les devis déjà établis gardent leurs taux figés." } %>
+        <%= link_to "Voir le barème", admin_tarifs_path, class: "text-sm text-ink-light hover:text-accent" %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

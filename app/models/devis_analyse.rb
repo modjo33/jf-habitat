@@ -132,13 +132,16 @@ class DevisAnalyse < ApplicationRecord
     estimation.devis_lignes.ordered.map do |ligne|
       bareme = ligne.prestation
       if ligne.forfait?
-        { libelle: ligne.libelle, heures: heures_forfait, matiere: 0.to_d, source: :forfait }
+        { libelle: ligne.libelle, heures: heures_forfait, matiere: 0.to_d,
+          source: :forfait, cle: nil, quantite: nil }
       else
         quantite = ligne.quantite.to_d
         { libelle: ligne.libelle,
           heures:  heures_pour(quantite, bareme&.rendement_m2_h),
           matiere: (quantite * bareme&.cout_matiere_unite.to_d).round(2),
-          source:  bareme&.rendement_m2_h.present? ? :bareme : :sans_bareme }
+          source:  bareme&.rendement_m2_h.present? ? :bareme : :sans_bareme,
+          cle:     (bareme ? "prestation:#{bareme.id}" : nil),
+          quantite: quantite }
       end
     end
   end
@@ -155,13 +158,15 @@ class DevisAnalyse < ApplicationRecord
         lignes << { libelle: "#{piece.nom} · #{mur.libelle}",
                     heures:  heures_pour(surface, tarif&.rendement_m2_h),
                     matiere: (surface * tarif&.cout_matiere_unite.to_d).round(2),
-                    source:  tarif&.rendement_m2_h.present? ? :bareme : :sans_bareme }
+                    source:  tarif&.rendement_m2_h.present? ? :bareme : :sans_bareme,
+                    cle:     (tarif ? "tarif:#{tarif.id}" : nil),
+                    quantite: surface }
         # Les travaux exceptionnels sont facturés au forfait : sans surface, ils
         # compteraient 0 h et gonfleraient artificiellement le taux horaire.
         %w[poncage rebouchage ratissage].each do |champ|
           next unless mur.public_send("#{champ}_forfait").to_d.positive?
           lignes << { libelle: "#{piece.nom} · #{champ}", heures: heures_forfait,
-                      matiere: 0.to_d, source: :forfait }
+                      matiere: 0.to_d, source: :forfait, cle: nil, quantite: nil }
         end
       end
     end
