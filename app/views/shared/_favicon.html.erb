@@ -2,9 +2,17 @@
     Sans ces balises, le navigateur retombe sur le `/favicon.ico` nu et ressort
     l'icône qu'il a mémorisée pour le domaine, c'est-à-dire l'ancien point rouge
     Rails (c'est ce qui arrivait sur tout /admin).
-    Le `?v=2` est le cache-busting qui force l'oubli de cette ancienne icône :
-    si on remplace un jour les fichiers, incrémenter la version ici. %>
-<link rel="icon" href="/favicon.ico?v=2" sizes="32x32">
-<link rel="icon" href="/icon.svg?v=2" type="image/svg+xml">
-<link rel="icon" href="/icon.png?v=2" type="image/png" sizes="512x512">
-<link rel="apple-touch-icon" href="/icon.png?v=2">
+
+    ⚠️ PAS de `<link rel="icon" type="image/svg+xml">` ici : notre `icon.svg`
+    n'est pas un vrai vectoriel, c'est un PNG encapsulé dans une balise <image>.
+    Les favicons SVG sont dessinés dans un contexte isolé où WebKit ne rend PAS
+    les <image> raster → Safari iOS choisissait le SVG, n'affichait rien, et le
+    logo disparaissait sur téléphone alors qu'il s'affichait sur ordinateur.
+    Ne le réintroduire que le jour où `icon.svg` sera un vrai tracé vectoriel.
+
+    Le `?v=3` est le cache-busting : les navigateurs (Safari surtout) gardent
+    l'icône d'un domaine très longtemps. Incrémenter à chaque remplacement. %>
+<link rel="icon" href="/favicon.ico?v=3" sizes="32x32">
+<link rel="icon" href="/icon-192.png?v=3" type="image/png" sizes="192x192">
+<link rel="icon" href="/icon-512.png?v=3" type="image/png" sizes="512x512">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" sizes="180x180">
