@@ -81,6 +81,9 @@ Rails.application.routes.draw do
     resources :depenses, except: [:show] do
       member { get :justificatif }
     end
+    # Analyse de rentabilité d'un devis (outil interne, jamais côté client)
+    patch "estimations/:id/analyse", to: "devis_analyses#update",   as: :devis_analyse
+    post  "estimations/:id/analyse/refiger", to: "devis_analyses#refiger", as: :devis_analyse_refiger
     get    "declarations",               to: "declarations#index",               as: :declarations
     post   "declarations/marquer",       to: "declarations#marquer_declaree",    as: :marquer_declaration
     delete "declarations/periodes/:id",  to: "declarations#annuler_declaration", as: :annuler_declaration

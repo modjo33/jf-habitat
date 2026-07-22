@@ -1,0 +1,74 @@
+<%#
+  Panneau de rentabilité — INTERNE. Jamais rendu sur un document client :
+  les cotisations sont à la charge de l'entreprise et n'ont rien à faire sur un
+  devis ou une facture (cf. rake rentabilite:cloisonnement).
+
+  Saisie : autosave sur `change`/blur uniquement, jamais pendant la frappe —
+  le re-render déplacerait le DOM sous le doigt et iOS ferait sauter le scroll.
+%>
+<% analyse = estimation.analyse_rentabilite %>
+
+<div class="card-premium p-5 mb-4 border-l-4 border-ink/40">
+  <div class="flex items-start justify-between gap-3 mb-1">
+    <div>
+      <div class="text-[10px] uppercase tracking-wider text-ink-light font-bold">Rentabilité · interne</div>
+      <p class="text-[11px] text-ink-light mt-0.5">Ces chiffres ne figurent sur aucun document client.</p>
+    </div>
+    <%= link_to "Réglages ↗", admin_declarations_path, class: "text-[11px] text-ink-light hover:text-accent shrink-0" %>
+  </div>
+
+  <%= form_with url: admin_devis_analyse_path(estimation), method: :patch,
+        data: { controller: "autosave" }, class: "mt-3" do %>
+    <div class="grid sm:grid-cols-3 gap-3">
+      <div>
+        <span class="label-field !text-xs !mb-1">Heures de travail</span>
+        <div class="flex items-center gap-1.5">
+          <%= number_field_tag "devis_analyse[heures_saisies]", vide_si_zero(analyse.heures_saisies),
+                step: "0.25", inputmode: "decimal", placeholder: number_with_precision(analyse.heures_auto, precision: 2, strip_insignificant_zeros: true),
+                data: { action: "change->autosave#save focus->autosave#select" },
+                class: "input-field !py-1.5 !px-2 w-full text-center" %>
+          <span class="text-ink-light text-sm">h</span>
+        </div>
+        <p class="text-[10px] text-ink-light mt-1">
+          <% if analyse.heures_estimees? %>
+            Barème : <%= number_with_precision(analyse.heures_auto, precision: 2, strip_insignificant_zeros: true, separator: ",") %> h · vide = calculé
+          <% else %>
+            Saisi — videz pour revenir au barème (<%= number_with_precision(analyse.heures_auto, precision: 2, strip_insignificant_zeros: true, separator: ",") %> h)
+          <% end %>
+        </p>
+      </div>
+
+      <div>
+        <span class="label-field !text-xs !mb-1">Coût matériaux</span>
+        <div class="flex items-center gap-1.5">
+          <%= number_field_tag "devis_analyse[cout_materiaux_saisi]", vide_si_zero(analyse.cout_materiaux_saisi),
+                step: "0.01", inputmode: "decimal", placeholder: number_with_precision(analyse.cout_materiaux_auto, precision: 2),
+                data: { action: "change->autosave#save focus->autosave#select" },
+                class: "input-field !py-1.5 !px-2 w-full text-center" %>
+          <span class="text-ink-light text-sm">€</span>
+        </div>
+        <p class="text-[10px] text-ink-light mt-1">
+          <% if analyse.depenses_reelles? %>
+            <span class="text-ink font-semibold">Réel : <%= eur(analyse.cout_materiaux_reel) %></span> (dépenses saisies)
+          <% else %>
+            Barème : <%= eur(analyse.cout_materiaux_auto) %> · vide = calculé
+          <% end %>
+        </p>
+      </div>
+
+      <div>
+        <span class="label-field !text-xs !mb-1">Autres frais</span>
+        <div class="flex items-center gap-1.5">
+          <%= number_field_tag "devis_analyse[autres_frais]", vide_si_zero(analyse.autres_frais),
+                step: "0.01", inputmode: "decimal", placeholder: "0",
+                data: { action: "change->autosave#save focus->autosave#select" },
+                class: "input-field !py-1.5 !px-2 w-full text-center" %>
+          <span class="text-ink-light text-sm">€</span>
+        </div>
+        <p class="text-[10px] text-ink-light mt-1">Location, benne, sous-traitance…</p>
+      </div>
+    </div>
+  <% end %>
+
+  <%= render "admin/devis/analyse_resultats", estimation: estimation, analyse: analyse %>
+</div>
