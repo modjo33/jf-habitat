@@ -24,9 +24,6 @@
   peintures = ["Mate", "Velours", "Satin", "Lessivable (cuisine, salle de bain)"]
   teintes   = ["Une seule teinte", "Plusieurs teintes"]
   sols      = ["Sol nu / béton", "Ancien parquet", "Carrelage", "Moquette"]
-  occupes   = ["Logement occupé", "Logement vide"]
-  meubles   = ["Pas de meubles à déplacer", "Je m'occupe des meubles", "Meubles à protéger / déplacer par vos soins"]
-  ouinon    = ["Oui", "Non"]
   profils   = ["Propriétaire", "Locataire", "Professionnel / bailleur"]
   sources   = ["Bouche-à-oreille", "Recherche Google", "Réseaux sociaux", "J'ai déjà fait appel à vous", "Autre"]
 %>
@@ -71,149 +68,135 @@
       <p data-wizard-target="error" class="wizard-error hidden"></p>
     </section>
 
-    <!-- 2 · Accès -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="acces">
-      <div class="wizard-eyebrow">Accès au chantier</div>
-      <h2 class="wizard-question">À quel étage se situe le chantier ?</h2>
-      <div class="max-w-xs">
-        <%= f.number_field :etage, value: 0, min: 0, max: 29, step: 1,
-              class: "input-field text-center text-xl", placeholder: "0" %>
-        <p class="text-xs text-ink-light mt-1.5">0 = rez-de-chaussée</p>
-      </div>
-      <div data-card-group data-auto-advance="false" class="wizard-cards mt-6">
-        <%= f.hidden_field :ascenseur, value: "true" %>
-        <button type="button" data-card data-value="true" data-selected="true" data-action="wizard#selectCard" class="wizard-card">
-          <span class="wizard-card-title">Ascenseur ou RDC</span>
-        </button>
-        <button type="button" data-card data-value="false" data-action="wizard#selectCard" class="wizard-card">
-          <span class="wizard-card-title">Escaliers uniquement</span>
-        </button>
-      </div>
-      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
-    </section>
-
-    <!-- 3 · Nombre de pièces -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="nb_pieces" data-validate="number">
+    <!-- 2 · Quelles pièces (remplace « combien de pièces » + un écran de type par pièce) -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="pieces" data-validate="pieces">
       <div class="wizard-eyebrow">Votre logement</div>
-      <h2 class="wizard-question">Combien de pièces à traiter ?</h2>
-      <div class="max-w-[10rem]">
-        <%= number_field_tag :nb_pieces, 1, min: 1, max: 12, step: 1,
-              data: { wizard_target: "nbPieces", action: "input->wizard#updateProgress change->wizard#updateProgress" },
-              class: "input-field text-center text-3xl font-display" %>
+      <h2 class="wizard-question">Quelles pièces à traiter ?</h2>
+      <p class="text-ink-light text-sm mb-3">Ajoutez-en autant que nécessaire.</p>
+
+      <%# Lignes volontairement compactes : 7 types + le bouton doivent tenir
+          SANS scroll sur un iPhone (664 px utiles), sinon le « Continuer »
+          passe sous la ligne de flottaison et le tunnel se bloque. %>
+      <div class="w-full max-w-md space-y-1.5">
+        <% types_piece.each do |key, label| %>
+          <div class="flex items-center justify-between gap-3 px-3 py-1.5 bg-cream border border-border-warm rounded-lg transition"
+               data-piece-row data-piece-type="<%= key %>" data-piece-label="<%= label %>">
+            <span class="text-sm font-semibold text-ink text-left"><%= label %></span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" data-action="wizard#decPiece"
+                      class="w-8 h-8 rounded-lg border border-border-warm text-ink-soft text-base font-bold leading-none
+                             hover:border-accent hover:text-accent transition" aria-label="Retirer">−</button>
+              <span data-piece-count class="w-5 text-center tabular-nums font-display text-base text-ink">0</span>
+              <button type="button" data-action="wizard#incPiece"
+                      class="w-8 h-8 rounded-lg border border-border-warm text-ink-soft text-base font-bold leading-none
+                             hover:border-accent hover:text-accent transition" aria-label="Ajouter">+</button>
+            </div>
+          </div>
+        <% end %>
       </div>
-      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
+
+      <button type="button" data-action="wizard#next" class="btn-primary mt-4">Continuer</button>
       <p data-wizard-target="error" class="wizard-error hidden"></p>
     </section>
 
-    <!-- Écrans pièces (générés dynamiquement) -->
+    <!-- 3 · Travaux + gamme, une fois pour tout le chantier -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="travaux_gamme" data-validate="travaux_gamme">
+      <div class="wizard-eyebrow">Vos travaux</div>
+      <h2 class="wizard-question">Que souhaitez-vous faire ?</h2>
+      <p class="text-ink-light mb-4">Plusieurs choix possibles.</p>
+
+      <div class="grid grid-cols-2 gap-2 max-w-lg w-full">
+        <% travaux.each do |val, label| %>
+          <label class="relative cursor-pointer">
+            <input type="checkbox" name="piece_travaux" value="<%= val %>" class="peer sr-only"
+                   data-action="change->wizard#onTravauxChange">
+            <span class="block p-3 border-2 border-border-warm rounded-xl text-sm font-semibold text-ink-soft transition
+                         peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:text-ink hover:border-accent/50"><%= label %></span>
+          </label>
+        <% end %>
+      </div>
+
+      <div class="w-full max-w-lg mt-6 text-left">
+        <label class="label-field">Niveau de finition</label>
+        <div data-card-group data-auto-advance="false" class="grid grid-cols-3 gap-2">
+          <input type="hidden" name="piece_gamme" value="milieu">
+          <% gammes.each_with_index do |(key, label, desc), i| %>
+            <button type="button" data-card data-value="<%= key %>" <%= 'data-selected=true'.html_safe if key == "milieu" %>
+                    data-action="wizard#selectCard" class="wizard-card !p-3">
+              <span class="wizard-card-title text-sm"><%= label.sub(" de gamme", "") %></span>
+              <span class="wizard-card-sub text-[11px] leading-snug"><%= desc %></span>
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <button type="button" data-action="wizard#next" class="btn-primary mt-6">Continuer</button>
+      <p data-wizard-target="error" class="wizard-error hidden"></p>
+    </section>
+
+    <!-- Écrans « dimensions » (un par pièce, générés dynamiquement) -->
     <div data-wizard-target="piecesContainer"></div>
 
-    <!-- Précisions chantier (affichées selon les travaux choisis) -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_etat" data-show-when="reno" data-validate="card">
+    <!-- 4 · Précisions : tout ce qui reste, sur un seul écran -->
+    <section class="wizard-step hidden" data-wizard-target="step" data-step="precisions" data-precisions>
       <div class="wizard-eyebrow">Le chantier</div>
-      <h2 class="wizard-question">Dans quel état sont les surfaces ?</h2>
-      <div data-card-group data-auto-advance="true" class="wizard-cards">
-        <input type="hidden" name="prec_etat" value="">
-        <% etats.each do |label| %>
-          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
-        <% end %>
-      </div>
-      <p data-wizard-target="error" class="wizard-error hidden"></p>
-    </section>
+      <h2 class="wizard-question">Quelques précisions</h2>
+      <p class="text-ink-light mb-5">Elles nous aident à affiner votre devis.</p>
 
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_peinture" data-show-when="peinture" data-validate="card">
-      <div class="wizard-eyebrow">Finitions</div>
-      <h2 class="wizard-question">Quel type de peinture souhaitez-vous ?</h2>
-      <div data-card-group data-auto-advance="true" class="wizard-cards">
-        <input type="hidden" name="prec_peinture" value="">
-        <% peintures.each do |label| %>
-          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
-        <% end %>
-      </div>
-      <p data-wizard-target="error" class="wizard-error hidden"></p>
-    </section>
-
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_teintes" data-show-when="peinture" data-validate="card">
-      <div class="wizard-eyebrow">Finitions</div>
-      <h2 class="wizard-question">Une seule teinte ou plusieurs ?</h2>
-      <div data-card-group data-auto-advance="true" class="wizard-cards">
-        <input type="hidden" name="prec_teintes" value="">
-        <% teintes.each do |label| %>
-          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
-        <% end %>
-      </div>
-      <p data-wizard-target="error" class="wizard-error hidden"></p>
-    </section>
-
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_sol" data-show-when="parquet" data-validate="card">
-      <div class="wizard-eyebrow">Le chantier</div>
-      <h2 class="wizard-question">Quel revêtement de sol actuel ?</h2>
-      <div data-card-group data-auto-advance="true" class="wizard-cards">
-        <input type="hidden" name="prec_sol" value="">
-        <% sols.each do |label| %>
-          <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card"><span class="wizard-card-title"><%= label %></span></button>
-        <% end %>
-      </div>
-      <p data-wizard-target="error" class="wizard-error hidden"></p>
-    </section>
-
-    <!-- Conditions du chantier (plusieurs réponses, pas d'auto-avance) -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="prec_conditions">
-      <div class="wizard-eyebrow">Conditions du chantier</div>
-      <h2 class="wizard-question">Quelques infos sur le déroulé</h2>
-      <div class="w-full max-w-lg space-y-5 text-left">
-        <div>
-          <label class="label-field">Pendant les travaux, le logement sera…</label>
-          <div data-card-group data-auto-advance="false" class="grid grid-cols-2 gap-2">
-            <input type="hidden" name="prec_occupe" value="">
-            <% occupes.each do |label| %>
-              <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
-            <% end %>
-          </div>
+      <div class="w-full max-w-md space-y-4 text-left">
+        <div data-prec-block="reno">
+          <label class="label-field">État des surfaces</label>
+          <select name="prec_etat" class="input-field">
+            <option value="">Sélectionnez…</option>
+            <% etats.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+          </select>
         </div>
-        <div>
-          <label class="label-field">Meubles</label>
-          <div data-card-group data-auto-advance="false" class="grid sm:grid-cols-3 gap-2">
-            <input type="hidden" name="prec_meubles" value="">
-            <% meubles.each do |label| %>
-              <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
-            <% end %>
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-5">
+
+        <div data-prec-block="peinture" class="grid grid-cols-2 gap-3">
           <div>
-            <label class="label-field">Hauteur sous plafond &gt; 2,70 m ?</label>
-            <div data-card-group data-auto-advance="false" class="grid grid-cols-2 gap-2">
-              <input type="hidden" name="prec_hauteur" value="">
-              <% ouinon.each do |label| %>
-                <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
-              <% end %>
-            </div>
+            <label class="label-field">Type de peinture</label>
+            <select name="prec_peinture" class="input-field">
+              <option value="">Sélectionnez…</option>
+              <% peintures.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+            </select>
           </div>
           <div>
-            <label class="label-field">Accès & stationnement faciles ?</label>
-            <div data-card-group data-auto-advance="false" class="grid grid-cols-2 gap-2">
-              <input type="hidden" name="prec_acces" value="">
-              <% ouinon.each do |label| %>
-                <button type="button" data-card data-value="<%= label %>" data-action="wizard#selectCard" class="wizard-card !p-3"><span class="wizard-card-title text-sm"><%= label %></span></button>
-              <% end %>
-            </div>
+            <label class="label-field">Teintes</label>
+            <select name="prec_teintes" class="input-field">
+              <option value="">Sélectionnez…</option>
+              <% teintes.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+            </select>
+          </div>
+        </div>
+
+        <div data-prec-block="parquet">
+          <label class="label-field">Revêtement de sol actuel</label>
+          <select name="prec_sol" class="input-field">
+            <option value="">Sélectionnez…</option>
+            <% sols.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+          </select>
+        </div>
+
+        <%# L'étage entre dans le calcul (coefficient) : il doit rester avant l'envoi. %>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <%= f.label :etage, "Étage", class: "label-field" %>
+            <%= f.number_field :etage, value: 0, min: 0, max: 29, step: 1,
+                  class: "input-field text-center", placeholder: "0" %>
+            <p class="text-[11px] text-ink-light mt-1">0 = rez-de-chaussée</p>
+          </div>
+          <div>
+            <label class="label-field">Accès</label>
+            <%= f.select :ascenseur, [["Ascenseur ou RDC", "true"], ["Escaliers uniquement", "false"]],
+                  {}, class: "input-field" %>
           </div>
         </div>
       </div>
-      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
-    </section>
 
-    <!-- Récap -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-step="recap" data-recap>
-      <div class="wizard-eyebrow">Récapitulatif</div>
-      <h2 class="wizard-question">Vérifiez votre projet</h2>
-      <p class="text-ink-light mb-6 max-w-lg">Ajustez les options si besoin. Le devis chiffré s'affiche juste après vos coordonnées.</p>
-      <div data-wizard-target="recap" class="w-full max-w-lg"></div>
       <button type="button" data-action="wizard#next" class="btn-primary mt-6">Continuer</button>
     </section>
 
-    <!-- Coordonnées (gate) -->
+    <!-- 5 · Coordonnées (gate) — le récapitulatif y est intégré -->
     <section class="wizard-step hidden" data-wizard-target="step" data-step="contact" data-validate="contact" data-no-enter>
       <div class="wizard-eyebrow">Votre devis</div>
       <h2 class="wizard-question">Votre devis chiffré est prêt</h2>
@@ -223,6 +206,9 @@
         <span class="w-10 h-10 border-[3px] border-accent/30 border-t-accent rounded-full animate-spin"></span>
         <p class="text-ink-soft font-semibold">Calcul de votre devis en cours…</p>
       </div>
+
+      <!-- Récapitulatif du projet + options (ex-écran « récap ») -->
+      <div data-wizard-target="recap" class="hidden w-full max-w-lg mb-4 text-left"></div>
 
       <!-- Devis chiffré flouté tant que les coordonnées ne sont pas saisies -->
       <div data-wizard-target="devisTeaser" class="hidden relative w-full max-w-lg mb-6">
@@ -310,58 +296,27 @@
 
   </main>
 
-  <!-- Gabarit d'une pièce (4 écrans) -->
+  <!-- Gabarit d'une pièce : un seul écran, les dimensions (le type vient de
+       l'écran « quelles pièces », travaux et gamme sont communs au chantier). -->
   <template data-wizard-target="pieceTemplate">
-    <!-- a · type de pièce -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="card">
-      <div class="wizard-eyebrow">Pièce __N__</div>
-      <h2 class="wizard-question">Quel type de pièce ?</h2>
-      <div data-card-group data-auto-advance="true" class="wizard-cards wizard-cards-grid">
-        <input type="hidden" name="piece_type" value="">
-        <% types_piece.each do |key, label| %>
-          <button type="button" data-card data-value="<%= key %>" data-action="wizard#selectCard" class="wizard-card">
-            <span class="wizard-card-title"><%= label %></span>
-          </button>
-        <% end %>
-      </div>
-      <p data-wizard-target="error" class="wizard-error hidden"></p>
-    </section>
+    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__"
+             data-piece-type="__TYPE__" data-piece-label="__LABEL__" data-validate="dimensions">
+      <div class="wizard-eyebrow">__LABEL__</div>
+      <h2 class="wizard-question">Dimensions</h2>
+      <p class="text-ink-light mb-5 max-w-md">En mètres. La surface est calculée automatiquement.</p>
 
-    <!-- b · travaux -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="travaux">
-      <div class="wizard-eyebrow">Pièce __N__</div>
-      <h2 class="wizard-question">Quels travaux dans cette pièce ?</h2>
-      <p class="text-ink-light mb-5">Plusieurs choix possibles.</p>
-      <div class="grid sm:grid-cols-2 gap-3 max-w-lg w-full">
-        <% travaux.each do |val, label| %>
-          <label class="relative cursor-pointer">
-            <input type="checkbox" name="piece_travaux" value="<%= val %>" class="peer sr-only">
-            <span class="block p-4 border-2 border-border-warm rounded-xl text-sm font-semibold text-ink-soft transition peer-checked:border-accent peer-checked:bg-accent/5 peer-checked:text-ink hover:border-accent/50"><%= label %></span>
-          </label>
-        <% end %>
-      </div>
-      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
-      <p data-wizard-target="error" class="wizard-error hidden"></p>
-    </section>
-
-    <!-- c · dimensions (un bloc par type de surface concerné) -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="dimensions">
-      <div class="wizard-eyebrow">Pièce __N__</div>
-      <h2 class="wizard-question">Dimensions de la pièce</h2>
-      <p class="text-ink-light mb-6 max-w-md">En mètres. La surface en m² est calculée automatiquement.</p>
-
-      <div class="w-full max-w-md space-y-5">
+      <div class="w-full max-w-md space-y-4">
         <!-- Murs : longueur × hauteur -->
         <div data-dim-group="murs" class="p-4 bg-cream border border-border-warm rounded-xl text-left">
           <div class="text-xs font-bold uppercase tracking-wide text-accent mb-3">Murs · longueur × hauteur</div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="label-field">Longueur des murs (mL)</label>
-              <input type="number" data-dim="murs_L" min="0.1" step="0.05" placeholder="14.0" class="input-field text-center">
+              <input type="number" data-dim="murs_L" min="0.1" step="0.05" inputmode="decimal" placeholder="14.0" class="input-field text-center">
             </div>
             <div>
               <label class="label-field">Hauteur (m)</label>
-              <input type="number" data-dim="murs_H" min="0.1" step="0.05" placeholder="2.5" class="input-field text-center">
+              <input type="number" data-dim="murs_H" min="0.1" step="0.05" inputmode="decimal" placeholder="2.5" class="input-field text-center">
             </div>
           </div>
           <p class="text-xs text-ink-light mt-2">Longueur cumulée (développé) des murs à traiter.</p>
@@ -373,33 +328,17 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="label-field">Longueur (m)</label>
-              <input type="number" data-dim="sol_L" min="0.1" step="0.05" placeholder="4.0" class="input-field text-center">
+              <input type="number" data-dim="sol_L" min="0.1" step="0.05" inputmode="decimal" placeholder="4.0" class="input-field text-center">
             </div>
             <div>
               <label class="label-field">Largeur (m)</label>
-              <input type="number" data-dim="sol_l" min="0.1" step="0.05" placeholder="3.0" class="input-field text-center">
+              <input type="number" data-dim="sol_l" min="0.1" step="0.05" inputmode="decimal" placeholder="3.0" class="input-field text-center">
             </div>
           </div>
         </div>
       </div>
 
-      <button type="button" data-action="wizard#next" class="btn-primary mt-8">Continuer</button>
-      <p data-wizard-target="error" class="wizard-error hidden"></p>
-    </section>
-
-    <!-- d · gamme -->
-    <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__" data-validate="card">
-      <div class="wizard-eyebrow">Pièce __N__</div>
-      <h2 class="wizard-question">Niveau de gamme pour cette pièce</h2>
-      <div data-card-group data-auto-advance="true" class="wizard-cards">
-        <input type="hidden" name="piece_gamme" value="">
-        <% gammes.each do |key, label, desc| %>
-          <button type="button" data-card data-value="<%= key %>" data-action="wizard#selectCard" class="wizard-card">
-            <span class="wizard-card-title"><%= label %></span>
-            <span class="wizard-card-sub"><%= desc %></span>
-          </button>
-        <% end %>
-      </div>
+      <button type="button" data-action="wizard#next" class="btn-primary mt-6">Continuer</button>
       <p data-wizard-target="error" class="wizard-error hidden"></p>
     </section>
   </template>
