@@ -1,5 +1,6 @@
 class Admin::FacturesController < Admin::BaseController
-  before_action :set_facture, only: [:show, :edit, :update, :destroy, :pdf, :envoi, :envoyer, :regenerer]
+  before_action :set_facture, only: [:show, :edit, :update, :destroy, :pdf, :envoi, :envoyer,
+                                     :marquer_payee, :regenerer]
 
   def index
     @annee = params[:annee].presence&.to_i || Date.current.year
@@ -81,6 +82,31 @@ class Admin::FacturesController < Admin::BaseController
     Rails.logger.error "[Facture] envoi échoué : #{e.class} #{e.message}"
     redirect_to admin_facture_path(@facture),
                 alert: "Échec de l'envoi de la facture. Réessayez."
+  end
+
+  # Solde encaissé en un clic : enregistre le règlement du reste dû au livre
+  # des recettes (c'est lui qui fait basculer la facture en « Payée »), pas un
+  # simple drapeau — sinon la facture et la compta divergeraient.
+  def marquer_payee
+    solde = @facture.solde
+    if solde <= 0
+      return redirect_to admin_facture_path(@facture), notice: "Cette facture est déjà soldée."
+    end
+
+    mode = params[:mode_reglement].presence_in(Encaissement::MODES.keys) || "virement"
+    date = params[:date_encaissement].presence&.to_date || Date.current
+    libelle = "Solde #{@facture.numero} — #{@facture.client.nom.to_s.strip}"
+
+    Encaissement.create!(client: @facture.client, facture: @facture, montant: solde,
+                         date_encaissement: date, mode_reglement: mode,
+                         libelle: libelle, reference: @facture.numero)
+    @facture.client.touch(:derniere_interaction_at)
+    @facture.reload.regenerer_pdf!
+    redirect_to admin_facture_path(@facture),
+                notice: "Règlement de #{helpers.number_to_currency(solde, unit: '€', separator: ',', delimiter: ' ', format: '%n %u')} enregistré — facture soldée."
+  rescue => e
+    Rails.logger.error "[Facture] marquer payée : #{e.class} #{e.message}"
+    redirect_to admin_facture_path(@facture), alert: "Impossible d'enregistrer le règlement."
   end
 
   def regenerer

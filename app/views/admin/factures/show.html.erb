@@ -97,10 +97,23 @@
       </div>
 
       <% if @facture.solde.positive? %>
-        <%= link_to "💰 Enregistrer un règlement",
+        <%# Un clic = le solde entre au livre des recettes et la facture passe
+            « Payée ». Le formulaire détaillé reste dispo pour un paiement
+            partiel ou une date/mode particuliers. %>
+        <%= form_with url: marquer_payee_admin_facture_path(@facture), method: :post, class: "mt-5 space-y-2" do %>
+          <div class="grid grid-cols-2 gap-2">
+            <%= date_field_tag :date_encaissement, Date.current, class: "input-field text-sm" %>
+            <%= select_tag :mode_reglement, options_for_select(Encaissement::MODES.map { |k, v| [v, k] }, "virement"),
+                  class: "input-field text-sm" %>
+          </div>
+          <%= submit_tag "✅ Marquer comme payée (#{number_to_currency(@facture.solde, unit: '€', separator: ',', delimiter: ' ', format: '%n %u')})",
+                class: "w-full text-sm font-bold bg-green-700 text-white px-4 py-2.5 rounded-lg hover:opacity-90 transition cursor-pointer",
+                data: { turbo_confirm: "Enregistrer le règlement du solde et passer la facture en payée ?" } %>
+        <% end %>
+        <%= link_to "Paiement partiel…",
               new_admin_encaissement_path(client_id: @facture.client_id, facture_id: @facture.id,
                                           montant: @facture.solde),
-              class: "block text-center text-sm font-bold bg-accent text-sand px-4 py-2.5 rounded-lg hover:opacity-90 transition mt-5" %>
+              class: "block text-center text-xs text-ink-light hover:text-accent mt-2" %>
       <% end %>
     </div>
 

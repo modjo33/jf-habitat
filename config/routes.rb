@@ -73,6 +73,7 @@ Rails.application.routes.draw do
         get  :pdf
         get  :envoi
         post :envoyer
+        post :marquer_payee
         post :regenerer
       end
     end

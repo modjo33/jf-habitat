@@ -77,10 +77,25 @@
     </div>
     <%= link_to "Voir →", admin_clients_path(statut: "gagne"), class: "text-sm text-accent font-semibold hover:underline shrink-0" %>
   </div>
+  <% eur_ = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
   <div class="card-premium p-6 bg-ink text-sand border-ink">
     <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">CA gagné</div>
-    <div class="font-display text-3xl mt-2 text-sand"><%= number_to_currency(@ca_gagne, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
-    <div class="text-xs text-sand/60 mt-1">devis acceptés (estimateur + manuels)</div>
+    <div class="font-display text-3xl mt-2 text-sand"><%= eur_.(@ca_gagne) %></div>
+    <div class="text-xs text-sand/60 mt-1">devis acceptés — signés, pas encore forcément payés</div>
+    <%# Le chiffre qui compte pour l'URSSAF est l'ENCAISSÉ, pas le devis signé. %>
+    <div class="mt-4 pt-4 border-t border-sand/20 space-y-2">
+      <div class="flex items-baseline justify-between gap-3">
+        <span class="text-xs text-sand/60">Encaissé <%= Date.current.year %></span>
+        <span class="font-display text-xl text-green-400"><%= eur_.(@ca_encaisse) %></span>
+      </div>
+      <div class="flex items-baseline justify-between gap-3">
+        <span class="text-xs text-sand/60">Reste à encaisser</span>
+        <span class="font-display text-xl <%= @reste_a_encaisser.positive? ? 'text-accent' : 'text-sand/40' %>">
+          <%= eur_.(@reste_a_encaisser) %>
+        </span>
+      </div>
+      <%= link_to "Factures →", admin_factures_path, class: "block text-xs text-accent font-semibold hover:underline pt-1" %>
+    </div>
   </div>
 </div>
 

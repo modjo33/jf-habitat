@@ -158,10 +158,34 @@
       <% end %>
     </div>
 
+    <% eur_ = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
     <div class="card-premium p-6 bg-ink text-sand">
       <div class="text-[11px] uppercase tracking-[0.18em] text-accent mb-2">Total devis émis</div>
-      <div class="font-display text-3xl"><%= number_to_currency(@client.total_devis_envoyes, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></div>
-      <div class="text-xs text-sand/60 mt-1">cumul sur <%= @client.estimations.count %> estimation(s)</div>
+      <div class="font-display text-3xl"><%= eur_.(@client.total_devis_envoyes) %></div>
+      <%# Détail du calcul : sans lui, un écart de montant est invisible. %>
+      <div class="text-xs text-sand/60 mt-2 space-y-0.5">
+        <% @client.estimations.each do |e| %>
+          <div class="flex justify-between gap-3">
+            <span><%= e.reference %><%= " (devis terrain)" if e.devis_total.to_d.positive? %></span>
+            <span class="whitespace-nowrap"><%= eur_.(e.ca_montant) %></span>
+          </div>
+        <% end %>
+        <% if @client.montant_devis_manuel.to_d.positive? %>
+          <div class="flex justify-between gap-3 <%= "line-through opacity-50" if @client.devis_manuel_ignore? %>">
+            <span>Devis manuel</span>
+            <span class="whitespace-nowrap"><%= eur_.(@client.montant_devis_manuel) %></span>
+          </div>
+        <% end %>
+        <% if @client.estimations.empty? && @client.montant_devis_manuel.to_d.zero? %>
+          <div>Aucun devis.</div>
+        <% end %>
+      </div>
+      <% if @client.devis_manuel_ignore? %>
+        <div class="mt-3 pt-3 border-t border-sand/20 text-xs text-accent">
+          ⚠️ Le montant manuel est ignoré : un devis terrain existe déjà sur l'estimation.
+          Vide le champ « Montant du devis » pour lever l'alerte.
+        </div>
+      <% end %>
     </div>
 
     <div class="card-premium p-6">

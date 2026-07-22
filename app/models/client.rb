@@ -50,10 +50,41 @@ class Client < ApplicationRecord
     super(val.presence)
   end
 
-  # Valeur totale des devis du client = devis manuel éventuel + estimations en ligne.
+  # Valeur totale des devis du client. `montant_devis_manuel` sert aux devis
+  # faits HORS estimateur ; dès qu'une estimation porte un devis chiffré, le
+  # montant manuel est presque toujours le même montant ressaisi à la main —
+  # l'additionner comptait le chantier deux fois (fiche client ET CA gagné).
   def total_devis_envoyes
-    # Montant du devis terrain s'il existe, sinon chiffrage web (via ca_montant).
-    (montant_devis_manuel || 0) + estimations.ca_montant
+    estimations.ca_montant + montant_devis_manuel_net
+  end
+
+  # Le devis manuel n'est retenu que s'il n'est pas déjà couvert par un devis
+  # terrain porté par une estimation du client.
+  def montant_devis_manuel_net
+    return 0.to_d if montant_devis_manuel.blank?
+    return 0.to_d if devis_terrain?
+    montant_devis_manuel.to_d
+  end
+
+  # Au moins une estimation avec un devis terrain chiffré.
+  def devis_terrain?
+    estimations.where("devis_total > 0").exists?
+  end
+
+  # Doublon probable à signaler dans l'admin : un montant manuel saisi alors
+  # qu'un devis terrain existe déjà.
+  def devis_manuel_ignore?
+    montant_devis_manuel.to_d.positive? && devis_terrain?
+  end
+
+  # Agrégat SQL équivalent à la somme des `total_devis_envoyes`, sans doublon :
+  # devis manuels des clients qui n'ont AUCUN devis terrain, + devis/estimations.
+  def self.ca_devis(scope = all)
+    ids = scope.pluck(:id)
+    return 0.to_d if ids.empty?
+    avec_devis = Estimation.where(client_id: ids).where("devis_total > 0").distinct.pluck(:client_id)
+    manuels = where(id: ids - avec_devis).sum(:montant_devis_manuel).to_d
+    manuels + Estimation.where(client_id: ids).ca_montant
   end
 
   def a_relancer?
