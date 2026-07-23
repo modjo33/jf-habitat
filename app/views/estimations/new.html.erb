@@ -38,10 +38,30 @@
     <div class="flex-1 mx-4 h-1.5 bg-sand-dark rounded-full overflow-hidden">
       <div data-wizard-target="progressBar" class="h-full bg-accent rounded-full transition-all duration-300" style="width:0%"></div>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3">
       <span data-wizard-target="progressText" class="text-xs text-ink-light tabular-nums"></span>
       <button type="button" data-wizard-target="back" data-action="wizard#prev"
-              class="text-sm font-semibold text-ink-soft hover:text-accent transition">← Retour</button>
+              class="text-sm font-semibold text-ink-soft hover:text-accent transition whitespace-nowrap">
+        ←<span class="hidden sm:inline"> Retour</span>
+      </button>
+      <%# 80 % du trafic arrive du mobile et beaucoup de gens préfèrent appeler
+          plutôt que remplir six écrans. Sans ce bouton, le tunnel n'offrait
+          aucune sortie : remplir jusqu'au bout, ou partir. %>
+      <% if business_phone_link %>
+        <a href="<%= business_phone_link %>"
+           class="flex items-center gap-1.5 shrink-0 border border-accent text-accent rounded-lg px-3 py-2
+                  text-sm font-bold hover:bg-accent hover:text-sand transition"
+           aria-label="Appeler <%= business_phone %>">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+          </svg>
+          <span class="hidden sm:inline whitespace-nowrap"><%= business_phone %></span>
+          <%# Sous 360 px (vieux iPhone SE) le libellé écraserait la barre de
+              progression : l'icône seule, sinon « Appeler ». %>
+          <span class="sm:hidden max-[359px]:hidden">Appeler</span>
+        </a>
+      <% end %>
     </div>
   </header>
 

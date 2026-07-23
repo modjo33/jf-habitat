@@ -24,20 +24,26 @@ class EtapeTunnel < ApplicationRecord
     "soumis"        => "Devis demandé"
   }.freeze
 
+  # Hors entonnoir : un appel n'est pas une marche du parcours, c'est une sortie
+  # par le côté. L'afficher dans le tableau lui donnerait un « taux de passage »
+  # qui ne veut rien dire — il est compté à part.
+  HORS_ENTONNOIR = { "appel" => "Appel déclenché" }.freeze
+  EVENEMENTS = ETAPES.merge(HORS_ENTONNOIR).freeze
+
   SOURCES   = %w[ads autre direct].freeze
   APPAREILS = %w[mobile tablette ordinateur autre].freeze
 
   RETENTION = 6.months
 
   validates :visite, :etape, presence: true
-  validates :etape, inclusion: { in: ETAPES.keys }
+  validates :etape, inclusion: { in: EVENEMENTS.keys }
 
   scope :sur, ->(debut, fin) { where(created_at: debut.beginning_of_day..fin.end_of_day) }
 
   # Écriture idempotente : l'unicité (visite, étape) est garantie par l'index,
   # une étape revisitée ne crée pas de doublon et ne lève pas d'erreur.
   def self.enregistrer(visite:, etape:, source: "direct", appareil: "autre")
-    return unless visite.present? && ETAPES.key?(etape)
+    return unless visite.present? && EVENEMENTS.key?(etape)
 
     insert_all(
       [ {
@@ -91,6 +97,15 @@ class EtapeTunnel < ApplicationRecord
 
   def self.par_source(debut:, fin:)
     sur(debut, fin).where(etape: "arrivee").group(:source).count
+  end
+
+  # Les appels sont la conversion invisible : le tag Google `click_to_call` est
+  # conditionné au consentement cookies, donc il n'en voit presque aucun.
+  def self.appels(debut:, fin:, source: nil, appareil: nil)
+    scope = sur(debut, fin).where(etape: "appel")
+    scope = scope.where(source: source)     if source.present?
+    scope = scope.where(appareil: appareil) if appareil.present?
+    scope.count
   end
 
   def self.purger(avant: RETENTION.ago)

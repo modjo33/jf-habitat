@@ -4,6 +4,8 @@
   libelle_appareil = { "mobile" => "Mobile", "tablette" => "Tablette", "ordinateur" => "Ordinateur", "autre" => "Inconnu" }
   arrivees = @entonnoir.first[:visites]
   soumis   = @entonnoir.last[:visites]
+  # Un appel vaut un devis demandé : c'est un client au téléphone.
+  conversions = soumis + @appels
   cout_periode = @campagne&.active? ? @campagne.cout_journalier.to_f * @jours : nil
 %>
 
@@ -69,7 +71,7 @@
     <% end %>
   </div>
 <% else %>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="card-premium p-6">
       <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Arrivées sur l'estimateur</div>
       <div class="font-display text-3xl text-ink mt-1"><%= arrivees %></div>
@@ -78,15 +80,20 @@
       <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Devis demandés</div>
       <div class="font-display text-3xl text-ink mt-1"><%= soumis %></div>
       <div class="text-xs text-ink-light mt-1">
-        taux de transformation <strong><%= number_with_precision(soumis * 100.0 / arrivees, precision: 1) %> %</strong>
+        <%= number_with_precision(soumis * 100.0 / arrivees, precision: 1) %> % des arrivées
       </div>
+    </div>
+    <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Appels déclenchés</div>
+      <div class="font-display text-3xl text-ink mt-1"><%= @appels %></div>
+      <div class="text-xs text-ink-light mt-1">clics sur le numéro, tous appareils</div>
     </div>
     <div class="card-premium p-6">
       <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Coût estimé de la période</div>
       <% if cout_periode %>
         <div class="font-display text-3xl text-ink mt-1"><%= montant.(cout_periode) %></div>
         <div class="text-xs text-ink-light mt-1">
-          <%= soumis.positive? ? "#{montant.(cout_periode / soumis)} par devis demandé" : "aucun devis demandé sur la période" %>
+          <%= conversions.positive? ? "#{montant.(cout_periode / conversions)} par contact (devis + appels)" : "aucun contact sur la période" %>
         </div>
       <% else %>
         <div class="font-display text-3xl text-ink/30 mt-1">—</div>

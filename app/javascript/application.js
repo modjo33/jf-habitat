@@ -7,7 +7,23 @@ import "controllers"
 // le visiteur a accepté les cookies (cf. _analytics.html.erb), d'où le guard.
 document.addEventListener("click", (event) => {
   const link = event.target.closest('a[href^="tel:"]')
-  if (!link || typeof window.gtag !== "function") return
+  if (!link) return
+  // L'admin charge le même bundle et la fiche estimation affiche le numéro du
+  // client : sans ce garde, chaque appel SORTANT de Johan compterait comme un
+  // appel entrant.
+  if (location.pathname.startsWith("/admin")) return
+
+  // Mesure serveur : gtag ci-dessous ne part QUE si les cookies ont été
+  // acceptés, donc il rate la plupart des appels. Celle-ci les voit tous.
+  const jeton = document.querySelector('meta[name="csrf-token"]')?.content
+  fetch("/suivi-tunnel", {
+    method: "POST",
+    keepalive: true,
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": jeton || "" },
+    body: JSON.stringify({ etape: "appel" })
+  }).catch(() => {})
+
+  if (typeof window.gtag !== "function") return
   window.gtag("event", "click_to_call", {
     event_category: "engagement",
     phone_number: link.getAttribute("href").replace("tel:", "")
