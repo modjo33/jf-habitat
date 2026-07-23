@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_22_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_23_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -268,6 +268,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_160000) do
     t.index ["gclid"], name: "index_estimations_on_gclid"
     t.index ["reference"], name: "index_estimations_on_reference", unique: true
     t.index ["utm_source"], name: "index_estimations_on_utm_source"
+  end
+
+  create_table "etape_tunnels", force: :cascade do |t|
+    t.string "appareil", default: "autre", null: false
+    t.datetime "created_at", null: false
+    t.string "etape", null: false
+    t.string "source", default: "direct", null: false
+    t.string "visite", limit: 32, null: false
+    t.index ["created_at"], name: "index_etape_tunnels_on_created_at"
+    t.index ["visite", "etape"], name: "index_etape_tunnels_on_visite_and_etape", unique: true
   end
 
   create_table "facture_lignes", force: :cascade do |t|

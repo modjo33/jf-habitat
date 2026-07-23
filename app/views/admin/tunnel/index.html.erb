@@ -1,0 +1,150 @@
+<% montant = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
+<%
+  libelle_source = { "ads" => "Google Ads", "autre" => "Autre campagne", "direct" => "Direct / naturel" }
+  libelle_appareil = { "mobile" => "Mobile", "tablette" => "Tablette", "ordinateur" => "Ordinateur", "autre" => "Inconnu" }
+  arrivees = @entonnoir.first[:visites]
+  soumis   = @entonnoir.last[:visites]
+  cout_periode = @campagne&.active? ? @campagne.cout_journalier.to_f * @jours : nil
+%>
+
+<div class="flex items-start justify-between mb-10">
+  <div>
+    <div class="eyebrow mb-2">Acquisition</div>
+    <h1 class="h-display text-4xl text-ink">Tunnel d'estimation</h1>
+    <p class="text-ink-light mt-2">Où les visiteurs décrochent, entre le clic publicitaire et la demande de devis.</p>
+  </div>
+</div>
+
+<div class="card-premium p-5 mb-6 border-l-4 border-ink/20">
+  <p class="text-sm text-ink-soft">
+    <strong class="text-ink">Pourquoi ce tableau existe :</strong> le tag Google Analytics ne se déclenche que si le
+    visiteur accepte les cookies — la plupart ne le font pas, donc GA4 ne voit presque rien. Cette mesure-ci est faite
+    <strong>côté serveur</strong> : elle compte tout le monde. Aucune donnée personnelle n'est conservée
+    (ni adresse IP, ni identifiant publicitaire) — uniquement un compteur anonyme par visite, effacé au bout de 6 mois.
+  </p>
+</div>
+
+<div class="card-premium p-6 mb-6 flex flex-wrap items-center gap-6">
+  <div class="flex items-center gap-2">
+    <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mr-1">Période</span>
+    <% Admin::TunnelController::PERIODES.each do |val, label| %>
+      <%= link_to label, admin_tunnel_path(jours: val, source: @source, appareil: @appareil),
+            class: "text-sm px-3 py-1.5 rounded-lg border transition #{val.to_i == @jours ? 'bg-ink text-sand border-ink font-bold' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+    <% end %>
+  </div>
+  <div class="text-xs text-ink-light">
+    du <%= l @debut, format: "%d/%m" %> au <%= l @fin, format: "%d/%m/%Y" %>
+  </div>
+</div>
+
+<div class="flex flex-wrap gap-2 mb-6">
+  <%= link_to "Tout le trafic", admin_tunnel_path(jours: @jours, appareil: @appareil),
+        class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{@source.blank? ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+  <% EtapeTunnel::SOURCES.each do |src| %>
+    <%= link_to admin_tunnel_path(jours: @jours, source: src, appareil: @appareil),
+          class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{@source == src ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" do %>
+      <%= libelle_source[src] %> · <%= @par_source[src].to_i %>
+    <% end %>
+  <% end %>
+  <span class="w-px bg-border-warm mx-1"></span>
+  <%= link_to "Tous appareils", admin_tunnel_path(jours: @jours, source: @source),
+        class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{@appareil.blank? ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+  <% EtapeTunnel::APPAREILS.each do |app| %>
+    <% next if @par_appareil[app].to_i.zero? %>
+    <%= link_to admin_tunnel_path(jours: @jours, source: @source, appareil: app),
+          class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{@appareil == app ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" do %>
+      <%= libelle_appareil[app] %> · <%= @par_appareil[app].to_i %>
+    <% end %>
+  <% end %>
+</div>
+
+<% if arrivees.zero? %>
+  <div class="card-premium p-10 text-center text-ink-light">
+    <p class="text-lg text-ink font-semibold mb-2">Aucune visite mesurée sur la période.</p>
+    <% if @premiere_mesure.nil? %>
+      <p>La mesure vient d'être mise en place : les chiffres apparaîtront dès les premières visites sur l'estimateur.</p>
+    <% else %>
+      <p>Première mesure enregistrée le <%= l @premiere_mesure.to_date, format: "%d/%m/%Y" %>.
+         Si la campagne diffuse et que ce compteur reste à zéro, c'est que les clics n'atteignent pas l'estimateur.</p>
+    <% end %>
+  </div>
+<% else %>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Arrivées sur l'estimateur</div>
+      <div class="font-display text-3xl text-ink mt-1"><%= arrivees %></div>
+    </div>
+    <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Devis demandés</div>
+      <div class="font-display text-3xl text-ink mt-1"><%= soumis %></div>
+      <div class="text-xs text-ink-light mt-1">
+        taux de transformation <strong><%= number_with_precision(soumis * 100.0 / arrivees, precision: 1) %> %</strong>
+      </div>
+    </div>
+    <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Coût estimé de la période</div>
+      <% if cout_periode %>
+        <div class="font-display text-3xl text-ink mt-1"><%= montant.(cout_periode) %></div>
+        <div class="text-xs text-ink-light mt-1">
+          <%= soumis.positive? ? "#{montant.(cout_periode / soumis)} par devis demandé" : "aucun devis demandé sur la période" %>
+        </div>
+      <% else %>
+        <div class="font-display text-3xl text-ink/30 mt-1">—</div>
+        <div class="text-xs text-ink-light mt-1">renseigne le coût journalier de la campagne sur le dashboard</div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card-premium p-7">
+    <h2 class="font-display text-xl text-ink mb-1">Étape par étape</h2>
+    <p class="text-sm text-ink-light mb-6">
+      La colonne <strong>perdus</strong> est celle à regarder : c'est là que le tunnel fuit.
+    </p>
+
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+          <th class="pb-3 font-bold">Étape</th>
+          <th class="pb-3 font-bold text-right">Visiteurs</th>
+          <th class="pb-3 font-bold text-right">% des arrivées</th>
+          <th class="pb-3 font-bold text-right">Passage</th>
+          <th class="pb-3 font-bold text-right">Perdus</th>
+          <th class="pb-3 font-bold pl-6 w-1/3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @entonnoir.each do |ligne| %>
+          <%
+            # Une étape qui perd plus de la moitié de ses visiteurs mérite d'être
+            # regardée en priorité — c'est le signal qu'on cherche.
+            fuite = ligne[:passage] && ligne[:passage] < 50
+            largeur = ligne[:part_depart] || 0
+          %>
+          <tr class="border-b border-border-warm/40 last:border-0">
+            <td class="py-3 font-semibold text-ink"><%= ligne[:libelle] %></td>
+            <td class="py-3 text-right tabular-nums text-ink"><%= ligne[:visites] %></td>
+            <td class="py-3 text-right tabular-nums text-ink-light">
+              <%= ligne[:part_depart] ? "#{number_with_precision(ligne[:part_depart], precision: 1)} %" : "—" %>
+            </td>
+            <td class="py-3 text-right tabular-nums <%= fuite ? 'text-red-600 font-bold' : 'text-ink-light' %>">
+              <%= ligne[:passage] ? "#{number_with_precision(ligne[:passage], precision: 1)} %" : "—" %>
+            </td>
+            <td class="py-3 text-right tabular-nums <%= fuite ? 'text-red-600 font-bold' : 'text-ink-light' %>">
+              <%= ligne[:perdus] && ligne[:perdus].positive? ? "− #{ligne[:perdus]}" : "—" %>
+            </td>
+            <td class="py-3 pl-6">
+              <div class="h-2.5 bg-sand rounded-full overflow-hidden">
+                <div class="h-full rounded-full <%= fuite ? 'bg-red-500' : 'bg-accent' %>" style="width: <%= largeur %>%"></div>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="text-xs text-ink-light mt-4">
+    Une visite n'est comptée qu'une fois par étape : revenir en arrière dans le tunnel ne gonfle pas les chiffres.
+    Les robots d'indexation sont exclus.
+  </p>
+<% end %>

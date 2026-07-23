@@ -8,6 +8,9 @@ class EstimationsController < ApplicationController
   def new
     @estimation = Estimation.new
     @estimation.estimation_lines.build(mode_saisie: "surface", type_piece: "salon")
+    # Point de départ de l'entonnoir : combien de clics publicitaires arrivent
+    # réellement jusqu'ici.
+    suivre_etape("arrivee")
   end
 
   def preview
@@ -28,6 +31,7 @@ class EstimationsController < ApplicationController
     @estimation.assign_attributes(source_attributes)
 
     if @estimation.save
+      suivre_etape("soumis")
       attach_or_create_client(@estimation)
       LeadMailer.nouveau_lead(@estimation).deliver_later
       LeadMailer.confirmation_client(@estimation).deliver_later

@@ -15,6 +15,9 @@ Rails.application.routes.draw do
     post :preview, on: :collection
   end
 
+  # Balise de mesure du tunnel (agrégée, sans donnée personnelle).
+  post "/suivi-tunnel", to: "tunnel#create", as: :suivi_tunnel
+
   namespace :admin do
     root to: "dashboard#index"
     resources :tarifs, except: :show
@@ -81,6 +84,9 @@ Rails.application.routes.draw do
     resources :depenses, except: [:show] do
       member { get :justificatif }
     end
+    # Entonnoir du tunnel d'estimation (où décrochent les visiteurs)
+    get "tunnel", to: "tunnel#index", as: :tunnel
+
     # Analyse de rentabilité d'un devis (outil interne, jamais côté client)
     get  "calibrage",           to: "calibrage#index",     as: :calibrage
     post "calibrage/appliquer", to: "calibrage#appliquer", as: :calibrage_appliquer

@@ -60,9 +60,30 @@ export default class extends Controller {
     if (step.dataset.step === "contact") this.revealDevis()
     this.updateProgress()
     this.clearError()
+    this.suivre(step)
     if (this.hasBackTarget) this.backTarget.classList.toggle("invisible", this.index === 0)
     const focusable = step.querySelector("input:not([type=hidden]), select, textarea, button[data-autofocus]")
     if (focusable) setTimeout(() => focusable.focus(), 60)
+  }
+
+  // ---- Mesure du tunnel ----------------------------------------------------
+
+  // Les écrans n'existent que côté client : sans cette balise, le serveur ne
+  // voit que l'arrivée et la soumission, jamais l'écran où le visiteur décroche.
+  // Indépendant de GA4, qui est muet tant que les cookies ne sont pas acceptés.
+  suivre(step) {
+    // Les écrans « dimensions » sont générés une fois par pièce et ne portent
+    // pas de data-step ; côté serveur ils sont dédoublonnés de toute façon.
+    const etape = step.dataset.step || (step.dataset.validate === "dimensions" ? "dimensions" : null)
+    if (!etape) return
+
+    const jeton = document.querySelector('meta[name="csrf-token"]')?.content
+    fetch("/suivi-tunnel", {
+      method: "POST",
+      keepalive: true,
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": jeton || "" },
+      body: JSON.stringify({ etape })
+    }).catch(() => {})
   }
 
   next() {
