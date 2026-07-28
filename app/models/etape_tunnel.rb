@@ -30,6 +30,15 @@ class EtapeTunnel < ApplicationRecord
   HORS_ENTONNOIR = { "appel" => "Appel déclenché" }.freeze
   EVENEMENTS = ETAPES.merge(HORS_ENTONNOIR).freeze
 
+  # Première étape émise par le JavaScript du wizard : elle part dès que
+  # l'écran 1 s'affiche, en 0,7 s médiane après l'arrivée (mesuré en prod).
+  # Une arrivée qui ne l'atteint jamais n'a donc PAS exécuté la page — robot à
+  # user-agent normal, préchargement, ou clic qui n'a jamais rien affiché.
+  # C'est elle, et non l'arrivée, qui compte les visiteurs réels : la comparer
+  # à `arrivee` reviendrait à reprocher à l'écran 1 des départs qui n'ont
+  # jamais eu lieu.
+  ETAPE_NAVIGATEUR = "type_chantier"
+
   SOURCES   = %w[ads autre direct].freeze
   APPAREILS = %w[mobile tablette ordinateur autre].freeze
 
@@ -69,25 +78,42 @@ class EtapeTunnel < ApplicationRecord
   end
 
   # Entonnoir prêt à afficher : une ligne par étape, avec le taux de passage
-  # depuis l'étape précédente et depuis l'arrivée.
+  # depuis l'étape précédente.
+  #
+  # Les pourcentages sont rapportés aux VISITEURS RÉELS (`ETAPE_NAVIGATEUR`),
+  # pas aux arrivées : les arrivées incluent tout ce qui charge l'URL sans
+  # jamais l'afficher, et les diluer dans le taux ferait passer un tunnel sain
+  # pour une passoire. La ligne d'arrivée reste affichée — l'écart entre elle
+  # et la suivante est un signal en soi — mais elle est marquée `hors_tunnel`
+  # pour que la vue ne la traite pas comme une fuite d'écran.
   def self.entonnoir(debut:, fin:, source: nil, appareil: nil)
     compte = compteurs(debut: debut, fin: fin, source: source, appareil: appareil)
-    depart = compte["arrivee"].to_i
+    base = compte[ETAPE_NAVIGATEUR].to_i
     precedent = nil
 
     ETAPES.map do |cle, libelle|
       n = compte[cle].to_i
+      hors_tunnel = cle == "arrivee"
       ligne = {
         etape: cle,
         libelle: libelle,
         visites: n,
-        part_depart: depart.positive? ? (n * 100.0 / depart).round(1) : nil,
+        hors_tunnel: hors_tunnel,
+        # La perte de cette ligne-ci, ce sont les arrivées sans navigateur :
+        # elle se lit comme un taux d'exécution, pas comme un abandon.
+        sans_navigateur: cle == ETAPE_NAVIGATEUR,
+        part_depart: (!hors_tunnel && base.positive?) ? (n * 100.0 / base).round(1) : nil,
         passage: precedent.to_i.positive? ? (n * 100.0 / precedent).round(1) : nil,
         perdus: precedent ? [ precedent - n, 0 ].max : nil
       }
       precedent = n
       ligne
     end
+  end
+
+  # Visiteurs dont le navigateur a réellement exécuté l'estimateur.
+  def self.navigateurs(debut:, fin:, source: nil, appareil: nil)
+    compteurs(debut: debut, fin: fin, source: source, appareil: appareil)[ETAPE_NAVIGATEUR].to_i
   end
 
   # Répartition mobile / ordinateur sur les visites arrivées dans le tunnel.

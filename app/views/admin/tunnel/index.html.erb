@@ -4,6 +4,10 @@
   libelle_appareil = { "mobile" => "Mobile", "tablette" => "Tablette", "ordinateur" => "Ordinateur", "autre" => "Inconnu" }
   arrivees = @entonnoir.first[:visites]
   soumis   = @entonnoir.last[:visites]
+  # Base de tous les taux : ceux dont le navigateur a vraiment ouvert l'estimateur.
+  reels = @navigateurs
+  sans_navigateur = [ arrivees - reels, 0 ].max
+  part_sans_navigateur = arrivees.positive? ? sans_navigateur * 100.0 / arrivees : 0
   # Un appel vaut un devis demandé : c'est un client au téléphone.
   conversions = soumis + @appels
   cout_periode = @campagne&.active? ? @campagne.cout_journalier.to_f * @jours : nil
@@ -73,14 +77,17 @@
 <% else %>
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="card-premium p-6">
-      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Arrivées sur l'estimateur</div>
-      <div class="font-display text-3xl text-ink mt-1"><%= arrivees %></div>
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Visiteurs réels</div>
+      <div class="font-display text-3xl text-ink mt-1"><%= reels %></div>
+      <div class="text-xs text-ink-light mt-1">
+        sur <%= arrivees %> chargement<%= "s" if arrivees > 1 %> de la page
+      </div>
     </div>
     <div class="card-premium p-6">
       <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Devis demandés</div>
       <div class="font-display text-3xl text-ink mt-1"><%= soumis %></div>
       <div class="text-xs text-ink-light mt-1">
-        <%= number_with_precision(soumis * 100.0 / arrivees, precision: 1) %> % des arrivées
+        <%= reels.positive? ? "#{number_with_precision(soumis * 100.0 / reels, precision: 1)} % des visiteurs réels" : "—" %>
       </div>
     </div>
     <div class="card-premium p-6">
@@ -102,10 +109,28 @@
     </div>
   </div>
 
+  <% if sans_navigateur.positive? && part_sans_navigateur >= 40 %>
+    <div class="card-premium p-5 mb-6 border-l-4 border-amber-500">
+      <p class="text-sm text-ink-soft">
+        <strong class="text-ink"><%= number_with_precision(part_sans_navigateur, precision: 0) %> % des chargements
+        n'affichent jamais l'estimateur</strong> (<%= sans_navigateur %> sur <%= arrivees %>) : la page est demandée,
+        mais son contenu n'est jamais exécuté. Un vrai visiteur, lui, affiche le premier écran en moins d'une seconde.
+        Ce sont donc des robots qui se font passer pour des navigateurs, des préchargements, ou des clics facturés qui
+        n'ont rien affiché — <strong>pas des gens qui font demi-tour</strong>.
+      </p>
+      <p class="text-sm text-ink-soft mt-2">
+        À vérifier côté Google&nbsp;Ads : si la campagne facture nettement plus de clics que les
+        <strong><%= reels %> visiteurs réels</strong> comptés ici sur la période, l'écart est du trafic invalide,
+        à signaler à Google. Les taux ci-dessous ignorent ces chargements.
+      </p>
+    </div>
+  <% end %>
+
   <div class="card-premium p-7">
     <h2 class="font-display text-xl text-ink mb-1">Étape par étape</h2>
     <p class="text-sm text-ink-light mb-6">
       La colonne <strong>perdus</strong> est celle à regarder : c'est là que le tunnel fuit.
+      Les pourcentages partent des <strong>visiteurs réels</strong>, pas des chargements de page.
     </p>
 
     <table class="w-full text-sm">
@@ -113,7 +138,7 @@
         <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
           <th class="pb-3 font-bold">Étape</th>
           <th class="pb-3 font-bold text-right">Visiteurs</th>
-          <th class="pb-3 font-bold text-right">% des arrivées</th>
+          <th class="pb-3 font-bold text-right">% des visiteurs</th>
           <th class="pb-3 font-bold text-right">Passage</th>
           <th class="pb-3 font-bold text-right">Perdus</th>
           <th class="pb-3 font-bold pl-6 w-1/3"></th>
@@ -123,25 +148,35 @@
         <% @entonnoir.each do |ligne| %>
           <%
             # Une étape qui perd plus de la moitié de ses visiteurs mérite d'être
-            # regardée en priorité — c'est le signal qu'on cherche.
-            fuite = ligne[:passage] && ligne[:passage] < 50
-            largeur = ligne[:part_depart] || 0
+            # regardée en priorité — c'est le signal qu'on cherche. La première
+            # étape du wizard est exclue de ce jugement : ce qu'elle « perd »,
+            # ce sont les chargements sans navigateur, pas des visiteurs.
+            fuite = ligne[:passage] && ligne[:passage] < 50 && !ligne[:sans_navigateur]
+            largeur = ligne[:part_depart] || (ligne[:hors_tunnel] ? 100 : 0)
           %>
-          <tr class="border-b border-border-warm/40 last:border-0">
-            <td class="py-3 font-semibold text-ink"><%= ligne[:libelle] %></td>
+          <tr class="border-b border-border-warm/40 last:border-0 <%= "text-ink-light" if ligne[:hors_tunnel] %>">
+            <td class="py-3 font-semibold <%= ligne[:hors_tunnel] ? "text-ink-light" : "text-ink" %>">
+              <%= ligne[:libelle] %>
+              <% if ligne[:hors_tunnel] %>
+                <span class="block text-[11px] font-normal text-ink-light">chargements de la page, robots inclus</span>
+              <% end %>
+            </td>
             <td class="py-3 text-right tabular-nums text-ink"><%= ligne[:visites] %></td>
             <td class="py-3 text-right tabular-nums text-ink-light">
               <%= ligne[:part_depart] ? "#{number_with_precision(ligne[:part_depart], precision: 1)} %" : "—" %>
             </td>
             <td class="py-3 text-right tabular-nums <%= fuite ? 'text-red-600 font-bold' : 'text-ink-light' %>">
               <%= ligne[:passage] ? "#{number_with_precision(ligne[:passage], precision: 1)} %" : "—" %>
+              <% if ligne[:sans_navigateur] && ligne[:passage] %>
+                <span class="block text-[11px] font-normal text-ink-light">ont affiché la page</span>
+              <% end %>
             </td>
             <td class="py-3 text-right tabular-nums <%= fuite ? 'text-red-600 font-bold' : 'text-ink-light' %>">
               <%= ligne[:perdus] && ligne[:perdus].positive? ? "− #{ligne[:perdus]}" : "—" %>
             </td>
             <td class="py-3 pl-6">
               <div class="h-2.5 bg-sand rounded-full overflow-hidden">
-                <div class="h-full rounded-full <%= fuite ? 'bg-red-500' : 'bg-accent' %>" style="width: <%= largeur %>%"></div>
+                <div class="h-full rounded-full <%= fuite ? "bg-red-500" : ligne[:hors_tunnel] ? "bg-ink/15" : "bg-accent" %>" style="width: <%= largeur %>%"></div>
               </div>
             </td>
           </tr>
