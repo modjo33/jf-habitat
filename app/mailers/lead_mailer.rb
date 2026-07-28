@@ -1,9 +1,13 @@
 class LeadMailer < ApplicationMailer
   default from: ENV.fetch("MAIL_FROM", "no-reply@jfhabitat.fr")
 
+  # Notification interne. « Répondre » doit écrire AU CLIENT : c'est le geste
+  # naturel en recevant l'alerte, et sans ça la réponse partait sur l'adresse
+  # d'expédition du domaine, que le serveur entrant rejette.
   def nouveau_lead(estimation)
     @estimation = estimation
     mail to: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
+         reply_to: estimation.email.presence,
          subject: "🔔 Nouveau lead · #{estimation.nom} · #{number_to_currency(estimation.total_ttc, unit: '€')}"
   end
 
