@@ -133,10 +133,15 @@ class Admin::DevisController < Admin::BaseController
 
   # Récap client (lecture seule) + pavé de signature, ou état signé.
   def presentation
+    return if @estimation.devis_signe?
+
+    redirect_si_devis_vide
   end
 
   # Enregistre la signature du client, verrouille en « gagné », envoie le mail.
   def sign
+    return if redirect_si_devis_vide
+
     data = params[:signature_data].to_s
     unless data.start_with?("data:image/png")
       return redirect_to devis_presentation_admin_estimation_path(@estimation),
@@ -165,12 +170,29 @@ class Admin::DevisController < Admin::BaseController
   # Téléchargement / aperçu du PDF (signé si signature présente). Le générateur
   # est choisi selon le type de devis (lignes libres vs pièces/murs).
   def pdf
+    return if redirect_si_devis_vide
+
     send_data @estimation.devis_pdf_generator.generate.render,
               filename: "devis-jf-habitat-#{@estimation.reference}.pdf",
               type: "application/pdf", disposition: "inline"
   end
 
   private
+
+  # Un devis à 0 € n'est pas un devis : c'est un devis qu'on a ouvert sans le
+  # remplir. Le laisser sortir en PDF ou passer à la signature ferait envoyer
+  # au client un document vide à la place de son chiffrage.
+  def redirect_si_devis_vide
+    return false unless @estimation.devis_vide?
+
+    cible = @estimation.devis_lignes? ? devis_lignes_admin_estimation_path(@estimation)
+                                      : devis_admin_estimation_path(@estimation)
+    redirect_to cible,
+                alert: "Ce devis est encore à 0 € : rien n'y a été chiffré. " \
+                       "Ajoutez les prestations avant de sortir le PDF ou de le faire signer " \
+                       "(l'estimation en ligne du client, elle, reste consultable sur sa fiche)."
+    true
+  end
 
   # Envoi synchrone pour un retour immédiat sur place ; en cas d'échec SMTP,
   # le devis reste signé et Johan peut « Renvoyer le mail ».

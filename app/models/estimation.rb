@@ -207,6 +207,14 @@ class Estimation < ApplicationRecord
     (devis_lignes? ? DevisLignePdfGenerator : DevisTerrainPdfGenerator).new(self)
   end
 
+  # Un devis ouvert mais jamais chiffré : cliquer « Devis assisté » crée déjà
+  # une pièce, sans le moindre mur. Le total vaut alors 0 € et le PDF sort à
+  # 0 € — sans rapport avec le chiffrage web du client, qui lui est bien réel.
+  # Aucun document à 0 € ne doit pouvoir être présenté, signé ou envoyé.
+  def devis_vide?
+    devis_total.to_d <= 0
+  end
+
   # Acompte à la commande demandé (€), calculé sur le total du devis.
   def devis_acompte_montant
     return 0.to_d if devis_acompte_pct.to_i <= 0
