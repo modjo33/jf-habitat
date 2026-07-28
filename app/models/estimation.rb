@@ -61,6 +61,12 @@ class Estimation < ApplicationRecord
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :telephone, presence: true, format: { with: /\A(\+33|0)[1-9](\d{2}){4}\z/, message: "doit être un numéro français valide" }
+  # Exigé à la CRÉATION seulement : il dit si le chantier est dans la zone et
+  # porte le coefficient régional. `on: :create` pour ne pas bloquer la mise à
+  # jour des estimations d'avant cette règle, qui n'en ont pas (changer un
+  # statut depuis l'admin échouerait sinon).
+  validates :code_postal, presence: true, on: :create
+  validates :code_postal, format: { with: /\A\d{5}\z/, message: "doit comporter 5 chiffres" }, allow_blank: true
   validates :reference, presence: true, uniqueness: true
   validates :statut, inclusion: { in: STATUTS }
   validates :delai, inclusion: { in: DELAIS.keys }, allow_blank: true

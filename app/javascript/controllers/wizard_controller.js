@@ -241,6 +241,14 @@ export default class extends Controller {
       const email = step.querySelector('[name="estimation[email]"]')?.value.trim()
       const tel = step.querySelector('[name="estimation[telephone]"]')?.value.trim()
       if (!nom || !email || !tel) return this.fail(step, "Nom, email et téléphone sont requis.")
+      // Le code postal dit si le chantier est dans la zone d'intervention, et
+      // porte le coefficient régional du chiffrage. Sans lui, un lead payé peut
+      // se révéler être à 250 km — c'est arrivé. Contrôlé ICI et pas seulement
+      // côté serveur : un refus serveur re-rend le formulaire et efface tout le
+      // parcours du visiteur, qui ne recommence jamais.
+      const cp = step.querySelector('[name="estimation[code_postal]"]')?.value.trim()
+      if (!cp) return this.fail(step, "Le code postal du chantier est requis.")
+      if (!/^\d{5}$/.test(cp)) return this.fail(step, "Le code postal doit comporter 5 chiffres.")
     }
     return true
   }
