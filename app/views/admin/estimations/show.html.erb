@@ -41,6 +41,17 @@
       <% else %>
         <%= link_to "Voir / modifier le devis →", devis_admin_estimation_path(@estimation), class: "btn-secondary text-sm px-5 py-2.5" %>
       <% end %>
+      <%# Accord reçu hors signature à l'écran (devis renvoyé signé, accord au
+          téléphone) : c'est ce geste qui fait entrer le montant dans le CA gagné. %>
+      <% if @estimation.devis_accepte? %>
+        <%= button_to "Annuler l'accord", devis_rouvrir_admin_estimation_path(@estimation), method: :post,
+              form: { data: { turbo_confirm: "Retirer ce devis du CA gagné ?" } },
+              class: "btn-secondary text-sm px-5 py-2.5" %>
+      <% else %>
+        <%= button_to "✓ Devis accepté", devis_accepter_admin_estimation_path(@estimation), method: :post,
+              form: { data: { turbo_confirm: "Marquer ce devis comme accepté ? Le montant entrera dans le CA gagné." } },
+              class: "btn-primary text-sm px-5 py-2.5" %>
+      <% end %>
       <% facture = Facture.find_by(estimation_id: @estimation.id) %>
       <% if facture %>
         <%= link_to "🧾 Facture #{facture.numero} →", admin_facture_path(facture), class: "btn-primary text-sm px-5 py-2.5" %>

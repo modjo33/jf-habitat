@@ -1,7 +1,35 @@
 class Admin::DevisController < Admin::BaseController
-  before_action :set_estimation
+  before_action :set_estimation, except: :index
 
   # Écran de devis terrain (tablette).
+  # Tous les devis chiffrés, quel que soit leur état — l'écran qui manquait
+  # pour savoir ce qui est parti chez le client et ce qui a été accepté.
+  def index
+    @etat  = params[:etat].presence_in(Estimation::DEVIS_ETATS.keys)
+    devis  = Estimation.avec_devis.includes(:client, :devis_analyse).order(updated_at: :desc)
+    @devis = @etat ? devis.select { |e| e.devis_etat == @etat } : devis.to_a
+    @compteurs = Estimation.avec_devis.to_a.group_by(&:devis_etat).transform_values(&:size)
+    @montant_total   = @devis.sum { |e| e.devis_total.to_d }
+    @montant_accepte = @devis.select(&:devis_accepte?).sum { |e| e.devis_total.to_d }
+  end
+
+  # Accepté hors signature à l'écran : devis renvoyé signé par mail, accord au
+  # téléphone. Fait basculer le client en « gagné », donc le CA du tableau de bord.
+  def accepter
+    if @estimation.devis_vide?
+      return redirect_back fallback_location: admin_devis_path,
+                           alert: "Ce devis est à 0 € : rien à accepter."
+    end
+    @estimation.accepter_devis!
+    redirect_back fallback_location: admin_devis_path,
+                  notice: "Devis accepté — #{helpers.eur(@estimation.devis_total)} entrent dans le CA gagné."
+  end
+
+  def rouvrir
+    @estimation.rouvrir_devis!
+    redirect_back fallback_location: admin_devis_path, notice: "Devis rouvert."
+  end
+
   def show
   end
 
@@ -119,6 +147,7 @@ class Admin::DevisController < Admin::BaseController
                            alert: "Aucun devis PDF à envoyer."
     end
     LeadMailer.devis_document(@estimation, params[:message]).deliver_now
+    @estimation.update_column(:devis_envoye_at, Time.current)
     @estimation.update(statut: "devis_envoye") if @estimation.statut == "nouveau" || @estimation.statut == "contacte"
     if (c = @estimation.client) && %w[nouveau contacte rdv_pris].include?(c.statut)
       c.update(statut: "devis_envoye")

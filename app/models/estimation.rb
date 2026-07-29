@@ -236,6 +236,68 @@ class Estimation < ApplicationRecord
     (devis_lignes? ? DevisLignePdfGenerator : DevisTerrainPdfGenerator).new(self)
   end
 
+  # ------------------------------------------------------------------
+  # Vie du devis : construit → envoyé → accepté
+  # ------------------------------------------------------------------
+  DEVIS_ETATS = {
+    "brouillon" => "En préparation",
+    "envoye"    => "Envoyé au client",
+    "accepte"   => "Accepté",
+    "refuse"    => "Refusé"
+  }.freeze
+
+  # Les devis réellement chiffrés — ceux qui méritent de figurer dans la liste.
+  scope :avec_devis, -> { where("devis_total > 0") }
+
+  def devis_existe?
+    devis_total.to_d.positive?
+  end
+
+  # La signature à l'écran vaut acceptation : elle précède l'existence de
+  # `devis_accepte_at` et reste le cas le plus fréquent (signature sur place).
+  def devis_etat
+    return "accepte" if devis_accepte_at.present? || devis_signe_at.present?
+    return "refuse"  if statut == "perdu"
+    return "envoye"  if devis_envoye_at.present?
+
+    "brouillon"
+  end
+
+  def devis_etat_label = DEVIS_ETATS[devis_etat]
+  def devis_accepte?   = devis_etat == "accepte"
+
+  # Accepter un devis renvoyé signé par mail ou validé au téléphone : c'est ce
+  # geste qui fait entrer le montant dans le CA gagné du tableau de bord, via
+  # le passage du client en « gagné » (cf. Client.ca_devis).
+  def accepter_devis!(date: Time.current)
+    transaction do
+      update_columns(devis_accepte_at: date, statut: "gagne", updated_at: Time.current)
+      # Le CA gagné du tableau de bord s'agrège par CLIENT (Client.ca_devis) :
+      # une estimation acceptée sans fiche client resterait invisible dans les
+      # chiffres. On rattache donc la fiche si elle manque.
+      rattacher_client if client.blank? && email.present?
+      client&.update(statut: "gagne")
+    end
+    devis_analyse&.rafraichir!
+    self
+  end
+
+  def rattacher_client
+    fiche = Client.upsert_from_estimation(self)
+    update_column(:client_id, fiche.id)
+    reload_client
+    fiche
+  rescue => e
+    Rails.logger.warn "[Estimation##{id}] rattachement client impossible : #{e.class} · #{e.message}"
+    nil
+  end
+
+  def rouvrir_devis!
+    update_columns(devis_accepte_at: nil, statut: "devis_envoye", updated_at: Time.current)
+    devis_analyse&.rafraichir!
+    self
+  end
+
   # Un devis ouvert mais jamais chiffré : cliquer « Devis assisté » crée déjà
   # une pièce, sans le moindre mur. Le total vaut alors 0 € et le PDF sort à
   # 0 € — sans rapport avec le chiffrage web du client, qui lui est bien réel.

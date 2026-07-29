@@ -1,0 +1,116 @@
+<%
+  couleurs = {
+    "brouillon" => "bg-ink/10 text-ink-soft",
+    "envoye"    => "bg-blue-100 text-blue-800",
+    "accepte"   => "bg-green-100 text-green-800",
+    "refuse"    => "bg-red-100 text-red-700"
+  }
+%>
+
+<div class="flex items-start justify-between mb-8">
+  <div>
+    <div class="eyebrow mb-2">Pipeline</div>
+    <h1 class="h-display text-4xl text-ink">Devis</h1>
+    <p class="text-ink-light mt-2">Tous les devis chiffrés — ce qui est en préparation, ce qui est parti chez le client, ce qui est signé.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="card-premium p-6">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Devis</div>
+    <div class="font-display text-3xl text-ink mt-1"><%= @devis.size %></div>
+  </div>
+  <div class="card-premium p-6">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Montant total</div>
+    <div class="font-display text-3xl text-ink mt-1"><%= eur(@montant_total) %></div>
+  </div>
+  <div class="card-premium p-6">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Dont accepté</div>
+    <div class="font-display text-3xl text-accent mt-1"><%= eur(@montant_accepte) %></div>
+    <div class="text-xs text-ink-light mt-1">compté dans le CA gagné du tableau de bord</div>
+  </div>
+</div>
+
+<div class="flex flex-wrap gap-2 mb-6">
+  <%= link_to "Tous", admin_devis_path,
+        class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{@etat.blank? ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+  <% Estimation::DEVIS_ETATS.each do |cle, label| %>
+    <% next if @compteurs[cle].to_i.zero? && @etat != cle %>
+    <%= link_to admin_devis_path(etat: cle),
+          class: "text-xs font-semibold px-3 py-1.5 rounded-full border transition #{@etat == cle ? 'bg-ink text-sand border-ink' : 'border-border-warm text-ink-light hover:bg-sand'}" do %>
+      <%= label %> · <%= @compteurs[cle].to_i %>
+    <% end %>
+  <% end %>
+</div>
+
+<% if @devis.empty? %>
+  <div class="card-premium p-10 text-center text-ink-light">
+    <p class="text-lg text-ink font-semibold mb-2">Aucun devis chiffré pour l'instant.</p>
+    <p>Un devis apparaît ici dès qu'il porte un montant — depuis la fiche d'une estimation,
+       bouton « Devis détaillé » ou « Devis assisté ».</p>
+  </div>
+<% else %>
+  <div class="card-premium p-0 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+          <th class="p-4 font-bold">Client</th>
+          <th class="p-4 font-bold">État</th>
+          <th class="p-4 font-bold text-right">Montant</th>
+          <th class="p-4 font-bold">Rentabilité</th>
+          <th class="p-4 font-bold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @devis.each do |e| %>
+          <tr class="border-b border-border-warm/40 last:border-0 hover:bg-sand/50 transition">
+            <td class="p-4">
+              <%= link_to e.nom.to_s.strip.presence || "Sans nom", admin_estimation_path(e), class: "font-semibold text-ink hover:text-accent" %>
+              <div class="text-xs text-ink-light">
+                <%= e.reference %>
+                <% if e.ville.present? %> · <%= e.ville %><% end %>
+                · <%= l e.created_at.to_date, format: "%d/%m/%Y" %>
+              </div>
+            </td>
+            <td class="p-4">
+              <span class="text-[11px] font-bold px-2.5 py-1 rounded-full <%= couleurs[e.devis_etat] %>"><%= e.devis_etat_label %></span>
+              <div class="text-[11px] text-ink-light mt-1">
+                <% if e.devis_signe_at.present? %>
+                  signé le <%= l e.devis_signe_at.to_date, format: "%d/%m" %>
+                <% elsif e.devis_accepte_at.present? %>
+                  accepté le <%= l e.devis_accepte_at.to_date, format: "%d/%m" %>
+                <% elsif e.devis_envoye_at.present? %>
+                  envoyé le <%= l e.devis_envoye_at.to_date, format: "%d/%m" %>
+                <% end %>
+              </div>
+            </td>
+            <td class="p-4 text-right font-display text-lg text-ink whitespace-nowrap"><%= eur(e.devis_total) %></td>
+            <td class="p-4"><%= render "admin/estimations/pastille_rentabilite", estimation: e, compact: true %></td>
+            <td class="p-4">
+              <div class="flex flex-wrap gap-2 justify-end">
+                <%= link_to "PDF", devis_pdf_admin_estimation_path(e), target: "_blank", rel: "noopener",
+                      class: "text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-warm text-ink-light hover:bg-sand" %>
+                <%= link_to "Modifier", (e.devis_lignes? ? devis_lignes_admin_estimation_path(e) : devis_admin_estimation_path(e)),
+                      class: "text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-warm text-ink-light hover:bg-sand" %>
+                <% if e.devis_accepte? %>
+                  <%= button_to "Annuler l'accord", devis_rouvrir_admin_estimation_path(e), method: :post,
+                        form: { data: { turbo_confirm: "Retirer ce devis du CA gagné ?" } },
+                        class: "text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-warm text-ink-light hover:bg-sand" %>
+                <% else %>
+                  <%= button_to "✓ Accepté", devis_accepter_admin_estimation_path(e), method: :post,
+                        form: { data: { turbo_confirm: "Marquer ce devis comme accepté ? Le montant entrera dans le CA gagné." } },
+                        class: "text-xs font-semibold px-3 py-1.5 rounded-lg bg-accent text-white hover:opacity-90" %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="text-xs text-ink-light mt-4">
+    « Accepté » vaut accord du client : le chantier bascule en « gagné » et son montant entre dans le
+    <strong>CA gagné</strong> du tableau de bord. Un devis signé à l'écran chez le client est accepté d'office.
+  </p>
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_29_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -224,12 +224,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_080000) do
     t.decimal "coef_region", precision: 5, scale: 3, default: "1.0"
     t.datetime "created_at", null: false
     t.string "delai"
+    t.datetime "devis_accepte_at"
     t.integer "devis_acompte_pct"
     t.boolean "devis_actif", default: false, null: false
     t.text "devis_conditions"
     t.decimal "devis_consommables", precision: 10, scale: 2, default: "0.0"
     t.string "devis_consommables_libelle"
     t.jsonb "devis_echeances", default: [], null: false
+    t.datetime "devis_envoye_at"
     t.string "devis_remise_type"
     t.decimal "devis_remise_valeur", precision: 10, scale: 2, default: "0.0"
     t.string "devis_signataire"
@@ -264,6 +266,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_080000) do
     t.string "ville"
     t.index ["client_id"], name: "index_estimations_on_client_id"
     t.index ["created_at"], name: "index_estimations_on_created_at"
+    t.index ["devis_accepte_at"], name: "index_estimations_on_devis_accepte_at"
     t.index ["email"], name: "index_estimations_on_email"
     t.index ["gclid"], name: "index_estimations_on_gclid"
     t.index ["reference"], name: "index_estimations_on_reference", unique: true

@@ -51,6 +51,7 @@
               <%= nav.(admin_root_path, "Dashboard", %w[dashboard]) %>
               <%= nav.(admin_clients_path, "Clients (CRM)", %w[clients client_notes], badge: Client.where(statut: %w[nouveau contacte rdv_pris devis_envoye]).count) %>
               <%= nav.(admin_estimations_path, "Estimations", %w[estimations], badge: Estimation.where(statut: "nouveau").count) %>
+              <%= nav.(admin_devis_path, "Devis", %w[devis], badge: Estimation.avec_devis.where(devis_accepte_at: nil, devis_signe_at: nil).count) %>
               <%= nav.(admin_rdvs_path, "Agenda", %w[rdvs]) %>
               <%= nav.(admin_tunnel_path, "Tunnel d'estimation", %w[tunnel]) %>
             </div>
