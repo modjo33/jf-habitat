@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_23_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_29_080000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -253,7 +253,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_23_090000) do
     t.string "telephone", null: false
     t.decimal "total_ht", precision: 10, scale: 2, default: "0.0"
     t.decimal "total_ttc", precision: 10, scale: 2, default: "0.0"
-    t.decimal "tva_taux", precision: 5, scale: 2, default: "10.0"
+    t.decimal "tva_taux", precision: 5, scale: 2, default: "0.0"
     t.string "type_chantier"
     t.datetime "updated_at", null: false
     t.string "utm_campaign"

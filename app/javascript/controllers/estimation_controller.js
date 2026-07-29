@@ -108,7 +108,7 @@ export default class extends Controller {
   _render(preview) {
     if (!this.hasPreviewTarget) return
 
-    // Aucun prix n'est jamais affiché ici. Le devis chiffré (HT, TVA, TTC, PDF)
+    // Aucun prix n'est jamais affiché ici. Le devis chiffré et son PDF
     // n'est révélé qu'après soumission des coordonnées (page show).
     if (!preview.lines || preview.lines.length === 0) {
       this.previewTarget.innerHTML = `
@@ -154,7 +154,7 @@ export default class extends Controller {
         </div>
         <p class="text-xs text-sand/65 leading-relaxed">
           Renseignez votre nom, email et téléphone ci-dessous — vous obtenez le total
-          chiffré (HT, TVA, TTC) et le PDF immédiatement.
+          chiffré et le PDF immédiatement.
         </p>
       </div>`
   }

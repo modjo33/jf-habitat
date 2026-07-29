@@ -88,6 +88,29 @@ class Estimation < ApplicationRecord
     self.total_ttc = (total_ht * (1 + tva_taux / 100)).round(2)
   end
 
+  # ------------------------------------------------------------------
+  # TVA — franchise en base (art. 293 B du CGI)
+  # ------------------------------------------------------------------
+  # L'entreprise ne collecte pas de TVA : l'afficher sur l'estimation revenait
+  # à annoncer au client 10 % de plus que le devis qu'il recevrait ensuite, et
+  # à mentionner une taxe qui n'est jamais facturée. Le taux reste une donnée
+  # de l'estimation — le jour de l'assujettissement, le repasser à 10 suffit à
+  # faire réapparaître la ventilation partout (page devis, PDF, mails).
+  MENTION_TVA = "TVA non applicable, art. 293 B du CGI".freeze
+
+  def tva_applicable?
+    tva_taux.to_d.positive?
+  end
+
+  def montant_tva
+    (total_ttc.to_d - total_ht.to_d).round(2)
+  end
+
+  # « Total TTC » n'a de sens que si une TVA est effectivement collectée.
+  def total_label
+    tva_applicable? ? "Total TTC" : "Total"
+  end
+
   def calculer_coefficients
     self.coef_region = calculer_coef_region
     self.coef_etage  = calculer_coef_etage

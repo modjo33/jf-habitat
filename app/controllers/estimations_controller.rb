@@ -27,7 +27,7 @@ class EstimationsController < ApplicationController
 
   def create
     @estimation = Estimation.new(estimation_params)
-    @estimation.tva_taux ||= 10.0
+    # Pas de forçage du taux : la colonne vaut 0 par défaut (franchise en base).
     @estimation.assign_attributes(source_attributes)
 
     if @estimation.save

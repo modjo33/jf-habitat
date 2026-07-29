@@ -27,10 +27,13 @@
     <div style="background:#0F2A44;color:white;padding:20px;border-radius:10px;margin-top:16px;">
       <table style="width:100%;">
         <tr>
-          <td>Total TTC estimé</td>
+          <td><%= @estimation.total_label %> estimé</td>
           <td style="text-align:right;font-size:26px;font-weight:800;color:#E6752A;"><%= number_to_currency(@estimation.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></td>
         </tr>
       </table>
+      <% unless @estimation.tva_applicable? %>
+        <div style="font-size:12px;opacity:.75;margin-top:8px;"><%= Estimation::MENTION_TVA %></div>
+      <% end %>
     </div>
 
     <p style="color:#243D5C;line-height:1.6;margin-top:24px;">

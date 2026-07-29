@@ -38,7 +38,7 @@
           <div class="text-ink-light text-sm mt-1"><%= @estimation.type_chantier_label %> · <%= @estimation.surface_totale %> m² au total</div>
         </div>
         <div class="text-right">
-          <div class="text-xs uppercase tracking-widest text-ink-light font-semibold mb-1">Total TTC</div>
+          <div class="text-xs uppercase tracking-widest text-ink-light font-semibold mb-1"><%= @estimation.total_label %></div>
           <div class="font-display text-4xl font-extrabold text-accent">
             <%= number_to_currency(@estimation.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
           </div>
@@ -89,16 +89,23 @@
             <span>× <%= @estimation.coef_etage %></span>
           </div>
         <% end %>
-        <div class="flex justify-between text-sm pt-2 border-t border-ink/10">
-          <span class="text-ink-light">Total HT</span>
-          <span class="font-semibold text-ink"><%= number_to_currency(@estimation.total_ht, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
-        </div>
-        <div class="flex justify-between text-sm">
-          <span class="text-ink-light">TVA <%= @estimation.tva_taux %>%</span>
-          <span class="font-semibold text-ink"><%= number_to_currency((@estimation.total_ttc - @estimation.total_ht), unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
-        </div>
+        <% if @estimation.tva_applicable? %>
+          <div class="flex justify-between text-sm pt-2 border-t border-ink/10">
+            <span class="text-ink-light">Total HT</span>
+            <span class="font-semibold text-ink"><%= number_to_currency(@estimation.total_ht, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-ink-light">TVA <%= @estimation.tva_taux %>%</span>
+            <span class="font-semibold text-ink"><%= number_to_currency(@estimation.montant_tva, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+          </div>
+        <% else %>
+          <div class="flex justify-between text-sm pt-2 border-t border-ink/10">
+            <span class="text-ink-light"><%= Estimation::MENTION_TVA %></span>
+            <span class="text-ink-light">—</span>
+          </div>
+        <% end %>
         <div class="flex items-baseline justify-between pt-3 border-t border-ink/15">
-          <span class="font-display font-bold text-ink text-lg">Total TTC</span>
+          <span class="font-display font-bold text-ink text-lg"><%= @estimation.total_label %></span>
           <span class="font-display text-3xl font-extrabold text-ink">
             <%= number_to_currency(@estimation.total_ttc, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
           </span>

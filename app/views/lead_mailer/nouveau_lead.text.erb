@@ -21,4 +21,4 @@ PRESTATIONS
 - <%= line.piece %> · <%= line.prestation_label %> (<%= line.gamme_label %>) · <%= line.surface %> m² · <%= number_with_precision(line.total, precision: 2) %> €
 <% end -%>
 
-TOTAL TTC : <%= number_with_precision(@estimation.total_ttc, precision: 2) %> €
+<%= @estimation.total_label.upcase %> : <%= number_with_precision(@estimation.total_ttc, precision: 2) %> €

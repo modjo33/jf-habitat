@@ -10,7 +10,10 @@ PRESTATIONS ESTIMÉES
 - <%= line.piece %> · <%= line.prestation_label %> (<%= line.gamme_label %>) · <%= line.surface %> m² · <%= number_with_precision(line.total, precision: 2) %> €
 <% end -%>
 
-TOTAL TTC ESTIMÉ : <%= number_with_precision(@estimation.total_ttc, precision: 2) %> €
+<%= @estimation.total_label.upcase %> ESTIMÉ : <%= number_with_precision(@estimation.total_ttc, precision: 2) %> €
+<% unless @estimation.tva_applicable? -%>
+<%= Estimation::MENTION_TVA %>
+<% end -%>
 
 Nous vous recontactons sous 24h ouvrées pour affiner le devis.
 

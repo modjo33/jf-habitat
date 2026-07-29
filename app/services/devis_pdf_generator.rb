@@ -74,7 +74,10 @@ class DevisPdfGenerator
     pdf.text "DÉTAIL DES PRESTATIONS", style: :bold
     pdf.move_down 8
 
-    headers = [["Pièce", "Prestation", "Gamme", "Surface", "Prix/m²", "Total HT"]]
+    # « Total HT » ferait attendre une TVA plus bas : sans elle, la colonne
+    # n'est qu'un total.
+    headers = [["Pièce", "Prestation", "Gamme", "Surface", "Prix/m²",
+                @estimation.tva_applicable? ? "Total HT" : "Total"]]
     rows = @estimation.estimation_lines.map do |l|
       [
         { content: "#{l.piece}\n#{l.type_piece_label}", inline_format: true },
@@ -126,13 +129,19 @@ class DevisPdfGenerator
       pdf.move_down 6
 
       pdf.fill_color rgb(INK)
-      line(pdf, "Total HT", format_eur(@estimation.total_ht), bold: true)
-      line(pdf, "TVA #{@estimation.tva_taux}%", format_eur(tva_euros))
+      if @estimation.tva_applicable?
+        line(pdf, "Total HT", format_eur(@estimation.total_ht), bold: true)
+        line(pdf, "TVA #{@estimation.tva_taux}%", format_eur(tva_euros))
+      else
+        # Franchise en base : mention obligatoire, et surtout aucun montant de
+        # TVA annoncé au client puisqu'il ne lui en sera jamais facturé.
+        line(pdf, Estimation::MENTION_TVA, "—")
+      end
 
       pdf.fill_color rgb(INK)
       pdf.fill_rectangle [0, pdf.cursor + 2], 250, 32
       pdf.fill_color "FFFFFF"
-      pdf.text_box "Total TTC", at: [12, pdf.cursor - 4], size: 10, style: :bold
+      pdf.text_box @estimation.total_label, at: [12, pdf.cursor - 4], size: 10, style: :bold
       pdf.fill_color rgb(ACCENT)
       pdf.text_box format_eur(@estimation.total_ttc), at: [140, pdf.cursor - 2], size: 14, style: :bold, align: :right, width: 100
       pdf.move_down 40
