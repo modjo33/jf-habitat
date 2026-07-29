@@ -170,6 +170,11 @@ class DevisTerrainPdfGenerator
     texte     = @estimation.devis_conditions.to_s.strip
     return if echeances.empty? && !acompte && texte.blank?
 
+    # Le bloc doit rester d'un seul tenant : un solde isolé au verso, sous un
+    # acompte resté page précédente, se lit mal et fait douter du montant.
+    hauteur = 34 + 14 * [echeances.size, acompte ? 2 : 0].max + 12 * texte.lines.size
+    pdf.start_new_page if pdf.cursor < hauteur
+
     pdf.move_down 6
     pdf.fill_color hex(INK)
     pdf.font_size 10
