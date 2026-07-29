@@ -112,6 +112,10 @@ class DevisPdfGenerator
     sous_total = @estimation.estimation_lines.sum(&:total)
     tva_euros = @estimation.total_ttc - @estimation.total_ht
 
+    # Deux lignes de détail au-dessus du bandeau : sans cette réserve, il peut
+    # être tracé hors page et le devis sortir sans total.
+    DevisPdfBranding.reserver_place(pdf, lignes_detail: 2)
+
     pdf.bounding_box([pdf.bounds.right - 250, pdf.cursor], width: 250) do
       pdf.font_size 9
       pdf.fill_color rgb(INK_SOFT)

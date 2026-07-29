@@ -15,6 +15,24 @@ module DevisPdfBranding
     arr.map { |n| n.to_s(16).rjust(2, "0") }.join.upcase
   end
 
+  # Les blocs de totaux sont dessinés à coordonnées ABSOLUES dans une
+  # `bounding_box` (bandeau plein + `text_box`). Prawn ne bascule pas de page
+  # tout seul pour ce genre de tracé : quand le tableau des lignes descend trop
+  # bas, le bandeau est dessiné SOUS le bas de page et disparaît — le document
+  # sort sans montant total, et sans la moindre erreur pour le signaler.
+  # Constaté sur un devis de 9 lignes ; vaut aussi pour les factures.
+  #
+  # À appeler avant d'ouvrir la bounding_box, avec la hauteur dont le bloc a
+  # besoin (bandeau 30 + espacement 34 + mention 12, plus 14 par ligne de
+  # détail affichée).
+  HAUTEUR_BLOC_TOTAUX_BASE = 86
+  HAUTEUR_LIGNE_DETAIL     = 14
+
+  def reserver_place(pdf, lignes_detail: 0)
+    necessaire = HAUTEUR_BLOC_TOTAUX_BASE + lignes_detail * HAUTEUR_LIGNE_DETAIL
+    pdf.start_new_page if pdf.cursor < necessaire
+  end
+
   # En-tête : logo (repli sur le nom si absent), cartouche DEVIS sable à droite,
   # puis une ligne épaisse orange (couleur du montant du total).
   def render_brand_header(pdf, titre:, reference:, date:)

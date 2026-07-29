@@ -88,7 +88,9 @@ class DevisLignePdfGenerator
         t.row(0).background_color = hex(INK)
         t.row(0).text_color = "FFFFFF"
         t.row(0).font_style = :bold
-        t.cells.padding = 5
+        # Serré volontairement : un devis d'une dizaine de lignes doit tenir sur
+        # une page avec son total, sinon le montant part seul au verso.
+        t.cells.padding = [3, 5, 3, 5]
         t.cells.borders = [:bottom]
         t.cells.border_color = "DDDDDD"
         t.cells.border_width = 0.3
@@ -98,7 +100,7 @@ class DevisLignePdfGenerator
         t.row(rows.size - 1).background_color = hex(SAND)
         t.row(rows.size - 1).column(3).align = :right
       end
-      pdf.move_down 12
+      pdf.move_down 8
     end
   end
 
@@ -119,6 +121,9 @@ class DevisLignePdfGenerator
   end
 
   def render_totals(pdf)
+    # Sans cette réserve, le bandeau du total peut être tracé hors page.
+    DevisPdfBranding.reserver_place(pdf, lignes_detail: nb_lignes_totaux)
+
     pdf.bounding_box([pdf.bounds.right - 250, pdf.cursor], width: 250) do
       pdf.font_size 9
       pdf.fill_color hex(INK_SOFT)
@@ -157,6 +162,16 @@ class DevisLignePdfGenerator
       pdf.text "TVA non applicable, art. 293 B du CGI", size: 8, align: :right
     end
     pdf.move_down 10
+  end
+
+  # Nombre de lignes de détail affichées au-dessus du bandeau TOTAL.
+  def nb_lignes_totaux
+    n = 0
+    n += 1 if @estimation.devis_remise_montant.to_d.positive? || @estimation.devis_extras_total.to_d.positive?
+    n += 1 if @estimation.devis_trajet_total.to_d.positive?
+    n += 1 if @estimation.devis_consommables.to_d.positive?
+    n += 2 if @estimation.devis_remise_montant.to_d.positive?
+    n
   end
 
   # Conditions de paiement : échéancier (versements %) OU acompte + solde

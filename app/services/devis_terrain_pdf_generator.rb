@@ -107,6 +107,9 @@ class DevisTerrainPdfGenerator
   end
 
   def render_totals(pdf)
+    # Sans cette réserve, le bandeau du total peut être tracé hors page.
+    DevisPdfBranding.reserver_place(pdf, lignes_detail: nb_lignes_totaux)
+
     pdf.bounding_box([pdf.bounds.right - 250, pdf.cursor], width: 250) do
       pdf.font_size 9
       pdf.fill_color hex(INK_SOFT)
@@ -147,6 +150,16 @@ class DevisTerrainPdfGenerator
       pdf.text "TVA non applicable, art. 293 B du CGI", size: 8, align: :right
     end
     pdf.move_down 10
+  end
+
+  # Nombre de lignes de détail affichées au-dessus du bandeau TOTAL.
+  def nb_lignes_totaux
+    n = 0
+    n += 1 if @estimation.devis_remise_montant.to_d.positive? || @estimation.devis_extras_total.to_d.positive?
+    n += 1 if @estimation.devis_trajet_total.to_d.positive?
+    n += 1 if @estimation.devis_consommables.to_d.positive?
+    n += 2 if @estimation.devis_remise_montant.to_d.positive?
+    n
   end
 
   # Conditions de paiement : échéancier (versements %) OU acompte + solde

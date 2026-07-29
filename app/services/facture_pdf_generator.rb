@@ -124,6 +124,10 @@ class FacturePdfGenerator
 
   # Total → acompte(s) encaissé(s) → solde à régler (bandeau marine/orange).
   def render_totals(pdf)
+    # Total + mention TVA, plus la ligne d'acompte le cas échéant : sans cette
+    # réserve, le bandeau du solde peut être tracé hors page (facture sans montant).
+    DevisPdfBranding.reserver_place(pdf, lignes_detail: @facture.montant_encaisse.positive? ? 3 : 2)
+
     pdf.bounding_box([pdf.bounds.right - 250, pdf.cursor], width: 250) do
       pdf.font_size 9
       pdf.fill_color hex(INK_SOFT)
