@@ -72,13 +72,23 @@ class CalculDeclarations
     (ca * reglages.taux_global / 100).round(2)
   end
 
-  # Échéance URSSAF : dernier jour du mois suivant la période.
-  # Mensuel   → janvier déclaré au plus tard le 28/02.
-  # Trimestre → T1 le 30/04, T2 le 31/07, T3 le 31/10, T4 le 31/01 N+1.
+  # Échéance URSSAF : dernier jour du mois suivant la période, reporté au jour
+  # ouvré suivant s'il tombe un week-end (vérifié sur le calendrier officiel :
+  # septembre 2026 → 02/11, décembre 2026 → 01/02/2027).
+  #
+  # Début d'activité : l'URSSAF ne réclame rien les premiers mois puis regroupe
+  # toutes les périodes écoulées à une même date. Tant qu'elle n'est pas passée,
+  # cette date l'emporte — sinon le module annonce une échéance trop tôt.
   def date_limite(annee, numero)
     fin = mensuelle? ? Date.new(annee, numero, 1).end_of_month
                      : Date.new(annee, numero * 3, 1).end_of_month
-    fin.next_month.end_of_month
+    limite = jour_ouvre(fin.next_month.end_of_month)
+    premiere = reglages.premiere_exigibilite_urssaf
+    premiere.present? && limite < premiere ? premiere : limite
+  end
+
+  def jour_ouvre(date)
+    date.on_weekend? ? date.next_weekday : date
   end
 
   # ---- France Travail (mois) ----

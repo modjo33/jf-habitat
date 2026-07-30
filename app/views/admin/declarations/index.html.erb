@@ -171,6 +171,13 @@
         <p class="text-[11px] text-ink-light mt-1">celle choisie à l'inscription — elle fixe les échéances</p>
       </div>
       <div>
+        <%# Début d'activité : les premiers mois sont regroupés à une même date.
+            Elle se lit sur autoentrepreneur.urssaf.fr → calendrier des échéances. %>
+        <%= f.label :premiere_exigibilite_urssaf, "1ʳᵉ exigibilité URSSAF", class: "label-field" %>
+        <%= f.date_field :premiere_exigibilite_urssaf, class: "input-field" %>
+        <p class="text-[11px] text-ink-light mt-1">début d'activité : les premiers mois sont groupés à cette date</p>
+      </div>
+      <div>
         <%= f.label :taux_cotisations, "Taux cotisations (%)", class: "label-field" %>
         <%= f.text_field :taux_cotisations, class: "input-field" %>
         <p class="text-[11px] text-ink-light mt-1">21,2 % sans ACRE · 10,6 % avec</p>

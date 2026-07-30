@@ -46,7 +46,7 @@ class Admin::DeclarationsController < Admin::BaseController
     params.require(:reglage_declaration)
           .permit(:are_mensuelle, :allocation_journaliere, :fin_droits_are,
                   :taux_cotisations, :taux_cfp, :taux_cma, :versement_liberatoire,
-                  :periodicite_urssaf,
+                  :periodicite_urssaf, :premiere_exigibilite_urssaf,
                   # Rentabilité des devis (outil interne)
                   :revenu_mensuel_cible, :jours_travailles_mois, :heures_par_jour,
                   :objectif_horaire_force, :deduire_are, :taux_impot,

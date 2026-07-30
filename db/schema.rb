@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_30_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -422,6 +422,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_080000) do
     t.decimal "objectif_horaire_force", precision: 6, scale: 2
     t.decimal "part_materiaux_max_pct", precision: 5, scale: 2, default: "35.0"
     t.string "periodicite_urssaf", default: "mensuelle", null: false
+    t.date "premiere_exigibilite_urssaf"
     t.decimal "revenu_mensuel_cible", precision: 8, scale: 2, default: "2000.0"
     t.decimal "seuil_marge_alerte_pct", precision: 5, scale: 2, default: "20.0"
     t.decimal "taux_cfp", precision: 4, scale: 2, default: "0.3"
