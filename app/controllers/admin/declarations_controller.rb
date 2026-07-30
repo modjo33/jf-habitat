@@ -2,25 +2,25 @@ class Admin::DeclarationsController < Admin::BaseController
   def index
     @calcul = CalculDeclarations.new
     @reglages = @calcul.reglages
-    @trimestre_courant   = @calcul.trimestre_courant
-    @trimestre_precedent = @calcul.trimestre_precedent
+    @trimestre_courant   = @calcul.periode_courante
+    @trimestre_precedent = @calcul.periode_precedente
     @mois_courant   = @calcul.france_travail
     @mois_precedent = @calcul.mois_precedent
     @seuils = @calcul.seuils
     @historique = DeclarationPeriode.order(annee: :desc, trimestre: :desc)
   end
 
-  # Archive le trimestre avec le CA calculé au moment du clic.
+  # Archive la période avec le CA calculé au moment du clic.
   def marquer_declaree
-    annee, trimestre = params.require(:annee).to_i, params.require(:trimestre).to_i
+    annee, numero = params.require(:annee).to_i, params.require(:trimestre).to_i
     calcul = CalculDeclarations.new
-    t = calcul.construire_trimestre(annee, trimestre)
+    t = calcul.construire_periode(annee, numero)
     DeclarationPeriode.create!(
-      annee: annee, trimestre: trimestre,
+      annee: annee, trimestre: numero, periodicite: calcul.periodicite,
       ca_declare: t.ca, cotisations_estimees: t.cotisations,
       declaree_le: Date.current
     )
-    redirect_to admin_declarations_path, notice: "Déclaration T#{trimestre} #{annee} archivée (CA : #{helpers.number_to_currency(t.ca, unit: '€', separator: ',', delimiter: ' ', format: '%n %u')})."
+    redirect_to admin_declarations_path, notice: "Déclaration #{t.libelle} archivée (CA : #{helpers.number_to_currency(t.ca, unit: '€', separator: ',', delimiter: ' ', format: '%n %u')})."
   rescue ActiveRecord::RecordInvalid => e
     redirect_to admin_declarations_path, alert: e.record.errors.full_messages.to_sentence
   end
@@ -46,6 +46,7 @@ class Admin::DeclarationsController < Admin::BaseController
     params.require(:reglage_declaration)
           .permit(:are_mensuelle, :allocation_journaliere, :fin_droits_are,
                   :taux_cotisations, :taux_cfp, :taux_cma, :versement_liberatoire,
+                  :periodicite_urssaf,
                   # Rentabilité des devis (outil interne)
                   :revenu_mensuel_cible, :jours_travailles_mois, :heures_par_jour,
                   :objectif_horaire_force, :deduire_are, :taux_impot,

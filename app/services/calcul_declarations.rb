@@ -19,29 +19,51 @@ class CalculDeclarations
     @reglages = ReglageDeclaration.instance
   end
 
-  # ---- URSSAF (trimestres) ----
+  # ---- URSSAF ----
+  #
+  # La périodicité est celle choisie à l'inscription (réglages) : mensuelle ou
+  # trimestrielle. `numero` vaut le mois (1-12) ou le trimestre (1-4).
 
-  Trimestre = Struct.new(:annee, :numero, :ca, :cotisations, :date_limite, :declaration, :en_cours, keyword_init: true) do
-    def libelle       = "T#{numero} #{annee}"
+  Periode = Struct.new(:annee, :numero, :periodicite, :ca, :cotisations, :date_limite,
+                       :declaration, :en_cours, keyword_init: true) do
+    def mensuelle? = periodicite == "mensuelle"
+    def libelle
+      return I18n.l(Date.new(annee, numero, 1), format: "%B %Y").capitalize if mensuelle?
+
+      "T#{numero} #{annee}"
+    end
     def declaree?     = declaration.present?
     def a_declarer?   = !en_cours && !declaree?
     def en_retard?(ref = Date.current) = a_declarer? && ref > date_limite
   end
 
-  def trimestre_courant  = construire_trimestre(@aujourd_hui.year, quarter_of(@aujourd_hui), en_cours: true)
+  def periodicite = reglages.periodicite_urssaf
+  def mensuelle?  = reglages.mensuelle?
 
-  def trimestre_precedent
-    date = @aujourd_hui.beginning_of_quarter - 1.day
-    construire_trimestre(date.year, quarter_of(date), en_cours: false)
+  def periode_courante
+    construire_periode(@aujourd_hui.year, numero_de(@aujourd_hui), en_cours: true)
   end
 
-  def construire_trimestre(annee, numero, en_cours: false)
-    ca = Encaissement.trimestre(annee, numero).sum(:montant)
-    Trimestre.new(
-      annee: annee, numero: numero, ca: ca,
+  def periode_precedente
+    date = mensuelle? ? (@aujourd_hui.beginning_of_month - 1.day)
+                      : (@aujourd_hui.beginning_of_quarter - 1.day)
+    construire_periode(date.year, numero_de(date), en_cours: false)
+  end
+
+  # Compatibilité : les anciens noms restent valides.
+  alias_method :trimestre_courant, :periode_courante
+  alias_method :trimestre_precedent, :periode_precedente
+
+  def numero_de(date) = mensuelle? ? date.month : quarter_of(date)
+
+  def construire_periode(annee, numero, en_cours: false)
+    ca = mensuelle? ? Encaissement.mois(annee, numero).sum(:montant)
+                    : Encaissement.trimestre(annee, numero).sum(:montant)
+    Periode.new(
+      annee: annee, numero: numero, periodicite: periodicite, ca: ca,
       cotisations: cotisations_estimees(ca),
       date_limite: date_limite(annee, numero),
-      declaration: DeclarationPeriode.find_by(annee: annee, trimestre: numero),
+      declaration: DeclarationPeriode.find_by(annee: annee, trimestre: numero, periodicite: periodicite),
       en_cours: en_cours
     )
   end
@@ -50,10 +72,13 @@ class CalculDeclarations
     (ca * reglages.taux_global / 100).round(2)
   end
 
-  # Échéance URSSAF trimestrielle : dernier jour du mois suivant le trimestre
-  # (T1 → 30/04, T2 → 31/07, T3 → 31/10, T4 → 31/01 N+1).
-  def date_limite(annee, trimestre)
-    Date.new(annee, trimestre * 3, 1).end_of_month.next_month.end_of_month
+  # Échéance URSSAF : dernier jour du mois suivant la période.
+  # Mensuel   → janvier déclaré au plus tard le 28/02.
+  # Trimestre → T1 le 30/04, T2 le 31/07, T3 le 31/10, T4 le 31/01 N+1.
+  def date_limite(annee, numero)
+    fin = mensuelle? ? Date.new(annee, numero, 1).end_of_month
+                     : Date.new(annee, numero * 3, 1).end_of_month
+    fin.next_month.end_of_month
   end
 
   # ---- France Travail (mois) ----

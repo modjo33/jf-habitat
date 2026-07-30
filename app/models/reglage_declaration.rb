@@ -1,5 +1,15 @@
 # Ligne unique de réglages pour la section Déclarations.
 class ReglageDeclaration < ApplicationRecord
+  # L'URSSAF laisse choisir à l'inscription : mensuelle ou trimestrielle.
+  # Le module supposait le trimestre pour tout le monde et annonçait donc de
+  # fausses échéances à qui déclare au mois.
+  PERIODICITES = { "mensuelle" => "Mensuelle", "trimestrielle" => "Trimestrielle" }.freeze
+
+  validates :periodicite_urssaf, inclusion: { in: PERIODICITES.keys }
+
+  def mensuelle?      = periodicite_urssaf == "mensuelle"
+  def periodicite_label = PERIODICITES[periodicite_urssaf]
+
   validates :taux_cotisations, :taux_cfp, :taux_cma,
             numericality: { greater_than_or_equal_to: 0, less_than: 100 }
   validates :are_mensuelle, :allocation_journaliere,

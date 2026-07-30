@@ -162,6 +162,15 @@
         <%= f.date_field :fin_droits_are, class: "input-field" %>
       </div>
       <div>
+        <%# Choisie à l'inscription URSSAF : elle commande les périodes ET les
+            dates limites affichées plus haut. Se vérifie sur
+            autoentrepreneur.urssaf.fr → Déclarer et payer. %>
+        <%= f.label :periodicite_urssaf, "Périodicité URSSAF", class: "label-field" %>
+        <%= f.select :periodicite_urssaf,
+              ReglageDeclaration::PERIODICITES.map { |k, v| [v, k] }, {}, class: "input-field" %>
+        <p class="text-[11px] text-ink-light mt-1">celle choisie à l'inscription — elle fixe les échéances</p>
+      </div>
+      <div>
         <%= f.label :taux_cotisations, "Taux cotisations (%)", class: "label-field" %>
         <%= f.text_field :taux_cotisations, class: "input-field" %>
         <p class="text-[11px] text-ink-light mt-1">21,2 % sans ACRE · 10,6 % avec</p>

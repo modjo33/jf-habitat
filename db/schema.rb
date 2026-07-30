@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_080000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -91,9 +91,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
     t.decimal "cotisations_estimees", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.date "declaree_le", null: false
+    t.string "periodicite", default: "trimestrielle", null: false
     t.integer "trimestre", null: false
     t.datetime "updated_at", null: false
-    t.index ["annee", "trimestre"], name: "index_declaration_periodes_on_annee_and_trimestre", unique: true
+    t.index ["annee", "trimestre", "periodicite"], name: "index_declaration_periodes_sur_periode", unique: true
   end
 
   create_table "deductions", force: :cascade do |t|
@@ -420,6 +421,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
     t.decimal "marge_securite_pct", precision: 5, scale: 2, default: "10.0"
     t.decimal "objectif_horaire_force", precision: 6, scale: 2
     t.decimal "part_materiaux_max_pct", precision: 5, scale: 2, default: "35.0"
+    t.string "periodicite_urssaf", default: "mensuelle", null: false
     t.decimal "revenu_mensuel_cible", precision: 8, scale: 2, default: "2000.0"
     t.decimal "seuil_marge_alerte_pct", precision: 5, scale: 2, default: "20.0"
     t.decimal "taux_cfp", precision: 4, scale: 2, default: "0.3"
