@@ -17,6 +17,18 @@ class LeadMailer < ApplicationMailer
          subject: "Votre estimation JF Habitat · #{estimation.reference}"
   end
 
+  # Message libre à un client, écrit depuis sa fiche. Il manquait tout un pan :
+  # l'admin savait envoyer un devis et une facture, mais pas répondre à un
+  # prospect, refuser un chantier hors zone ou demander un avis — autant de
+  # messages qui partaient jusqu'ici de la boîte perso, hors de toute trace.
+  def message_client(client, sujet, corps)
+    @client = client
+    @corps = corps.to_s
+    mail to: client.email,
+         cc: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
+         subject: sujet.presence || "JF Habitat"
+  end
+
   # Envoi du devis (PDF attaché) au client + copie interne.
   def devis_document(estimation, message = nil)
     @estimation = estimation

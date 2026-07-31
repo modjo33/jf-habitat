@@ -70,7 +70,11 @@ Rails.application.routes.draw do
 
     resources :clients, only: [:index, :show, :update, :new, :create, :destroy] do
       collection { get :kanban }
-      member { patch :statut }   # changement de colonne kanban (drag-and-drop)
+      member do
+        patch :statut              # changement de colonne kanban (drag-and-drop)
+        get   :message             # écran de composition d'un message libre
+        post  :message, action: :envoyer_message, as: :envoyer_message
+      end
       resources :notes, only: [:create, :destroy], controller: "client_notes"
     end
 

@@ -1,5 +1,5 @@
 class Admin::ClientsController < Admin::BaseController
-  before_action :set_client, only: [:show, :update, :destroy, :statut]
+  before_action :set_client, only: [:show, :update, :destroy, :statut, :message, :envoyer_message]
 
   def index
     @q          = params[:q].to_s.strip
@@ -67,6 +67,34 @@ class Admin::ClientsController < Admin::BaseController
     head :no_content
   end
 
+  # Écran de composition d'un message libre au client.
+  def message
+    return redirect_to admin_client_path(@client),
+                       alert: "Ce client n'a pas d'adresse e-mail." if @client.email.blank?
+
+    @sujet = params[:sujet].presence || "JF Habitat"
+    @corps = params[:corps].presence || gabarit_message
+  end
+
+  # Envoi + trace dans la timeline : un message envoyé sans trace est un message
+  # perdu, on ne saurait plus dans un mois ce qui a été dit à qui.
+  def envoyer_message
+    sujet, corps = params[:sujet].to_s.strip, params[:corps].to_s.strip
+    if @client.email.blank? || corps.blank?
+      return redirect_to message_admin_client_path(@client, sujet: sujet, corps: corps),
+                         alert: "Le message ne peut pas être vide."
+    end
+
+    LeadMailer.message_client(@client, sujet, corps).deliver_now
+    @client.client_notes.create!(body: "Message envoyé le #{l(Date.current, format: '%d/%m/%Y')} — « #{sujet} »\n\n#{corps}")
+    @client.touch(:derniere_interaction_at)
+    redirect_to admin_client_path(@client), notice: "Message envoyé à #{@client.email}."
+  rescue => e
+    Rails.logger.error "[Clients#envoyer_message] #{e.class} · #{e.message}"
+    redirect_to message_admin_client_path(@client, sujet: sujet, corps: corps),
+                alert: "L'envoi a échoué. Réessayez."
+  end
+
   def destroy
     nom = @client.nom
     @client.destroy # estimations conservées (nullify), notes supprimées
@@ -74,6 +102,23 @@ class Admin::ClientsController < Admin::BaseController
   end
 
   private
+
+  # Amorce : le nom du client et la signature, pour ne pas repartir d'une page
+  # blanche à chaque fois.
+  def gabarit_message
+    <<~TXT
+      Bonjour #{@client.nom.to_s.strip.split.first},
+
+
+
+      Bien cordialement,
+
+      #{ENV.fetch("LEGAL_DIRECTOR", "Johan Faydherbe de Maudave")}
+      JF Habitat — peinture, placo, parquet
+      #{ENV.fetch("BUSINESS_PHONE", "")}
+      #{ENV.fetch("BUSINESS_EMAIL", "")}
+    TXT
+  end
 
   def set_client
     @client = Client.find(params[:id])

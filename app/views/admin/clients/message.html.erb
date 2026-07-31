@@ -1,0 +1,39 @@
+<div class="mb-8">
+  <%= link_to "← Retour à la fiche", admin_client_path(@client), class: "text-sm text-ink-light hover:text-accent" %>
+  <div class="eyebrow mb-2 mt-4">Message</div>
+  <h1 class="h-display text-4xl text-ink">Écrire à <%= @client.nom.to_s.strip %></h1>
+  <p class="text-ink-light mt-2">
+    Part de <strong><%= ENV.fetch("MAIL_FROM", "contact@jfhabitat.fr") %></strong>
+    vers <strong><%= @client.email %></strong>, avec une copie pour toi.
+  </p>
+</div>
+
+<%= form_with url: envoyer_message_admin_client_path(@client), method: :post, class: "space-y-5" do %>
+  <div class="card-premium p-7 space-y-5">
+    <div>
+      <label class="label-field" for="sujet">Objet</label>
+      <%= text_field_tag :sujet, @sujet, id: "sujet", class: "input-field", required: true %>
+    </div>
+
+    <div>
+      <label class="label-field" for="corps">Message</label>
+      <%= text_area_tag :corps, @corps, id: "corps", rows: 18, class: "input-field font-mono text-sm leading-relaxed" %>
+      <p class="text-[11px] text-ink-light mt-1">
+        Texte simple : les retours à la ligne sont conservés tels quels dans le mail reçu.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-premium p-5 border-l-4 border-ink/20">
+    <p class="text-sm text-ink-soft">
+      Le message est <strong>archivé dans la timeline</strong> du client à l'envoi — dans un mois,
+      tu sauras encore ce qui lui a été dit. Une copie part sur ta boîte.
+    </p>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= submit_tag "Envoyer le message", class: "btn-primary px-6 py-3",
+          data: { turbo_confirm: "Envoyer ce message à #{@client.email} ?" } %>
+    <%= link_to "Annuler", admin_client_path(@client), class: "text-sm text-ink-light hover:text-accent" %>
+  </div>
+<% end %>

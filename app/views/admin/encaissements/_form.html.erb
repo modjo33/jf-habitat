@@ -11,9 +11,13 @@
       <%= f.date_field :date_encaissement, class: "input-field", required: true %>
       <p class="text-[11px] text-ink-light mt-1">La date où l'argent est arrivé sur le compte, pas la date de la facture.</p>
     </div>
-    <div>
+    <%# La part de cotisations s'affiche pendant la frappe : ce qui rentre n'est
+        pas entièrement à soi, et l'échéance tombe deux mois plus tard. %>
+    <div data-controller="cotisations" data-cotisations-taux-value="<%= ReglageDeclaration.instance.taux_global %>">
       <%= f.label :montant, "Montant (€)", class: "label-field" %>
-      <%= f.text_field :montant, placeholder: "ex : 979,80", class: "input-field", required: true %>
+      <%= f.text_field :montant, placeholder: "ex : 979,80", class: "input-field", required: true,
+            data: { cotisations_target: "montant", action: "input->cotisations#calculer" } %>
+      <p class="text-[11px] text-accent mt-1" data-cotisations-target="sortie"></p>
     </div>
     <div class="md:col-span-2">
       <%= f.label :libelle, "Libellé", class: "label-field" %>
