@@ -1,0 +1,74 @@
+<div class="mb-8">
+  <%= link_to "← Retour aux devis", admin_devis_path, class: "text-sm text-ink-light hover:text-accent" %>
+  <div class="eyebrow mb-2 mt-4">Devis</div>
+  <h1 class="h-display text-4xl text-ink">Nouveau devis</h1>
+  <p class="text-ink-light mt-2">
+    Pour un chantier qui n'est pas passé par l'estimateur en ligne — bouche-à-oreille,
+    client rencontré sur place, ancien client qui rappelle.
+  </p>
+</div>
+
+<%= form_with url: creer_admin_devis_path, method: :post, scope: :estimation, class: "space-y-5" do |f| %>
+  <div class="card-premium p-7 space-y-5">
+    <div>
+      <%= f.label :client_id, "Client existant", class: "label-field" %>
+      <%= f.select :client_id,
+            @clients.map { |c| ["#{c.nom.to_s.strip}#{c.ville.present? ? " · #{c.ville}" : ''}", c.id] },
+            { include_blank: "— Nouveau client, à saisir ci-dessous —" }, class: "input-field" %>
+      <p class="text-[11px] text-ink-light mt-1">
+        Si tu choisis une fiche, ses coordonnées sont reprises et les champs ci-dessous sont ignorés.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-premium p-7">
+    <h2 class="font-display text-xl text-ink mb-1">Ou un nouveau client</h2>
+    <p class="text-sm text-ink-light mb-5">
+      Seul le nom est obligatoire. Le reste peut se compléter plus tard —
+      un chantier de bouche-à-oreille commence souvent avec un prénom et rien d'autre.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="md:col-span-2">
+        <%= f.label :nom, "Nom du client *", class: "label-field" %>
+        <%= f.text_field :nom, placeholder: "ex : Keavan", class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :email, "Email", class: "label-field" %>
+        <%= f.email_field :email, placeholder: "facultatif", class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :telephone, "Téléphone", class: "label-field" %>
+        <%= f.telephone_field :telephone, placeholder: "facultatif", class: "input-field" %>
+      </div>
+      <div class="md:col-span-2">
+        <%= f.label :adresse, "Adresse du chantier", class: "label-field" %>
+        <%= f.text_field :adresse, placeholder: "ex : 49 bis route de la Forêt", class: "input-field" %>
+      </div>
+      <div>
+        <%= f.label :code_postal, "Code postal", class: "label-field" %>
+        <%= f.text_field :code_postal, placeholder: "33670", class: "input-field", inputmode: "numeric", maxlength: 5 %>
+      </div>
+      <div>
+        <%= f.label :ville, "Ville", class: "label-field" %>
+        <%= f.text_field :ville, placeholder: "Créon", class: "input-field" %>
+      </div>
+      <div class="md:col-span-2">
+        <%= f.label :type_chantier, "Type de chantier", class: "label-field" %>
+        <%= f.select :type_chantier, Estimation::TYPES_CHANTIER.map { |k, v| [v, k] },
+              { include_blank: "Non précisé" }, class: "input-field" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= f.submit "Créer le devis →", class: "btn-primary px-6 py-3" %>
+    <%= link_to "Annuler", admin_devis_path, class: "text-sm text-ink-light hover:text-accent" %>
+  </div>
+
+  <p class="text-xs text-ink-light">
+    Tu arriveras directement dans l'éditeur de lignes : tu piocheras dans ta bibliothèque de
+    prestations, tu regrouperas par section — une par pièce, par exemple — et le PDF se génère
+    depuis la barre du bas.
+  </p>
+<% end %>

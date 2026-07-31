@@ -52,7 +52,12 @@ Rails.application.routes.draw do
     end
 
     # Liste de tous les devis chiffrés, tous états confondus.
-    resources :devis, only: :index
+    resources :devis, only: :index do
+      collection do
+        get  :nouveau           # créer un devis sans estimation en ligne
+        post :creer, as: :creer
+      end
+    end
 
     # Devis en lignes libres (Vague 1).
     resources :devis_lignes, only: [:create, :update, :destroy] do

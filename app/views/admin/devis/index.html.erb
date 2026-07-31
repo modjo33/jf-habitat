@@ -13,6 +13,7 @@
     <h1 class="h-display text-4xl text-ink">Devis</h1>
     <p class="text-ink-light mt-2">Tous les devis chiffrés — ce qui est en préparation, ce qui est parti chez le client, ce qui est signé.</p>
   </div>
+  <%= link_to "+ Nouveau devis", nouveau_admin_devis_path, class: "btn-primary text-sm px-5 py-2.5 shrink-0" %>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -47,7 +48,7 @@
   <div class="card-premium p-10 text-center text-ink-light">
     <p class="text-lg text-ink font-semibold mb-2">Aucun devis chiffré pour l'instant.</p>
     <p>Un devis apparaît ici dès qu'il porte un montant — depuis la fiche d'une estimation,
-       bouton « Devis détaillé » ou « Devis assisté ».</p>
+       bouton « Devis détaillé » ou « Devis assisté » — ou directement ici avec « + Nouveau devis ».</p>
   </div>
 <% else %>
   <div class="card-premium p-0 overflow-x-auto">

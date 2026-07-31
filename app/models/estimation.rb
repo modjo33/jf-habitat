@@ -59,13 +59,18 @@ class Estimation < ApplicationRecord
   accepts_nested_attributes_for :estimation_lines, allow_destroy: true
 
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }
-  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :telephone, presence: true, format: { with: /\A(\+33|0)[1-9](\d{2}){4}\z/, message: "doit être un numéro français valide" }
+  # Coordonnées : exigées sur le tunnel public, facultatives sur un devis créé
+  # à la main — un chantier de bouche-à-oreille commence souvent avec un
+  # prénom et rien d'autre. Le format reste vérifié quand la valeur est là.
+  validates :email, presence: true, unless: :manuel?
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
+  validates :telephone, presence: true, unless: :manuel?
+  validates :telephone, format: { with: /\A(\+33|0)[1-9](\d{2}){4}\z/, message: "doit être un numéro français valide" }, allow_blank: true
   # Exigé à la CRÉATION seulement : il dit si le chantier est dans la zone et
   # porte le coefficient régional. `on: :create` pour ne pas bloquer la mise à
   # jour des estimations d'avant cette règle, qui n'en ont pas (changer un
   # statut depuis l'admin échouerait sinon).
-  validates :code_postal, presence: true, on: :create
+  validates :code_postal, presence: true, on: :create, unless: :manuel?
   validates :code_postal, format: { with: /\A\d{5}\z/, message: "doit comporter 5 chiffres" }, allow_blank: true
   validates :reference, presence: true, uniqueness: true
   validates :statut, inclusion: { in: STATUTS }
@@ -73,7 +78,7 @@ class Estimation < ApplicationRecord
   validates :type_chantier, inclusion: { in: TYPES_CHANTIER.keys }, allow_blank: true
   validates :etage, numericality: { greater_than_or_equal_to: 0, less_than: 30 }
   validate :photos_valides
-  validate :au_moins_une_ligne
+  validate :au_moins_une_ligne, unless: :manuel?
 
   before_validation :generer_reference, on: :create
   before_save :calculer_coefficients
@@ -87,6 +92,15 @@ class Estimation < ApplicationRecord
     self.total_ht  = (sous_total * coef_region.to_d * coef_etage.to_d).round(2)
     self.total_ttc = (total_ht * (1 + tva_taux / 100)).round(2)
   end
+
+  # Devis créé directement depuis l'admin, sans passage par l'estimateur en
+  # ligne : les règles du tunnel public ne s'y appliquent pas.
+  ORIGINES = { "web" => "Estimation en ligne", "manuel" => "Créé dans l'admin" }.freeze
+
+  scope :manuelles, -> { where(origine: "manuel") }
+
+  def manuel?        = origine == "manuel"
+  def origine_label  = ORIGINES[origine] || origine
 
   # ------------------------------------------------------------------
   # TVA — franchise en base (art. 293 B du CGI)

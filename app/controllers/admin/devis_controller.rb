@@ -1,5 +1,5 @@
 class Admin::DevisController < Admin::BaseController
-  before_action :set_estimation, except: :index
+  before_action :set_estimation, except: %i[index nouveau creer]
 
   # Écran de devis terrain (tablette).
   # Tous les devis chiffrés, quel que soit leur état — l'écran qui manquait
@@ -28,6 +28,59 @@ class Admin::DevisController < Admin::BaseController
   def rouvrir
     @estimation.rouvrir_devis!
     redirect_back fallback_location: admin_devis_path, notice: "Devis rouvert."
+  end
+
+  # Créer un devis SANS estimation en ligne : chantier de bouche-à-oreille,
+  # client rencontré sur place, ancien client qui rappelle. Jusqu'ici il fallait
+  # un passage par le formulaire public, ce qui n'avait aucun sens ici.
+  def nouveau
+    @estimation = Estimation.new(origine: "manuel")
+    @clients = Client.order(:nom)
+  end
+
+  def creer
+    p = params.require(:estimation).permit(:nom, :email, :telephone, :adresse,
+                                           :code_postal, :ville, :type_chantier, :client_id)
+    client = Client.find_by(id: p[:client_id]) if p[:client_id].present?
+
+    estimation = Estimation.new(
+      origine: "manuel", statut: "contacte", devis_actif: true, tva_taux: 0,
+      nom: client&.nom.presence || p[:nom],
+      email: client&.email.presence || p[:email],
+      telephone: client&.telephone.presence || p[:telephone],
+      adresse: client&.adresse.presence || p[:adresse],
+      code_postal: client&.code_postal.presence || p[:code_postal],
+      ville: client&.ville.presence || p[:ville],
+      type_chantier: p[:type_chantier].presence,
+      client_id: client&.id
+    )
+
+    unless estimation.save
+      @estimation = estimation
+      @clients = Client.order(:nom)
+      flash.now[:alert] = estimation.errors.full_messages.to_sentence
+      return render :nouveau, status: :unprocessable_entity
+    end
+
+    # Toujours une fiche client derrière un devis : le CA du tableau de bord est
+    # agrégé PAR CLIENT, un devis orphelin resterait invisible dans les chiffres.
+    # ⚠️ Sans e-mail on ne peut pas passer par `upsert_from_estimation` : il
+    # chercherait une fiche à l'e-mail vide et rattacherait au premier client
+    # sans adresse (SCI JMR en l'occurrence). On crée alors une fiche neuve.
+    if estimation.client.blank?
+      fiche = if estimation.email.present?
+                Client.upsert_from_estimation(estimation)
+              else
+                Client.create!(nom: estimation.nom, telephone: estimation.telephone,
+                               adresse: estimation.adresse, code_postal: estimation.code_postal,
+                               ville: estimation.ville, statut: "contacte",
+                               derniere_interaction_at: Time.current)
+              end
+      estimation.update_column(:client_id, fiche.id)
+    end
+
+    redirect_to devis_lignes_admin_estimation_path(estimation),
+                notice: "Devis créé — ajoute tes lignes, elles se regroupent par section."
   end
 
   def show
