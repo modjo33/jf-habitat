@@ -60,11 +60,13 @@
       <div class="text-[11px] font-bold uppercase tracking-[0.18em] <%= @prochaine_declaration.a_declarer? ? 'text-accent' : 'text-ink-light' %>">
         URSSAF · <%= @prochaine_declaration.libelle %>
       </div>
+      <%# Le montant qui compte n'est pas le CA, c'est ce qu'il faut avoir de côté. %>
       <div class="font-display text-3xl mt-2 text-ink">
-        <%= number_to_currency(@prochaine_declaration.ca, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
+        <%= number_to_currency(@a_provisionner, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %>
       </div>
       <div class="text-xs text-ink-light mt-1">
-        <%= @prochaine_declaration.a_declarer? ? "à déclarer" : "trimestre en cours" %> · limite <%= l @prochaine_declaration.date_limite, format: "%d/%m" %>
+        à mettre de côté · <%= @prochaine_declaration.a_declarer? ? "à déclarer" : "période en cours" %>
+        · limite <%= l @prochaine_declaration.date_limite, format: "%d/%m" %>
       </div>
     </div>
     <%= link_to "Voir →", admin_declarations_path, class: "text-sm text-accent font-semibold hover:underline shrink-0" %>

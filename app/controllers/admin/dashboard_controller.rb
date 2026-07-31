@@ -22,8 +22,11 @@ class Admin::DashboardController < Admin::BaseController
     # Compta — prochaine échéance URSSAF (trimestre précédent si pas encore
     # déclaré, sinon trimestre en cours).
     calcul = CalculDeclarations.new
-    precedent = calcul.trimestre_precedent
-    @prochaine_declaration = precedent.a_declarer? ? precedent : calcul.trimestre_courant
+    # La plus proche échéance non déclarée, quelle que soit la périodicité ;
+    # à défaut, la période en cours.
+    @prochaine_declaration = calcul.prochaine_echeance || calcul.periode_courante
+    # Ce qui n'est pas à soi : les cotisations sur tout l'encaissé non déclaré.
+    @a_provisionner = calcul.a_provisionner
 
     @campagne = CampagneAds.instance
 

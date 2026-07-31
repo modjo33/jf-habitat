@@ -7,6 +7,9 @@ class Admin::DeclarationsController < Admin::BaseController
     @mois_courant   = @calcul.france_travail
     @mois_precedent = @calcul.mois_precedent
     @seuils = @calcul.seuils
+    @echeancier      = @calcul.echeancier.reverse
+    @a_provisionner  = @calcul.a_provisionner
+    @prochaine       = @calcul.prochaine_echeance
     @historique = DeclarationPeriode.order(annee: :desc, trimestre: :desc)
   end
 

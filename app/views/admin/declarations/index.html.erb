@@ -7,51 +7,7 @@
 </div>
 
 <%# ---- URSSAF ---- %>
-<div class="grid md:grid-cols-2 gap-4 mb-10">
-  <% [@trimestre_precedent, @trimestre_courant].each do |t| %>
-    <div class="card-premium p-6 <%= 'bg-ink text-sand border-ink' if t.a_declarer? %>">
-      <div class="flex items-start justify-between">
-        <div>
-          <div class="text-[11px] font-bold uppercase tracking-[0.18em] <%= t.a_declarer? ? 'text-accent' : 'text-ink-light' %>">
-            URSSAF · <%= t.libelle %>
-          </div>
-          <div class="font-display text-3xl mt-2 <%= t.a_declarer? ? 'text-sand' : 'text-ink' %>">
-            <%= montant.(t.ca) %>
-          </div>
-          <div class="text-xs mt-1 <%= t.a_declarer? ? 'text-sand/60' : 'text-ink-light' %>">
-            CA encaissé à déclarer · cotisations estimées : <strong><%= montant.(t.cotisations) %></strong>
-          </div>
-        </div>
-        <% if t.en_cours %>
-          <span class="text-xs px-2 py-1 rounded-full bg-sand text-ink-light border border-border-warm shrink-0">En cours</span>
-        <% elsif t.declaree? %>
-          <span class="text-xs px-2 py-1 rounded-full bg-sauge-soft text-ink border border-sauge/30 shrink-0">✓ Déclarée le <%= l t.declaration.declaree_le, format: "%d/%m" %></span>
-        <% elsif t.en_retard? %>
-          <span class="text-xs px-2 py-1 rounded-full bg-accent text-sand shrink-0">⚠ En retard</span>
-        <% end %>
-      </div>
-
-      <div class="mt-4 pt-4 border-t <%= t.a_declarer? ? 'border-sand/15' : 'border-border-warm/60' %> flex items-center justify-between gap-3">
-        <div class="text-xs <%= t.a_declarer? ? 'text-sand/70' : 'text-ink-light' %>">
-          <% if t.en_cours %>
-            Trimestre en cours — à déclarer avant le <strong><%= l t.date_limite, format: "%d/%m/%Y" %></strong>
-          <% else %>
-            Date limite : <strong><%= l t.date_limite, format: "%d/%m/%Y" %></strong>
-            <% if t.a_declarer? %>(dans <%= (t.date_limite - Date.current).to_i %> j)<% end %>
-          <% end %>
-        </div>
-        <% if t.a_declarer? %>
-          <%= button_to "✓ Marquer déclarée", admin_marquer_declaration_path(annee: t.annee, trimestre: t.numero),
-                method: :post, class: "text-xs font-bold bg-accent text-sand px-3 py-2 rounded-lg hover:opacity-90 transition shrink-0",
-                data: { turbo_confirm: "Tu as bien saisi #{montant.(t.ca)} sur autoentrepreneur.urssaf.fr ?" } %>
-        <% end %>
-      </div>
-      <div class="text-[11px] mt-3 <%= t.a_declarer? ? 'text-sand/50' : 'text-ink-light/70' %>">
-        À saisir sur autoentrepreneur.urssaf.fr → « Prestations de services (BIC) » : <strong><%= montant.(t.ca) %></strong>
-      </div>
-    </div>
-  <% end %>
-</div>
+<%= render "echeancier" %>
 
 <%# ---- France Travail ---- %>
 <div class="card-premium p-7 mb-10">

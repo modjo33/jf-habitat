@@ -91,6 +91,44 @@ class CalculDeclarations
     date.on_weekend? ? date.next_weekday : date
   end
 
+  # Échéancier complet : une ligne par période, du premier encaissement jusqu'à
+  # la période en cours. C'est la vue qui manquait — deux cartes ne disent pas
+  # ce qui arrive, ni combien il faut avoir mis de côté.
+  def echeancier
+    premier = Encaissement.minimum(:date_encaissement)
+    return [] if premier.blank?
+
+    debut = mensuelle? ? premier.beginning_of_month : premier.beginning_of_quarter
+    fin   = mensuelle? ? @aujourd_hui.beginning_of_month : @aujourd_hui.beginning_of_quarter
+    pas   = mensuelle? ? 1.month : 3.months
+
+    periodes = []
+    curseur = debut
+    while curseur <= fin
+      periodes << construire_periode(curseur.year, numero_de(curseur), en_cours: curseur == fin)
+      curseur += pas
+    end
+    periodes
+  end
+
+  # Ce qu'il faut avoir de côté : les cotisations de tout ce qui est encaissé et
+  # pas encore déclaré, période en cours comprise. C'est le chiffre qui manque
+  # quand l'argent rentre et que la cotisation tombe deux mois plus tard.
+  def a_provisionner
+    echeancier.reject(&:declaree?).sum { |p| p.cotisations.to_d }
+  end
+
+  # La prochaine échéance à honorer (la plus proche parmi les non déclarées).
+  def prochaine_echeance
+    echeancier.reject(&:declaree?).min_by(&:date_limite)
+  end
+
+  # Part de cotisations que porte un encaissement donné — pour afficher, au
+  # moment où l'argent rentre, ce qui n'est pas à soi.
+  def cotisations_sur(montant)
+    cotisations_estimees(montant.to_d)
+  end
+
   # ---- France Travail (mois) ----
 
   MoisFT = Struct.new(:annee, :mois, :ca, :revenu_retenu, :deduction_are, :jours_non_indemnises, :are_estimee, keyword_init: true) do

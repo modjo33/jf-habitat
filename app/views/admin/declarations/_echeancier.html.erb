@@ -1,0 +1,92 @@
+<%# Échéancier URSSAF : ce qui a été encaissé, ce que ça coûte, et quand.
+    Le montant à provisionner est le chiffre qui manquait — l'argent encaissé
+    n'est pas entièrement à soi, et la cotisation tombe deux mois plus tard. %>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div class="card-premium p-6 <%= "border-l-4 border-accent" if @a_provisionner.to_d.positive? %>">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">À mettre de côté</div>
+    <div class="font-display text-4xl text-ink mt-1"><%= eur(@a_provisionner) %></div>
+    <div class="text-xs text-ink-light mt-1">
+      cotisations dues sur tout ce qui est encaissé et pas encore déclaré
+    </div>
+  </div>
+  <div class="card-premium p-6">
+    <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Prochaine échéance</div>
+    <% if @prochaine %>
+      <div class="font-display text-4xl text-ink mt-1"><%= eur(@prochaine.cotisations) %></div>
+      <div class="text-xs text-ink-light mt-1">
+        <%= @prochaine.libelle %> · à payer avant le <strong><%= l @prochaine.date_limite, format: "%d/%m/%Y" %></strong>
+        <% jours = (@prochaine.date_limite - Date.current).to_i %>
+        <% if jours.negative? %>
+          <span class="text-red-600 font-bold">— en retard de <%= -jours %> j</span>
+        <% else %>
+          <span>(dans <%= jours %> j)</span>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="font-display text-4xl text-ink/30 mt-1">—</div>
+      <div class="text-xs text-ink-light mt-1">rien à déclarer pour l'instant</div>
+    <% end %>
+  </div>
+</div>
+
+<% if @echeancier.any? %>
+  <div class="card-premium p-7 mb-6">
+    <h2 class="font-display text-xl text-ink mb-1">Échéancier URSSAF</h2>
+    <p class="text-sm text-ink-light mb-5">
+      Une ligne par période, alimentée par tes encaissements — pas par tes factures :
+      l'URSSAF se calcule sur ce qui est <strong>réellement encaissé</strong>.
+      Taux appliqué : <%= number_with_precision(@reglages.taux_global, precision: 2) %> %.
+    </p>
+
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
+          <th class="pb-3 font-bold">Période</th>
+          <th class="pb-3 font-bold text-right">CA encaissé</th>
+          <th class="pb-3 font-bold text-right">Cotisations</th>
+          <th class="pb-3 font-bold">À déclarer avant</th>
+          <th class="pb-3 font-bold text-right">État</th>
+          <th class="pb-3 font-bold text-right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @echeancier.each do |p| %>
+          <% retard = p.en_retard? %>
+          <tr class="border-b border-border-warm/40 last:border-0">
+            <td class="py-3 font-semibold text-ink"><%= p.libelle %></td>
+            <td class="py-3 text-right tabular-nums text-ink"><%= eur(p.ca) %></td>
+            <td class="py-3 text-right tabular-nums font-semibold <%= p.ca.to_d.positive? ? "text-ink" : "text-ink-light" %>">
+              <%= eur(p.cotisations) %>
+            </td>
+            <td class="py-3 text-ink-light"><%= l p.date_limite, format: "%d/%m/%Y" %></td>
+            <td class="py-3 text-right">
+              <% if p.declaree? %>
+                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-800">Déclarée</span>
+              <% elsif retard %>
+                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700">En retard</span>
+              <% elsif p.en_cours %>
+                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-ink/10 text-ink-soft">En cours</span>
+              <% else %>
+                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">À déclarer</span>
+              <% end %>
+            </td>
+            <td class="py-3 text-right">
+              <% if p.a_declarer? %>
+                <%= button_to "✓ Marquer déclarée", admin_marquer_declaration_path(annee: p.annee, trimestre: p.numero),
+                      method: :post,
+                      class: "text-[11px] font-bold bg-accent text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition whitespace-nowrap",
+                      data: { turbo_confirm: "Tu as bien saisi #{eur(p.ca)} sur autoentrepreneur.urssaf.fr pour #{p.libelle} ?" } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <p class="text-xs text-ink-light mt-4">
+      Une période « en cours » continue de grossir à chaque encaissement que tu saisis.
+      Elle ne devient exigible qu'à la date indiquée.
+    </p>
+  </div>
+<% end %>
