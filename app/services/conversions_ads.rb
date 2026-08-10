@@ -76,20 +76,28 @@ class ConversionsAds
     end
 
     # Fichier au format attendu par Google Ads.
+    #
     # ⚠️ PAS de BOM UTF-8 ici (contrairement à l'export du livre des recettes) :
     # l'analyseur de Google lirait le BOM comme faisant partie du premier
     # en-tête et rejetterait le fichier.
+    #
+    # ⚠️ PAS de ligne `Parameters:TimeZone=…` non plus. Elle est admise par le
+    # téléversement manuel, mais un connecteur (feuille Google Sheets lue
+    # automatiquement) prend la PREMIÈRE ligne pour les en-têtes : il ne voyait
+    # alors qu'une seule colonne, `Parameters_TimeZone_Europe_Paris`, et aucun
+    # champ ne pouvait être apparié. Le décalage horaire est donc porté par
+    # l'horodatage lui-même (`2026-07-27 12:53:29+02:00`), forme que Google
+    # accepte dans les DEUX méthodes — et qui a le mérite d'être explicite.
     def csv(type, estimations = nil)
       conf = TYPES.fetch(type.to_s)
       lignes = estimations || a_exporter(type)
 
-      out = +"Parameters:TimeZone=Europe/Paris\n"
-      out << "Google Click ID,Conversion Name,Conversion Time,Conversion Value,Conversion Currency\n"
+      out = +"Google Click ID,Conversion Name,Conversion Time,Conversion Value,Conversion Currency\n"
       lignes.each do |e|
         out << [
           e.gclid,
           conf[:action],
-          horodatage(e, type).in_time_zone("Europe/Paris").strftime("%Y-%m-%d %H:%M:%S"),
+          horodatage(e, type).in_time_zone("Europe/Paris").strftime("%Y-%m-%d %H:%M:%S%:z"),
           format("%.2f", valeur(e, type)),
           "EUR"
         ].map { |c| echapper(c) }.join(",") << "\n"
