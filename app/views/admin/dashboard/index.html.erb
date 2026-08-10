@@ -144,8 +144,20 @@
       <%= f.text_field :budget_total, value: number_with_precision(@campagne.budget_total, precision: 2, separator: ","),
             class: "input-field w-32" %>
     </div>
+    <div>
+      <%= f.label :cout_journalier, "Coût / jour (€)", class: "block text-[11px] font-bold uppercase tracking-[0.15em] text-ink-light mb-1" %>
+      <%= f.text_field :cout_journalier, value: number_with_precision(@campagne.cout_journalier, precision: 2, separator: ","),
+            class: "input-field w-28", placeholder: "ex : 19" %>
+    </div>
+    <div>
+      <%= f.label :validation_deadline, "Échéance à surveiller", class: "block text-[11px] font-bold uppercase tracking-[0.15em] text-ink-light mb-1" %>
+      <%= f.date_field :validation_deadline, class: "input-field w-44" %>
+    </div>
     <%= f.submit "Mettre à jour", class: "bg-ink text-sand text-sm font-bold px-5 py-2.5 rounded-lg hover:opacity-90 transition cursor-pointer" %>
-    <span class="text-[11px] text-ink-light">Relève la dépense dans Google Ads → Facturation → Récapitulatif, puis reporte-la ici.</span>
+    <span class="text-[11px] text-ink-light w-full">
+      Relève la dépense dans Google Ads → Facturation → Récapitulatif, puis reporte-la ici.
+      <strong>Vide l'échéance</strong> une fois la démarche faite : c'est elle qui déclenche le bandeau rouge en haut de l'écran.
+    </span>
   <% end %>
 </div>
 
