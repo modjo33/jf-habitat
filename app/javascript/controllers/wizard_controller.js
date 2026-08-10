@@ -238,17 +238,36 @@ export default class extends Controller {
       if (hasFloor && !(p.solSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
     } else if (kind === "contact") {
       const nom = step.querySelector('[name="estimation[nom]"]')?.value.trim()
-      const email = step.querySelector('[name="estimation[email]"]')?.value.trim()
-      const tel = step.querySelector('[name="estimation[telephone]"]')?.value.trim()
+      const champEmail = step.querySelector('[name="estimation[email]"]')
+      const champTel = step.querySelector('[name="estimation[telephone]"]')
+      const email = champEmail?.value.trim()
+      const tel = champTel?.value.trim()
       if (!nom || !email || !tel) return this.fail(step, "Nom, email et téléphone sont requis.")
+
+      // On nettoie le champ AVANT l'envoi plutôt que de refuser : un Français
+      // écrit son numéro « 06 12 34 56 78 » ou « 06.12.34.56.78 », et le
+      // serveur n'accepte que les dix chiffres collés. Le rejet arrivait après
+      // six écrans remplis, effaçait tout le parcours, et personne ne
+      // recommençait.
+      if (champTel) champTel.value = tel.replace(/[\s.\-() ]/g, "")
+      if (champEmail) champEmail.value = email
+      if (champTel && !/^(\+33|0)[1-9](\d{2}){4}$/.test(champTel.value)) {
+        return this.fail(step, "Le téléphone doit être un numéro français à 10 chiffres.")
+      }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        return this.fail(step, "L'adresse e-mail ne semble pas valide.")
+      }
       // Le code postal dit si le chantier est dans la zone d'intervention, et
       // porte le coefficient régional du chiffrage. Sans lui, un lead payé peut
       // se révéler être à 250 km — c'est arrivé. Contrôlé ICI et pas seulement
       // côté serveur : un refus serveur re-rend le formulaire et efface tout le
       // parcours du visiteur, qui ne recommence jamais.
-      const cp = step.querySelector('[name="estimation[code_postal]"]')?.value.trim()
+      const champCp = step.querySelector('[name="estimation[code_postal]"]')
+      const cp = champCp?.value.trim()
       if (!cp) return this.fail(step, "Le code postal du chantier est requis.")
-      if (!/^\d{5}$/.test(cp)) return this.fail(step, "Le code postal doit comporter 5 chiffres.")
+      // Même logique que le téléphone : « 33 000 » est nettoyé, pas refusé.
+      if (champCp) champCp.value = cp.replace(/\s/g, "")
+      if (!/^\d{5}$/.test(champCp.value)) return this.fail(step, "Le code postal doit comporter 5 chiffres.")
     }
     return true
   }

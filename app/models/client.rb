@@ -115,7 +115,13 @@ class Client < ApplicationRecord
   # espace devant a bloqué la création d'un devis, la validation « 5 chiffres »
   # de l'estimation le refusant sans qu'on comprenne pourquoi.
   def nettoyer_espaces
-    %i[nom telephone adresse code_postal ville].each do |champ|
+    # Téléphone et code postal sont soumis à un format strict : on retire aussi
+    # les séparateurs INTERNES (« 06 12 34 56 78 », « 33 000 ») et pas seulement
+    # les bords, sinon la fiche est refusée pour une écriture parfaitement
+    # normale en France.
+    self.telephone = telephone.gsub(/[[:space:].\-()]/, "") if telephone.is_a?(String)
+    self.code_postal = code_postal.gsub(/[[:space:]]/, "") if code_postal.is_a?(String)
+    %i[nom adresse ville].each do |champ|
       valeur = send(champ)
       send("#{champ}=", valeur.strip) if valeur.is_a?(String) && valeur != valeur.strip
     end

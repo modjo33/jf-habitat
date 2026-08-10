@@ -80,6 +80,7 @@ class Estimation < ApplicationRecord
   validate :photos_valides
   validate :au_moins_une_ligne, unless: :manuel?
 
+  before_validation :normaliser_coordonnees
   before_validation :generer_reference, on: :create
   before_save :calculer_coefficients
   before_save :recalculer_totaux
@@ -441,6 +442,24 @@ class Estimation < ApplicationRecord
   def calculer_coef_etage
     return 1.0 if etage.to_i <= 2
     ascenseur? ? 1.03 : 1.10
+  end
+
+  # Accepter ce qu'un humain écrit, plutôt que de le refuser après coup.
+  #
+  # En France, un numéro se note « 06 12 34 56 78 » ou « 06.12.34.56.78 » — et
+  # la validation n'acceptait que les dix chiffres collés. Le message d'erreur
+  # donnait même en exemple le format qu'il rejetait. Un refus serveur re-rend
+  # le formulaire et EFFACE tout le parcours du visiteur : six écrans remplis
+  # perdus, et personne ne recommence. C'est ce qui a coûté 83 % des visiteurs
+  # arrivés jusqu'à l'écran des coordonnées.
+  def normaliser_coordonnees
+    self.telephone = telephone.gsub(/[[:space:].\-()]/, "") if telephone.is_a?(String)
+    self.code_postal = code_postal.gsub(/[[:space:]]/, "") if code_postal.is_a?(String)
+    self.email = email.strip.downcase if email.is_a?(String)
+    %i[nom adresse ville].each do |champ|
+      valeur = send(champ)
+      send("#{champ}=", valeur.strip) if valeur.is_a?(String) && valeur != valeur.strip
+    end
   end
 
   def generer_reference
