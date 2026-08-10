@@ -1,0 +1,142 @@
+<% montant = ->(v) { number_to_currency(v, unit: "€", separator: ",", delimiter: " ", format: "%n %u") } %>
+
+<div class="flex items-start justify-between mb-10">
+  <div>
+    <div class="eyebrow mb-2">Acquisition</div>
+    <h1 class="h-display text-4xl text-ink">Conversions Google Ads</h1>
+    <p class="text-ink-light mt-2">Renvoyer les vrais leads à Google, sans dépendre du consentement cookies.</p>
+  </div>
+</div>
+
+<div class="card-premium p-5 mb-6 border-l-4 border-ink/20">
+  <p class="text-sm text-ink-soft">
+    <strong class="text-ink">Pourquoi cet écran existe :</strong> la balise de conversion du site ne se déclenche que si
+    le visiteur accepte les cookies. Avec 87 % de trafic mobile, presque personne ne le fait — Google enregistrait donc
+    <strong>zéro conversion</strong> alors que les demandes de devis arrivaient bien, et ne pouvait pas optimiser les
+    enchères. L'identifiant de clic (<code class="text-xs">gclid</code>) est, lui, capté dans l'URL à l'arrivée et
+    conservé sur l'estimation : le renvoyer à Google par fichier contourne entièrement le bandeau cookies, et
+    fonctionne <strong>rétroactivement</strong>.
+  </p>
+</div>
+
+<div class="card-premium p-6 mb-6 flex flex-wrap items-center gap-6">
+  <div class="flex items-center gap-2">
+    <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mr-1">Type</span>
+    <% ConversionsAds::TYPES.each do |cle, conf| %>
+      <%= link_to conf[:libelle], admin_conversions_ads_path(type: cle),
+            class: "text-sm px-3 py-1.5 rounded-lg border transition #{cle == @type ? 'bg-ink text-sand border-ink font-bold' : 'border-border-warm text-ink-light hover:bg-sand'}" %>
+    <% end %>
+  </div>
+  <div class="text-xs text-ink-light"><%= @conf[:description] %></div>
+</div>
+
+<div class="grid md:grid-cols-3 gap-4 mb-8">
+  <div class="card-premium p-5">
+    <div class="text-[11px] uppercase tracking-[0.18em] text-ink-light mb-1">À importer</div>
+    <div class="font-display text-3xl text-accent"><%= @a_exporter.size %></div>
+    <div class="text-xs text-ink-light mt-1">jamais envoyées à Google</div>
+  </div>
+  <div class="card-premium p-5">
+    <div class="text-[11px] uppercase tracking-[0.18em] text-ink-light mb-1">Déjà importées</div>
+    <div class="font-display text-3xl text-ink"><%= @exportees.size %></div>
+    <div class="text-xs text-ink-light mt-1">sur les <%= ConversionsAds::FENETRE_JOURS %> derniers jours</div>
+  </div>
+  <div class="card-premium p-5">
+    <div class="text-[11px] uppercase tracking-[0.18em] text-ink-light mb-1">Sans identifiant de clic</div>
+    <div class="font-display text-3xl text-ink-light"><%= @sans_gclid %></div>
+    <div class="text-xs text-ink-light mt-1">hors publicité (direct, référencement) — normal</div>
+  </div>
+</div>
+
+<div class="card-premium p-6 mb-8">
+  <h2 class="h-display text-xl text-ink mb-4">Marche à suivre</h2>
+  <ol class="text-sm text-ink-soft space-y-3 list-decimal list-inside">
+    <li>
+      <strong class="text-ink">Une seule fois</strong> — dans Google Ads : <em>Objectifs → Conversions → Nouvelle action
+      de conversion → Importer → Autres sources de données ou CRM → Suivre les conversions à partir de clics</em>.
+      Nomme-la <strong class="text-accent"><%= @conf[:action] %></strong>, au caractère près.
+      Règle-la sur <strong>« une seule conversion » par clic</strong> : même si un fichier part deux fois, rien ne sera
+      compté en double.
+    </li>
+    <li><strong class="text-ink">Télécharge le fichier</strong> ci-dessous.</li>
+    <li>Dans Google Ads : <em>Objectifs → Conversions → Importations → <span class="whitespace-nowrap">+ → Importer maintenant → Importer un fichier</span></em>, puis vérifie le compte-rendu.</li>
+    <li><strong class="text-ink">Reviens ici et clique « Marquer comme importées »</strong> — uniquement si Google a accepté le fichier. Tant que tu ne cliques pas, le fichier reste régénérable à l'identique.</li>
+  </ol>
+</div>
+
+<div class="flex flex-wrap items-center gap-3 mb-8">
+  <%= link_to "⬇ Télécharger le CSV (#{@a_exporter.size})",
+        admin_conversions_ads_path(type: @type, format: :csv),
+        class: "btn-primary #{'opacity-40 pointer-events-none' if @a_exporter.empty?}" %>
+  <%= button_to "✓ Marquer comme importées", admin_marquer_conversions_ads_path(type: @type),
+        class: "text-sm font-semibold text-ink-light hover:text-ink underline #{'opacity-40 pointer-events-none' if @a_exporter.empty?}",
+        data: { turbo_confirm: "Confirmer que Google a bien accepté ces #{@a_exporter.size} conversions ?" } %>
+</div>
+
+<% if @a_exporter.any? %>
+  <h2 class="h-display text-xl text-ink mb-3">Contenu du fichier</h2>
+  <div class="card-premium overflow-x-auto mb-10">
+    <table class="w-full text-sm">
+      <thead class="bg-ink text-sand">
+        <tr>
+          <th class="text-left px-4 py-2 font-semibold">Lead</th>
+          <th class="text-left px-4 py-2 font-semibold">Date de conversion</th>
+          <th class="text-right px-4 py-2 font-semibold">Valeur envoyée</th>
+          <th class="text-left px-4 py-2 font-semibold">Identifiant de clic</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @a_exporter.each do |e| %>
+          <tr class="border-b border-border-warm/60">
+            <td class="px-4 py-2">
+              <%= link_to (e.nom.presence || "Sans nom"), admin_estimation_path(e), class: "font-semibold text-ink hover:text-accent" %>
+              <span class="text-ink-light text-xs block"><%= e.reference %></span>
+            </td>
+            <td class="px-4 py-2 text-ink-light"><%= l ConversionsAds.horodatage(e, @type), format: "%d/%m/%Y %H:%M" %></td>
+            <td class="px-4 py-2 text-right font-semibold text-ink"><%= montant.(ConversionsAds.valeur(e, @type)) %></td>
+            <td class="px-4 py-2 text-ink-light font-mono text-[11px]"><%= truncate(e.gclid, length: 28) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @type == "lead" %>
+    <div class="card-premium p-5 mb-10 border-l-4 border-accent/40">
+      <p class="text-sm text-ink-soft">
+        <strong class="text-ink">Sur la valeur envoyée :</strong> ce n'est pas le montant de l'estimation, mais
+        <strong><%= (ConversionsAds::TAUX_TRANSFORMATION * 100).round %> % de celui-ci</strong> — la part qu'un lead a
+        des chances d'être signé. Envoyer le montant brut ferait croire à Google qu'un simple formulaire vaut
+        10 000 €, et il surenchérirait. Le rapport entre les leads est conservé : un gros chantier reste plus précieux
+        qu'un petit. Le taux se règle dans <code class="text-xs">ConversionsAds::TAUX_TRANSFORMATION</code>.
+      </p>
+    </div>
+  <% end %>
+<% else %>
+  <div class="card-premium p-8 text-center text-ink-light mb-10">
+    Rien à importer pour l'instant — toutes les conversions connues ont déjà été envoyées à Google.
+  </div>
+<% end %>
+
+<% if @exportees.any? %>
+  <h2 class="h-display text-xl text-ink mb-3">Déjà importées</h2>
+  <div class="card-premium overflow-x-auto">
+    <table class="w-full text-sm">
+      <tbody>
+        <% @exportees.each do |e| %>
+          <tr class="border-b border-border-warm/60">
+            <td class="px-4 py-2">
+              <%= link_to (e.nom.presence || "Sans nom"), admin_estimation_path(e), class: "text-ink hover:text-accent" %>
+              <span class="text-ink-light text-xs"><%= e.reference %></span>
+            </td>
+            <td class="px-4 py-2 text-ink-light"><%= l ConversionsAds.horodatage(e, @type), format: "%d/%m/%Y" %></td>
+            <td class="px-4 py-2 text-right text-ink-light"><%= montant.(ConversionsAds.valeur(e, @type)) %></td>
+            <td class="px-4 py-2 text-right text-xs text-ink-light">
+              envoyée le <%= l e.send(@conf[:colonne]), format: "%d/%m/%Y" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

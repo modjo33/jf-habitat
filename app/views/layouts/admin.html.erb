@@ -54,6 +54,7 @@
               <%= nav.(admin_devis_path, "Devis", %w[devis], badge: Estimation.avec_devis.where(devis_accepte_at: nil, devis_signe_at: nil).count) %>
               <%= nav.(admin_rdvs_path, "Agenda", %w[rdvs]) %>
               <%= nav.(admin_tunnel_path, "Tunnel d'estimation", %w[tunnel]) %>
+              <%= nav.(admin_conversions_ads_path, "Conversions Google Ads", %w[conversions_ads], badge: ConversionsAds.a_exporter("lead").count) %>
             </div>
           </div>
 

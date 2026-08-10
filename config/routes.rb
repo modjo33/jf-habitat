@@ -101,6 +101,10 @@ Rails.application.routes.draw do
     # Entonnoir du tunnel d'estimation (où décrochent les visiteurs)
     get "tunnel", to: "tunnel#index", as: :tunnel
 
+    # Renvoi des conversions à Google Ads par gclid (contourne le consentement cookies)
+    get  "conversions-ads",         to: "conversions_ads#index",   as: :conversions_ads
+    post "conversions-ads/marquer", to: "conversions_ads#marquer", as: :marquer_conversions_ads
+
     # Analyse de rentabilité d'un devis (outil interne, jamais côté client)
     get  "calibrage",           to: "calibrage#index",     as: :calibrage
     post "calibrage/appliquer", to: "calibrage#appliquer", as: :calibrage_appliquer
