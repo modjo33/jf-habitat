@@ -47,6 +47,7 @@ Rails.application.routes.draw do
         post  :devis_envoyer,      to: "devis#envoyer"       # envoyer le devis (doc joint) au client
         get   :devis_document_pdf, to: "devis#document_pdf"  # télécharger le PDF du devis (base)
         post  :devis_accepter,     to: "devis#accepter"      # accord reçu hors signature à l'écran
+        post  :devis_refuser,      to: "devis#refuser"       # devis refusé (sort du CA potentiel)
         post  :devis_rouvrir,      to: "devis#rouvrir"       # annuler une acceptation
       end
     end

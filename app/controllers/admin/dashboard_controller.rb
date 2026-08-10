@@ -6,7 +6,9 @@ class Admin::DashboardController < Admin::BaseController
     # CA : devis terrain signé s'il existe, sinon chiffrage web (voir
     # Estimation.ca_montant). Client.ca_devis évite de compter deux fois un
     # chantier saisi à la fois en devis manuel et en devis terrain.
-    @ca_potentiel = Client.ca_devis + Estimation.where(client_id: nil).ca_montant
+    # Le potentiel ignore ce qui est perdu : un devis refusé n'est plus un espoir.
+    @ca_potentiel = Client.ca_devis(Client.where.not(statut: "perdu")) +
+                    Estimation.where(client_id: nil).where.not(statut: "perdu").ca_montant
     @derniers_leads = Estimation.order(created_at: :desc).limit(10)
     @leads_par_statut = Estimation.group(:statut).count
 

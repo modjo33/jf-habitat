@@ -97,10 +97,17 @@
                   <%= button_to "Annuler l'accord", devis_rouvrir_admin_estimation_path(e), method: :post,
                         form: { data: { turbo_confirm: "Retirer ce devis du CA gagné ?" } },
                         class: "text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-warm text-ink-light hover:bg-sand" %>
+                <% elsif e.devis_etat == "refuse" %>
+                  <%= button_to "Rouvrir", devis_rouvrir_admin_estimation_path(e), method: :post,
+                        form: { data: { turbo_confirm: "Remettre ce devis en attente de réponse ?" } },
+                        class: "text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-warm text-ink-light hover:bg-sand" %>
                 <% else %>
                   <%= button_to "✓ Accepté", devis_accepter_admin_estimation_path(e), method: :post,
                         form: { data: { turbo_confirm: "Marquer ce devis comme accepté ? Le montant entrera dans le CA gagné." } },
                         class: "text-xs font-semibold px-3 py-1.5 rounded-lg bg-accent text-white hover:opacity-90" %>
+                  <%= button_to "✗ Refusé", devis_refuser_admin_estimation_path(e), method: :post,
+                        form: { data: { turbo_confirm: "Marquer ce devis comme refusé ? Le montant sortira du CA potentiel." } },
+                        class: "text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-warm text-ink-light hover:bg-sand" %>
                 <% end %>
               </div>
             </td>

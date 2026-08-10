@@ -80,12 +80,18 @@ class Client < ApplicationRecord
 
   # Agrégat SQL équivalent à la somme des `total_devis_envoyes`, sans doublon :
   # devis manuels des clients qui n'ont AUCUN devis terrain, + devis/estimations.
+  # ⚠️ Les estimations PERDUES sont exclues. Sans ça, un client par ailleurs
+  # gagné voyait le montant de son devis refusé remonter dans le CA gagné —
+  # le cas se présente dès qu'on chiffre un second chantier pour un client
+  # existant et qu'il le décline.
   def self.ca_devis(scope = all)
     ids = scope.pluck(:id)
     return 0.to_d if ids.empty?
-    avec_devis = Estimation.where(client_id: ids).where("devis_total > 0").distinct.pluck(:client_id)
-    manuels = where(id: ids - avec_devis).sum(:montant_devis_manuel).to_d
-    manuels + Estimation.where(client_id: ids).ca_montant
+
+    vivantes = Estimation.where(client_id: ids).where.not(statut: "perdu")
+    avec_devis = vivantes.where("devis_total > 0").distinct.pluck(:client_id)
+    manuels = where(id: ids - avec_devis).where.not(statut: "perdu").sum(:montant_devis_manuel).to_d
+    manuels + vivantes.ca_montant
   end
 
   def a_relancer?

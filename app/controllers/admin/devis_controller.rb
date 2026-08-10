@@ -25,6 +25,15 @@ class Admin::DevisController < Admin::BaseController
                   notice: "Devis accepté — #{helpers.eur(@estimation.devis_total)} entrent dans le CA gagné."
   end
 
+  # Devis refusé. Le pendant d'`accepter` : sans lui, marquer un devis perdu
+  # laissait la fiche client active et le montant dans le CA potentiel.
+  def refuser
+    @estimation.perdre_devis!
+    suite = @estimation.client&.statut == "perdu" ? " La fiche client passe en « perdu »." : ""
+    redirect_back fallback_location: admin_devis_path,
+                  notice: "Devis marqué comme refusé — le montant sort du CA potentiel.#{suite}"
+  end
+
   def rouvrir
     @estimation.rouvrir_devis!
     redirect_back fallback_location: admin_devis_path, notice: "Devis rouvert."

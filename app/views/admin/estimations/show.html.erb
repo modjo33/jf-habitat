@@ -47,10 +47,17 @@
         <%= button_to "Annuler l'accord", devis_rouvrir_admin_estimation_path(@estimation), method: :post,
               form: { data: { turbo_confirm: "Retirer ce devis du CA gagné ?" } },
               class: "btn-secondary text-sm px-5 py-2.5" %>
+      <% elsif @estimation.devis_etat == "refuse" %>
+        <%= button_to "Rouvrir le devis", devis_rouvrir_admin_estimation_path(@estimation), method: :post,
+              form: { data: { turbo_confirm: "Remettre ce devis en attente de réponse ?" } },
+              class: "btn-secondary text-sm px-5 py-2.5" %>
       <% else %>
         <%= button_to "✓ Devis accepté", devis_accepter_admin_estimation_path(@estimation), method: :post,
               form: { data: { turbo_confirm: "Marquer ce devis comme accepté ? Le montant entrera dans le CA gagné." } },
               class: "btn-primary text-sm px-5 py-2.5" %>
+        <%= button_to "✗ Devis refusé", devis_refuser_admin_estimation_path(@estimation), method: :post,
+              form: { data: { turbo_confirm: "Marquer ce devis comme refusé ? Le montant sortira du CA potentiel." } },
+              class: "btn-secondary text-sm px-5 py-2.5" %>
       <% end %>
       <% facture = Facture.find_by(estimation_id: @estimation.id) %>
       <% if facture %>

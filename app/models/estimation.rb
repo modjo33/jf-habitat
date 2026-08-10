@@ -306,10 +306,32 @@ class Estimation < ApplicationRecord
     nil
   end
 
-  def rouvrir_devis!
-    update_columns(devis_accepte_at: nil, statut: "devis_envoye", updated_at: Time.current)
+  # Symétrique d'`accepter_devis!`. Sans elle, marquer un devis perdu ne
+  # touchait QUE l'estimation : la fiche client restait active dans le Kanban
+  # et dans les compteurs, et le montant continuait de gonfler le CA potentiel.
+  def perdre_devis!
+    transaction do
+      update_columns(statut: "perdu", devis_accepte_at: nil, updated_at: Time.current)
+      # On ne condamne la fiche que si ce devis était son seul espoir : un
+      # client qui a un autre chantier en cours reste un client actif.
+      client&.update(statut: "perdu") unless client_encore_actif?
+    end
     devis_analyse&.rafraichir!
     self
+  end
+
+  def rouvrir_devis!
+    update_columns(devis_accepte_at: nil, statut: "devis_envoye", updated_at: Time.current)
+    client&.update(statut: "devis_envoye") if client&.statut == "perdu"
+    devis_analyse&.rafraichir!
+    self
+  end
+
+  # Le client a-t-il un autre dossier vivant que celui-ci ?
+  def client_encore_actif?
+    return false if client.blank?
+
+    client.estimations.where.not(id: id).where.not(statut: "perdu").exists?
   end
 
   # Un devis ouvert mais jamais chiffré : cliquer « Devis assisté » crée déjà
