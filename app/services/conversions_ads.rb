@@ -50,8 +50,15 @@ class ConversionsAds
       scope.order(:created_at)
     end
 
-    def deja_exportees(type) = eligibles(type).where.not(TYPES[type.to_s][:colonne] => nil)
-    def a_exporter(type)     = eligibles(type).where(TYPES[type.to_s][:colonne] => nil)
+    def deja_exportees(type) = dedoublonner(eligibles(type).where.not(TYPES[type.to_s][:colonne] => nil))
+    def a_exporter(type)     = dedoublonner(eligibles(type).where(TYPES[type.to_s][:colonne] => nil))
+
+    # Un clic publicitaire ne vaut qu'une conversion. Deux soumissions depuis le
+    # même clic (cas vécu : le même visiteur a rempli le formulaire deux fois à
+    # deux minutes d'intervalle) sont un seul lead — les envoyer toutes les deux
+    # doublerait le compteur de Google et fausserait ses enchères.
+    # On garde la première, l'ordre étant chronologique.
+    def dedoublonner(scope) = scope.to_a.uniq(&:gclid)
 
     # Date retenue comme moment de la conversion : la soumission pour un lead,
     # l'acceptation du devis pour une vente.
@@ -94,9 +101,14 @@ class ConversionsAds
       "conversions-google-ads-#{type}-#{Date.current.strftime('%Y%m%d')}.csv"
     end
 
+    # On marque PAR GCLID, pas par identifiant : sinon le doublon écarté à
+    # l'export ressortirait au tour suivant, une fois son jumeau marqué.
     def marquer!(type, estimations)
       colonne = TYPES.fetch(type.to_s)[:colonne]
-      Estimation.where(id: Array(estimations).map(&:id)).update_all(colonne => Time.current)
+      gclids  = Array(estimations).map(&:gclid).compact_blank
+      return 0 if gclids.empty?
+
+      Estimation.where(gclid: gclids).update_all(colonne => Time.current)
     end
 
     private

@@ -2,8 +2,8 @@ class Admin::ConversionsAdsController < Admin::BaseController
   before_action :set_type
 
   def index
-    @a_exporter = ConversionsAds.a_exporter(@type).to_a
-    @exportees  = ConversionsAds.deja_exportees(@type).reverse_order.to_a
+    @a_exporter = ConversionsAds.a_exporter(@type)
+    @exportees  = ConversionsAds.deja_exportees(@type).reverse
     @sans_gclid = Estimation.where(gclid: [nil, ""])
                             .where("created_at >= ?", ConversionsAds::FENETRE_JOURS.days.ago).count
 
@@ -20,7 +20,7 @@ class Admin::ConversionsAdsController < Admin::BaseController
   # Marquage explicite APRÈS téléversement réussi : si l'import échoue chez
   # Google, rien n'a été marqué et le fichier reste régénérable à l'identique.
   def marquer
-    lignes = ConversionsAds.a_exporter(@type).to_a
+    lignes = ConversionsAds.a_exporter(@type)
     ConversionsAds.marquer!(@type, lignes)
     redirect_to admin_conversions_ads_path(type: @type),
                 notice: "#{lignes.size} conversion#{'s' if lignes.size > 1} marquée#{'s' if lignes.size > 1} comme importée#{'s' if lignes.size > 1}."
