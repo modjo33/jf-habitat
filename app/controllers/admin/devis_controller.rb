@@ -49,7 +49,7 @@ class Admin::DevisController < Admin::BaseController
       email: client&.email.presence || p[:email],
       telephone: client&.telephone.presence || p[:telephone],
       adresse: client&.adresse.presence || p[:adresse],
-      code_postal: client&.code_postal.presence || p[:code_postal],
+      code_postal: premier_code_postal(client&.code_postal, p[:code_postal]),
       ville: client&.ville.presence || p[:ville],
       type_chantier: p[:type_chantier].presence,
       client_id: client&.id
@@ -285,6 +285,17 @@ class Admin::DevisController < Admin::BaseController
   rescue => e
     Rails.logger.error "[Devis] envoi du mail signé échoué : #{e.class} #{e.message}"
     flash[:alert] = "Devis signé, mais l'envoi de l'e-mail a échoué. Utilisez « Renvoyer le mail »."
+  end
+
+  # La fiche client peut porter, dans sa case code postal, autre chose qu'un
+  # code postal — une ville y a déjà été saisie par erreur, et une espace
+  # invisible devant les chiffres suffit à faire échouer la validation
+  # « 5 chiffres » de l'estimation. Comme la fiche l'emporte sur la saisie, le
+  # devis devenait impossible à créer sans qu'on voie pourquoi.
+  # On retient donc le premier candidat réellement valide.
+  def premier_code_postal(*candidats)
+    valeurs = candidats.map { |v| v.to_s.strip }.compact_blank
+    valeurs.find { |v| v.match?(/\A\d{5}\z/) } || valeurs.first
   end
 
   def set_estimation

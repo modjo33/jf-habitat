@@ -20,6 +20,7 @@ class Client < ApplicationRecord
   validates :telephone, format: { with: /\A(\+33|0)[1-9](\d{2}){4}\z/, message: "doit être un numéro français valide" }, allow_blank: true
 
   before_validation :downcase_email
+  before_validation :nettoyer_espaces
 
   scope :par_statut,  ->(s) { s.present? ? where(statut: s) : all }
   scope :recents,     -> { order(updated_at: :desc) }
@@ -101,5 +102,16 @@ class Client < ApplicationRecord
 
   def downcase_email
     self.email = email.to_s.downcase.strip if email.present?
+  end
+
+  # Une espace invisible en début de champ ne se voit pas dans l'admin mais
+  # casse tout ce qui lit la valeur : un code postal saisi « 33140 » avec une
+  # espace devant a bloqué la création d'un devis, la validation « 5 chiffres »
+  # de l'estimation le refusant sans qu'on comprenne pourquoi.
+  def nettoyer_espaces
+    %i[nom telephone adresse code_postal ville].each do |champ|
+      valeur = send(champ)
+      send("#{champ}=", valeur.strip) if valeur.is_a?(String) && valeur != valeur.strip
+    end
   end
 end
