@@ -35,7 +35,8 @@
       <%= link_to "Enregistrer le premier →", new_admin_encaissement_path, class: "text-accent font-semibold hover:underline" %>
     </div>
   <% else %>
-    <table class="w-full text-sm">
+    <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+      <table class="w-full text-sm">
       <thead>
         <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light border-b border-border-warm/60">
           <th class="py-3 font-semibold">Date</th>
@@ -71,6 +72,7 @@
           </tr>
         <% end %>
       </tbody>
-    </table>
+      </table>
+    </div>
   <% end %>
 </div>

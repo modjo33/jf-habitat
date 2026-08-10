@@ -22,7 +22,8 @@
   <% if @clients.empty? %>
     <div class="text-center py-16 text-ink-light">Aucun client.</div>
   <% else %>
-    <table class="w-full text-sm">
+    <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+      <table class="w-full text-sm">
       <thead class="bg-sand-dark/60">
         <tr class="text-left text-[11px] uppercase tracking-[0.15em] text-ink-light">
           <th class="px-4 py-3 font-semibold">Client</th>
@@ -70,6 +71,7 @@
           </tr>
         <% end %>
       </tbody>
-    </table>
+      </table>
+    </div>
   <% end %>
 </div>
