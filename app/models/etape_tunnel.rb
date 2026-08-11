@@ -27,7 +27,17 @@ class EtapeTunnel < ApplicationRecord
   # Hors entonnoir : un appel n'est pas une marche du parcours, c'est une sortie
   # par le côté. L'afficher dans le tableau lui donnerait un « taux de passage »
   # qui ne veut rien dire — il est compté à part.
-  HORS_ENTONNOIR = { "appel" => "Appel déclenché" }.freeze
+  # `envoi_tente` / `envoi_bloque` séparent les deux façons de finir à zéro :
+  # le visiteur n'a jamais tapé le bouton final (sujet d'offre, de confiance),
+  # ou il l'a tapé et la validation l'a refusé (sujet de code). Sans elles, un
+  # blocage silencieux a exactement la même signature qu'un renoncement — c'est
+  # ce qui a fait accuser l'écran 1 pendant des semaines alors que le trou était
+  # sur le dernier écran.
+  HORS_ENTONNOIR = {
+    "appel"        => "Appel déclenché",
+    "envoi_tente"  => "Bouton final tapé",
+    "envoi_bloque" => "Envoi refusé par la validation"
+  }.freeze
   EVENEMENTS = ETAPES.merge(HORS_ENTONNOIR).freeze
 
   # Première étape émise par le JavaScript du wizard : elle part dès que
@@ -132,6 +142,23 @@ class EtapeTunnel < ApplicationRecord
     scope = scope.where(source: source)     if source.present?
     scope = scope.where(appareil: appareil) if appareil.present?
     scope.count
+  end
+
+  # Dernier écran : combien ont tapé le bouton, combien ont été refusés, et
+  # combien de refus sont restés sans suite. Un `bloques` élevé est un défaut de
+  # code (un champ que le visiteur ne peut pas satisfaire), pas un renoncement.
+  def self.dernier_ecran(debut:, fin:, source: nil, appareil: nil)
+    compte = compteurs(debut: debut, fin: fin, source: source, appareil: appareil)
+    tentes  = compte["envoi_tente"].to_i
+    bloques = compte["envoi_bloque"].to_i
+    {
+      arrives: compte["contact"].to_i,
+      tentes: tentes,
+      bloques: bloques,
+      soumis: compte["soumis"].to_i,
+      # Part des visiteurs qui ont tapé le bouton sans jamais aboutir.
+      bloques_pct: tentes.positive? ? (bloques * 100.0 / tentes).round(1) : nil
+    }
   end
 
   def self.purger(avant: RETENTION.ago)

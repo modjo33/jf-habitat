@@ -11,6 +11,7 @@ class Admin::TunnelController < Admin::BaseController
     @entonnoir   = EtapeTunnel.entonnoir(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @navigateurs = EtapeTunnel.navigateurs(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @appels      = EtapeTunnel.appels(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
+    @dernier_ecran = EtapeTunnel.dernier_ecran(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @par_source  = EtapeTunnel.par_source(debut: @debut, fin: @fin)
     @par_appareil = EtapeTunnel.par_appareil(debut: @debut, fin: @fin)
     @premiere_mesure = EtapeTunnel.minimum(:created_at)

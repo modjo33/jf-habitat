@@ -76,7 +76,12 @@ export default class extends Controller {
     // pas de data-step ; côté serveur ils sont dédoublonnés de toute façon.
     const etape = step.dataset.step || (step.dataset.validate === "dimensions" ? "dimensions" : null)
     if (!etape) return
+    this.baliser(etape)
+  }
 
+  // Envoi d'un événement de mesure. Silencieux par construction : la mesure ne
+  // doit jamais gêner le parcours.
+  baliser(etape) {
     const jeton = document.querySelector('meta[name="csrf-token"]')?.content
     fetch("/suivi-tunnel", {
       method: "POST",
@@ -232,17 +237,26 @@ export default class extends Controller {
       const gamme = step.querySelector('input[name="piece_gamme"]')
       if (!gamme || !gamme.value) return this.fail(step, "Choisissez un niveau de finition.")
     } else if (kind === "dimensions") {
+      // Les bornes min/max des champs sont désormais contrôlées ICI : le
+      // formulaire est en `novalidate` (voir new.html.erb), donc plus personne
+      // ne rattrape une hauteur à 25 m. Une valeur aberrante partait sinon au
+      // serveur et gonflait le chiffrage d'un facteur dix.
+      const horsBornes = this.champHorsBornes(step)
+      if (horsBornes) return this.fail(step, horsBornes.message, horsBornes.champ)
       const p = this.lireDimensions(step)
       const { hasFloor, hasWalls } = this.surfaceFlags()
       if (hasWalls && !(p.mursSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
       if (hasFloor && !(p.solSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
     } else if (kind === "contact") {
-      const nom = step.querySelector('[name="estimation[nom]"]')?.value.trim()
+      const champNom = step.querySelector('[name="estimation[nom]"]')
+      const nom = champNom?.value.trim()
       const champEmail = step.querySelector('[name="estimation[email]"]')
       const champTel = step.querySelector('[name="estimation[telephone]"]')
       const email = champEmail?.value.trim()
       const tel = champTel?.value.trim()
-      if (!nom || !email || !tel) return this.fail(step, "Nom, email et téléphone sont requis.")
+      if (!nom) return this.fail(step, "Merci d'indiquer votre nom.", champNom)
+      if (!email) return this.fail(step, "Merci d'indiquer votre e-mail.", champEmail)
+      if (!tel) return this.fail(step, "Merci d'indiquer votre téléphone.", champTel)
 
       // On nettoie le champ AVANT l'envoi plutôt que de refuser : un Français
       // écrit son numéro « 06 12 34 56 78 » ou « 06.12.34.56.78 », et le
@@ -252,10 +266,10 @@ export default class extends Controller {
       if (champTel) champTel.value = tel.replace(/[\s.\-() ]/g, "")
       if (champEmail) champEmail.value = email
       if (champTel && !/^(\+33|0)[1-9](\d{2}){4}$/.test(champTel.value)) {
-        return this.fail(step, "Le téléphone doit être un numéro français à 10 chiffres.")
+        return this.fail(step, "Le téléphone doit être un numéro français à 10 chiffres.", champTel)
       }
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-        return this.fail(step, "L'adresse e-mail ne semble pas valide.")
+        return this.fail(step, "L'adresse e-mail ne semble pas valide.", champEmail)
       }
       // Le code postal dit si le chantier est dans la zone d'intervention, et
       // porte le coefficient régional du chiffrage. Sans lui, un lead payé peut
@@ -264,19 +278,56 @@ export default class extends Controller {
       // parcours du visiteur, qui ne recommence jamais.
       const champCp = step.querySelector('[name="estimation[code_postal]"]')
       const cp = champCp?.value.trim()
-      if (!cp) return this.fail(step, "Le code postal du chantier est requis.")
+      if (!cp) return this.fail(step, "Le code postal du chantier est requis.", champCp)
       // Même logique que le téléphone : « 33 000 » est nettoyé, pas refusé.
       if (champCp) champCp.value = cp.replace(/\s/g, "")
-      if (!/^\d{5}$/.test(champCp.value)) return this.fail(step, "Le code postal doit comporter 5 chiffres.")
+      if (!/^\d{5}$/.test(champCp.value)) return this.fail(step, "Le code postal doit comporter 5 chiffres.", champCp)
     }
     return true
   }
 
-  fail(step, msg) {
+  // ⚠️ Afficher le message ne suffit pas : il faut l'AMENER SOUS LES YEUX.
+  // Le bouton est `sticky`, donc tapable depuis n'importe quel endroit de
+  // l'écran, alors que le message vit dans le flux juste au-dessus de sa
+  // position naturelle. Mesuré en prod sur iPhone : au refus, le message
+  // s'affichait 1 150 à 1 350 px SOUS le bas de la fenêtre — invisible. Le
+  // visiteur tapait, rien ne bougeait, il recommençait, puis il partait. C'est
+  // la première cause des parcours remplis jusqu'au bout sans aucun envoi.
+  fail(step, msg, champ = null) {
     this.clearError()
     const box = step.querySelector("[data-wizard-target='error']") || (this.hasErrorTarget && this.errorTarget)
-    if (box) { box.textContent = msg; box.classList.remove("hidden") }
+    if (box) {
+      box.textContent = msg
+      box.classList.remove("hidden")
+      box.scrollIntoView({ block: "center", behavior: "smooth" })
+    }
+    // Le champ fautif reçoit le focus : le clavier s'ouvre au bon endroit et le
+    // visiteur sait quoi corriger, sans avoir à relire tout le formulaire.
+    if (champ) setTimeout(() => { try { champ.focus() } catch (e) {} }, 200)
     return false
+  }
+
+  // Première mesure de dimension hors de ses bornes, ou null.
+  // Libellés lisibles : le visiteur doit savoir QUELLE case corriger.
+  champHorsBornes(step) {
+    const libelles = {
+      hauteur: "la hauteur sous plafond", murs_L: "la longueur des murs",
+      murs_H: "la hauteur des murs", sol_L: "la longueur du sol",
+      sol_l: "la largeur du sol", surface_sol: "la surface au sol"
+    }
+    for (const champ of step.querySelectorAll("input[data-dim]")) {
+      const v = parseFloat(String(champ.value).replace(",", "."))
+      if (!Number.isFinite(v) || champ.value === "") continue
+      const min = parseFloat(champ.min), max = parseFloat(champ.max)
+      const tropBas = Number.isFinite(min) && v < min
+      const tropHaut = Number.isFinite(max) && v > max
+      if (tropBas || tropHaut) {
+        const libelle = libelles[champ.dataset.dim] || "cette dimension"
+        const borne = tropHaut ? `dépasser ${this.fmt(max)}` : `être inférieure à ${this.fmt(min)}`
+        return { champ, message: `Vérifiez ${libelle} : elle ne peut pas ${borne}.` }
+      }
+    }
+    return null
   }
 
   clearError() {
@@ -468,7 +519,14 @@ export default class extends Controller {
   submitForm(event) {
     if (event) event.preventDefault()
     const step = this.steps[this.index]
-    if (!this.validateStep(step)) return
+    // On distingue « personne ne tape le bouton » de « le bouton est tapé mais
+    // rien ne part ». Sans cette balise, un refus silencieux ressemble
+    // exactement à un visiteur qui renonce — c'est ce qui a coûté des semaines.
+    this.baliser("envoi_tente")
+    if (!this.validateStep(step)) {
+      this.baliser("envoi_bloque")
+      return
+    }
     this.buildPrecisions()
     this.buildLines()
     if (this.hasSubmitBtnTarget) {

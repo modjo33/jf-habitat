@@ -28,8 +28,17 @@
   sources   = ["Bouche-à-oreille", "Recherche Google", "Réseaux sociaux", "J'ai déjà fait appel à vous", "Autre"]
 %>
 
+<%# `novalidate` est INDISPENSABLE, pas un détail de confort.
+    Les champs de dimensions vivent dans des écrans masqués mais restent dans le
+    formulaire, avec des contraintes `min`/`max`. Une hauteur saisie « 25 » au
+    lieu de « 2,5 » rendait donc le formulaire invalide pour le navigateur, qui
+    refusait `requestSubmit()` SANS RIEN AFFICHER (« An invalid form control
+    with name='' is not focusable » en console) : le visiteur tapait le bouton
+    final, rien ne se passait, il partait. La validation du parcours est faite
+    par `wizard_controller`, écran par écran, avec des messages lisibles. %>
 <%= form_with model: @estimation, url: estimation_path, method: :post, multipart: true,
       data: { controller: "wizard", action: "keydown->wizard#onKeydown" },
+      html: { novalidate: true },
       class: "wizard-shell" do |f| %>
 
   <!-- Barre de progression -->
@@ -275,9 +284,14 @@
         </div>
         <div>
           <%= f.label :code_postal, "Code postal *", class: "label-field" %>
-          <%# Clavier numérique sur mobile (84 % du trafic) : cinq chiffres, pas un mot. %>
+          <%# Clavier numérique sur mobile (84 % du trafic) : cinq chiffres, pas un mot.
+              ⚠️ `maxlength` vaut 7 et NON 5 : beaucoup écrivent « 33 640 ». À 5,
+              le navigateur tronquait la saisie à « 33 64 », la validation
+              refusait « 5 chiffres » et le visiteur restait coincé sur un champ
+              qui semblait pourtant rempli. Les espaces sont retirés au moment
+              de valider. %>
           <%= f.text_field :code_postal, placeholder: "33640", class: "input-field",
-                inputmode: "numeric", maxlength: 5, autocomplete: "postal-code" %>
+                inputmode: "numeric", maxlength: 7, autocomplete: "postal-code" %>
         </div>
         <div>
           <%= f.label :ville, "Ville", class: "label-field" %>

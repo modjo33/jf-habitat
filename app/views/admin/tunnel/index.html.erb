@@ -126,6 +126,55 @@
     </div>
   <% end %>
 
+  <%# Le dernier écran mérite sa propre lecture : un visiteur qui a rempli les
+      six écrans et repart est le plus cher de tous. Tant qu'on ne savait pas
+      s'il tapait le bouton, un refus silencieux de la validation ressemblait
+      trait pour trait à un renoncement. %>
+  <% de = @dernier_ecran %>
+  <% if de[:arrives].positive? %>
+    <div class="card-premium p-7 mb-6">
+      <h2 class="font-display text-xl text-ink mb-1">Dernier écran : du bouton à l'envoi</h2>
+      <p class="text-sm text-ink-light mb-5">
+        Ceux qui arrivent ici ont tout rempli. S'ils tapent le bouton sans que rien ne parte,
+        c'est un défaut du site — pas un abandon.
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Sur l'écran</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= de[:arrives] %></div>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Ont tapé le bouton</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= de[:tentes] %></div>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Refusés</div>
+          <div class="font-display text-3xl mt-1 <%= de[:bloques].positive? ? "text-red-600" : "text-ink" %>">
+            <%= de[:bloques] %>
+          </div>
+          <% if de[:bloques_pct] %>
+            <div class="text-xs text-ink-light mt-1"><%= number_with_precision(de[:bloques_pct], precision: 0) %> % de ceux qui ont tapé</div>
+          <% end %>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Devis demandés</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= de[:soumis] %></div>
+        </div>
+      </div>
+      <% if de[:tentes].zero? && de[:arrives] >= 5 %>
+        <p class="text-sm text-ink-soft mt-4 pt-4 border-t border-border-warm">
+          <strong class="text-ink">Personne ne tape le bouton final.</strong> Le site fait son travail :
+          ce qui manque à ce stade, c'est l'envie de laisser ses coordonnées (confiance, promesse de l'annonce, prix perçu).
+        </p>
+      <% elsif de[:bloques].positive? %>
+        <p class="text-sm text-ink-soft mt-4 pt-4 border-t border-border-warm">
+          <strong class="text-red-700"><%= de[:bloques] %> visiteur<%= "s" if de[:bloques] > 1 %> ont tapé le bouton sans pouvoir envoyer.</strong>
+          À traiter en priorité : un champ leur refuse le passage.
+        </p>
+      <% end %>
+    </div>
+  <% end %>
+
   <div class="card-premium p-7">
     <h2 class="font-display text-xl text-ink mb-1">Étape par étape</h2>
     <p class="text-sm text-ink-light mb-6">
