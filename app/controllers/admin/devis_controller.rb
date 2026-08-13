@@ -93,10 +93,14 @@ class Admin::DevisController < Admin::BaseController
   end
 
   def show
+    # Les conditions de paiement se ressaisissaient à chaque devis : l'échéancier
+    # par défaut (30 % signature / solde fin) se pose tout seul, et s'édite après.
+    @estimation.appliquer_echeancier_defaut!
   end
 
   # Éditeur de devis en lignes libres (Vague 1) : bibliothèque + sections.
   def lignes
+    @estimation.appliquer_echeancier_defaut!
     @estimation.devis_recompute! if @estimation.devis_lignes.exists?
     @estimation.reload
     @prestations = Prestation.actives.ordered

@@ -6,6 +6,7 @@ class Prestation < ApplicationRecord
     "protection"  => "Protection",
     "preparation" => "Préparation",
     "peinture"    => "Peinture",
+    "placo"       => "Placo / cloisons",
     "revetement"  => "Revêtement (sol…)",
     "divers"      => "Divers"
   }.freeze

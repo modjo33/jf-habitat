@@ -359,6 +359,20 @@ class Estimation < ApplicationRecord
   end
 
   # Un échéancier de paiement est renseigné (au moins une ligne avec un libellé).
+  # Échéancier appliqué par défaut à tout devis qui n'en a pas encore :
+  # « 30 % à la signature, solde à la fin » (demande Johan, 13/08/2026) —
+  # modifiable ou supprimable ensuite dans la carte Échéancier de l'éditeur.
+  # On ne touche jamais à un devis signé ou déjà envoyé.
+  ECHEANCES_DEFAUT = [
+    { "libelle" => "Acompte à la signature", "pct" => 30 },
+    { "libelle" => "Solde à la fin du chantier", "pct" => nil }
+  ].freeze
+
+  def appliquer_echeancier_defaut!
+    return if devis_echeancier? || devis_signe_at.present? || devis_envoye_at.present?
+    update_column(:devis_echeances, ECHEANCES_DEFAUT.map(&:dup))
+  end
+
   def devis_echeancier?
     Array(devis_echeances).any? { |e| e["libelle"].to_s.strip.present? }
   end
