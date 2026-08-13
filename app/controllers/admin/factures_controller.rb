@@ -48,6 +48,15 @@ class Admin::FacturesController < Admin::BaseController
   end
 
   def destroy
+    # Une facture ÉMISE ne se supprime jamais : la numérotation FAC-AAAAMMJJ-NN
+    # doit rester continue (un trou se voit immédiatement en contrôle fiscal).
+    # Le bon geste comptable est l'annulation, qui garde le numéro.
+    unless @facture.statut == "brouillon"
+      return redirect_to admin_facture_path(@facture),
+                         alert: "Une facture émise ne se supprime pas (trou de numérotation). " \
+                                "Passe-la en « annulée » : elle garde son numéro et sort des totaux."
+    end
+
     numero = @facture.numero
     @facture.destroy
     redirect_to admin_factures_path, notice: "Facture #{numero} supprimée."

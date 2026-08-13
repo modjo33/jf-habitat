@@ -56,6 +56,10 @@ class Estimation < ApplicationRecord
   has_one :devis_analyse, dependent: :destroy
   # Dépenses réellement engagées sur ce chantier.
   has_many :depenses, dependent: :nullify
+  # La clé étrangère factures→estimations existe en base : sans ce nullify,
+  # supprimer un lead facturé lèverait une erreur PostgreSQL brute (500).
+  # La facture survit, rattachée au client — c'est un document comptable.
+  has_many :factures, dependent: :nullify
   accepts_nested_attributes_for :estimation_lines, allow_destroy: true
 
   validates :nom, presence: true, length: { minimum: 2, maximum: 100 }
