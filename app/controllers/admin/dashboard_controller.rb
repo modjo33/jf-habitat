@@ -12,6 +12,20 @@ class Admin::DashboardController < Admin::BaseController
     @derniers_leads = Estimation.order(created_at: :desc).limit(10)
     @leads_par_statut = Estimation.group(:statut).count
 
+    # À relancer — les trois files d'attente qui reposaient sur la mémoire :
+    # un lead jamais rappelé, un devis parti sans réponse, une action planifiée
+    # sur une fiche client dont la date est passée. Chaque entrée est un lien.
+    @leads_a_rappeler = Estimation.where(statut: "nouveau")
+                                  .where(created_at: ..48.hours.ago)
+                                  .order(:created_at)
+    @devis_sans_reponse = Estimation.where.not(devis_envoye_at: nil)
+                                    .where(devis_envoye_at: ..7.days.ago)
+                                    .where(devis_accepte_at: nil, devis_signe_at: nil)
+                                    .where.not(statut: %w[gagne perdu])
+                                    .order(:devis_envoye_at)
+    @clients_a_relancer = Client.a_relancer.order(:prochaine_action_date)
+    @nb_a_relancer = @leads_a_rappeler.length + @devis_sans_reponse.length + @clients_a_relancer.length
+
     # CRM — devis acceptés (clients passés en « Gagné »)
     gagnes = Client.where(statut: "gagne")
     @nb_devis_acceptes = gagnes.count

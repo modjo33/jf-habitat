@@ -22,6 +22,41 @@
   <% end %>
 </div>
 
+<%# À relancer : les trois files qui reposaient sur la mémoire. La carte
+    n'apparaît que s'il y a quelque chose à faire — un dashboard vide de
+    relances est une bonne nouvelle, pas un pavé de plus. %>
+<% if @nb_a_relancer.positive? %>
+  <div class="card-premium p-6 mb-10 border-l-4 border-l-accent">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display text-xl text-ink">À relancer
+        <span class="ml-2 inline-flex items-center justify-center min-w-[1.6rem] h-6 px-1.5 rounded-full bg-accent text-white text-sm font-bold align-middle"><%= @nb_a_relancer %></span>
+      </h2>
+    </div>
+    <div class="space-y-2">
+      <% @leads_a_rappeler.each do |lead| %>
+        <%= link_to admin_estimation_path(lead), class: "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-cream hover:bg-sand transition" do %>
+          <span class="text-sm"><span class="font-semibold text-ink"><%= lead.nom %></span>
+            <span class="text-ink-light">— lead du <%= l lead.created_at.to_date, format: :long %>, jamais rappelé</span></span>
+          <span class="text-sm font-semibold text-ink shrink-0"><%= number_to_currency(lead.ca_montant, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+        <% end %>
+      <% end %>
+      <% @devis_sans_reponse.each do |e| %>
+        <%= link_to admin_estimation_path(e), class: "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-cream hover:bg-sand transition" do %>
+          <span class="text-sm"><span class="font-semibold text-ink"><%= e.nom %></span>
+            <span class="text-ink-light">— devis envoyé le <%= l e.devis_envoye_at.to_date, format: :long %>, sans réponse</span></span>
+          <span class="text-sm font-semibold text-ink shrink-0"><%= number_to_currency(e.devis_total, unit: "€", separator: ",", delimiter: " ", format: "%n %u") %></span>
+        <% end %>
+      <% end %>
+      <% @clients_a_relancer.each do |c| %>
+        <%= link_to admin_client_path(c), class: "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-cream hover:bg-sand transition" do %>
+          <span class="text-sm"><span class="font-semibold text-ink"><%= c.nom %></span>
+            <span class="text-ink-light">— action prévue le <%= l c.prochaine_action_date, format: :long %></span></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
 <!-- Agenda du jour -->
 <div class="card-premium p-6 mb-10">
   <div class="flex items-center justify-between mb-4">
