@@ -25,6 +25,7 @@ class DevisLignePdfGenerator
     render_conditions(pdf)
     render_signature(pdf)
     render_footer(pdf)
+    DevisPdfBranding.render_retractation(pdf, reference: @estimation.reference)
     pdf
   end
 
@@ -235,11 +236,17 @@ class DevisLignePdfGenerator
   end
 
   def render_footer(pdf)
-    pdf.move_cursor_to 60
+    # 84 et non 60 : les mentions réglementaires (décennale, médiateur) peuvent
+    # ajouter deux lignes. Si le contenu descend déjà plus bas, on change de
+    # page plutôt que d'écrire par-dessus.
+    pdf.start_new_page if pdf.cursor < 96
+    pdf.move_cursor_to 84
     pdf.fill_color hex(INK_SOFT)
     pdf.font_size 7
-    proof = @estimation.devis_signe? ? " · Signature électronique enregistrée (IP #{@estimation.devis_signature_ip})." : ""
-    pdf.text "Devis valable 3 mois. Micro-entreprise, TVA non applicable (art. 293 B du CGI).#{proof}"
+    proof = @estimation.devis_signe? ? " Signature électronique enregistrée (IP #{@estimation.devis_signature_ip})." : ""
+    mentions = ["Devis valable 3 mois. Micro-entreprise, TVA non applicable (art. 293 B du CGI)."] +
+               DevisPdfBranding.mentions_reglementaires
+    pdf.text mentions.join(" ") + proof, leading: 1
     pdf.move_down 6
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule

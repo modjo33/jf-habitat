@@ -23,6 +23,7 @@ class DevisTerrainPdfGenerator
     render_conditions(pdf)
     render_signature(pdf)
     render_footer(pdf)
+    DevisPdfBranding.render_retractation(pdf, reference: @estimation.reference)
     pdf
   end
 
@@ -223,11 +224,16 @@ class DevisTerrainPdfGenerator
   end
 
   def render_footer(pdf)
-    pdf.move_cursor_to 60
+    # Même logique que le générateur lignes : place pour les mentions
+    # réglementaires, et « valable 3 mois » manquait sur le devis terrain.
+    pdf.start_new_page if pdf.cursor < 96
+    pdf.move_cursor_to 84
     pdf.fill_color hex(INK_SOFT)
     pdf.font_size 7
-    proof = @estimation.devis_signe? ? " · Signature électronique enregistrée (IP #{@estimation.devis_signature_ip})." : ""
-    pdf.text "Devis établi sur place. Micro-entreprise, TVA non applicable (art. 293 B du CGI).#{proof}"
+    proof = @estimation.devis_signe? ? " Signature électronique enregistrée (IP #{@estimation.devis_signature_ip})." : ""
+    mentions = ["Devis établi sur place, valable 3 mois. Micro-entreprise, TVA non applicable (art. 293 B du CGI)."] +
+               DevisPdfBranding.mentions_reglementaires
+    pdf.text mentions.join(" ") + proof, leading: 1
     pdf.move_down 6
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule

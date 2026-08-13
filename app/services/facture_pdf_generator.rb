@@ -186,9 +186,15 @@ class FacturePdfGenerator
   end
 
   def render_footer(pdf)
-    pdf.move_cursor_to 50
+    # L'assurance décennale est obligatoire sur les FACTURES aussi (art. 22-2
+    # loi Hamon) — même source fail-closed que les devis.
+    mentions = DevisPdfBranding.mentions_reglementaires
+    pdf.start_new_page if pdf.cursor < (mentions.any? ? 84 : 62)
+    pdf.move_cursor_to(mentions.any? ? 72 : 50)
     pdf.fill_color hex(INK_SOFT)
     pdf.font_size 7
+    pdf.text mentions.join(" "), leading: 1 if mentions.any?
+    pdf.move_down 4 if mentions.any?
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule
     pdf.move_down 4

@@ -61,13 +61,97 @@ module DevisPdfBranding
 
   # Ligne d'identité émetteur pour le pied de page (depuis LEGAL_*).
   def identity_line
-    ok = ->(v) { v.present? && !v.include?("COMPLÉTER") }
     parts = []
-    parts << (ok.(ENV["LEGAL_COMPANY_NAME"]) ? ENV["LEGAL_COMPANY_NAME"] : "JF Habitat")
-    parts << "SIRET #{ENV['LEGAL_SIRET']}" if ok.(ENV["LEGAL_SIRET"])
-    parts << ENV["LEGAL_PHONE"] if ok.(ENV["LEGAL_PHONE"])
+    parts << (env_ok("LEGAL_COMPANY_NAME") ? ENV["LEGAL_COMPANY_NAME"] : "JF Habitat")
+    parts << "SIRET #{ENV['LEGAL_SIRET']}" if env_ok("LEGAL_SIRET")
+    parts << ENV["LEGAL_PHONE"] if env_ok("LEGAL_PHONE")
     parts << (ENV["LEGAL_EMAIL"].presence || "contact@jfhabitat.fr")
     parts << "www.jfhabitat.fr"
     parts.join(" · ")
+  end
+
+  # Mentions réglementaires du pied de page — obligatoires pour un artisan du
+  # bâtiment : assurance décennale (art. 22-2 loi Hamon, devis ET factures) et
+  # médiateur de la consommation. Fail-closed : variable absente → rien,
+  # jamais de placeholder sur un document client.
+  #   LEGAL_ASSURANCE_DECENNALE = "AXA France, contrat n° 123456, couverture France métropolitaine"
+  #   LEGAL_MEDIATEUR           = "CNPM Médiation Consommation, 27 av. de la Libération 42400 Saint-Chamond, cnpm-mediation-consommation.eu"
+  def mentions_reglementaires
+    parts = []
+    parts << "Assurance de responsabilité décennale : #{ENV['LEGAL_ASSURANCE_DECENNALE']}." if env_ok("LEGAL_ASSURANCE_DECENNALE")
+    parts << "Médiateur de la consommation : #{ENV['LEGAL_MEDIATEUR']}." if env_ok("LEGAL_MEDIATEUR")
+    parts
+  end
+
+  # Page « droit de rétractation » des devis : la signature se fait chez le
+  # client (contrat hors établissement, Code conso L221) → l'information et le
+  # formulaire détachable sont OBLIGATOIRES. Sans eux, le délai de 14 jours
+  # devient 12 mois et le client peut annuler chantier fait.
+  def render_retractation(pdf, reference:)
+    pdf.start_new_page
+    pdf.fill_color hexc(INK)
+    pdf.font_size 13
+    pdf.text "Droit de rétractation", style: :bold
+    pdf.stroke_color hexc(ACCENT); pdf.line_width 2; pdf.stroke_horizontal_rule
+    pdf.line_width 0.5
+    pdf.move_down 12
+
+    pdf.fill_color hexc(INK)
+    pdf.font_size 9
+    pdf.text "Lorsque ce devis est signé hors établissement (notamment au domicile du client), " \
+             "le client dispose, conformément aux articles L221-18 et suivants du Code de la " \
+             "consommation, d'un délai de quatorze (14) jours à compter de la signature pour " \
+             "exercer son droit de rétractation, sans avoir à motiver sa décision ni supporter " \
+             "de frais. Pour l'exercer, il adresse le formulaire ci-dessous — ou toute autre " \
+             "déclaration dénuée d'ambiguïté — par courrier ou par e-mail avant l'expiration du délai.",
+             leading: 2
+    pdf.move_down 8
+    pdf.text "Les travaux ne commencent pas avant l'expiration de ce délai, sauf demande expresse " \
+             "du client formulée par écrit. En cas de rétractation après un début d'exécution " \
+             "expressément demandé, le client règle le montant correspondant aux prestations " \
+             "déjà réalisées.",
+             leading: 2
+    pdf.move_down 20
+
+    # Formulaire détachable (ligne pointillée façon découpe).
+    pdf.stroke_color hexc(INK_SOFT)
+    pdf.dash(3, space: 3)
+    pdf.stroke_horizontal_rule
+    pdf.undash
+    pdf.move_down 14
+
+    destinataire = [
+      env_ok("LEGAL_COMPANY_NAME") ? ENV["LEGAL_COMPANY_NAME"] : "JF Habitat",
+      (ENV["LEGAL_ADDRESS"] if env_ok("LEGAL_ADDRESS")),
+      ENV["LEGAL_EMAIL"].presence || "contact@jfhabitat.fr"
+    ].compact.join(" — ")
+
+    pdf.fill_color hexc(INK)
+    pdf.font_size 10
+    pdf.text "Formulaire de rétractation", style: :bold
+    pdf.fill_color hexc(INK_SOFT)
+    pdf.font_size 8
+    pdf.text "(À compléter et renvoyer uniquement si vous souhaitez vous rétracter du contrat.)"
+    pdf.move_down 10
+
+    pdf.fill_color hexc(INK)
+    pdf.font_size 9
+    [
+      "À l'attention de : #{destinataire}",
+      "Je vous notifie par la présente ma rétractation du contrat portant sur la prestation " \
+        "de travaux objet du devis n° #{reference}.",
+      "Devis signé le : ............................................................",
+      "Nom du client : .............................................................",
+      "Adresse du client : .........................................................",
+      "Date : ....................................    Signature : ...................................."
+    ].each do |ligne|
+      pdf.text ligne, leading: 3
+      pdf.move_down 6
+    end
+  end
+
+  def env_ok(key)
+    v = ENV[key]
+    v.present? && !v.include?("COMPLÉTER")
   end
 end
