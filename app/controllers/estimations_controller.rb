@@ -33,9 +33,17 @@ class EstimationsController < ApplicationController
     if @estimation.save
       suivre_etape("soumis")
       attach_or_create_client(@estimation)
-      LeadMailer.nouveau_lead(@estimation).deliver_later
-      LeadMailer.confirmation_client(@estimation).deliver_later
-      SmsNotificationService.notify_new_lead(@estimation)
+      # `deliver_now` et PAS `deliver_later` : l'adaptateur de jobs est :async,
+      # sa file vit dans la mémoire du conteneur web — un redémarrage (déploiement,
+      # crash) au mauvais moment perdait le mail SANS AUCUNE TRACE. Pour l'email
+      # qui signale un nouveau lead, c'est inacceptable. Chaque envoi est isolé
+      # dans son rescue : un SMTP en panne ne doit ni priver le client de sa
+      # confirmation, ni surtout faire échouer la création du lead (le rescue
+      # global de l'action afficherait « une erreur est survenue » alors que
+      # l'estimation est enregistrée).
+      envoyer_sans_bloquer { LeadMailer.nouveau_lead(@estimation).deliver_now }
+      envoyer_sans_bloquer { LeadMailer.confirmation_client(@estimation).deliver_now }
+      envoyer_sans_bloquer { SmsNotificationService.notify_new_lead(@estimation) }
       # Signale la conversion (lead) à la page de confirmation — fire une seule fois via le flash,
       # donc pas de double comptage si le client recharge / revient sur son devis plus tard.
       flash[:lead_converted] = true
@@ -69,6 +77,14 @@ class EstimationsController < ApplicationController
   end
 
   private
+
+  # Un envoi (mail, SMS) qui échoue se log et c'est tout : le lead est déjà
+  # en base, c'est lui qui compte.
+  def envoyer_sans_bloquer
+    yield
+  rescue => e
+    Rails.logger.error "[EstimationsController#create] notification échouée : #{e.class} · #{e.message}"
+  end
 
   # Rattache l'estimation à un Client existant (par email) ou en crée un.
   # Erreur silencieuse : la création du Client ne doit pas faire échouer le lead.
