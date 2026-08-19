@@ -11,7 +11,8 @@ module SourceTrackable
   extend ActiveSupport::Concern
 
   UTM_KEYS = %w[utm_source utm_medium utm_campaign utm_term utm_content].freeze
-  TRACKED  = (UTM_KEYS + %w[gclid]).freeze
+  # gbraid/wbraid : identifiants de clic que Google substitue au gclid sur iOS.
+  TRACKED  = (UTM_KEYS + %w[gclid gbraid wbraid]).freeze
   MAX_LEN  = 255
   # Formats qui ne sont jamais une page d'atterrissage.
   IGNORED_FORMATS = %w[json turbo_stream pdf csv xml].freeze

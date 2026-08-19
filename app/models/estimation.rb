@@ -219,9 +219,11 @@ class Estimation < ApplicationRecord
 
   # ---- Origine du lead ------------------------------------------------------
 
-  # Un gclid ne peut venir que d'un clic sur une annonce Google Ads.
+  # Un gclid (ou son substitut iOS gbraid/wbraid) ne peut venir que d'un clic
+  # sur une annonce Google Ads.
   def issu_de_google_ads?
-    gclid.present? || utm_source.to_s.casecmp?("google") && utm_medium.to_s.casecmp?("cpc")
+    gclid.present? || gbraid.present? || wbraid.present? ||
+      utm_source.to_s.casecmp?("google") && utm_medium.to_s.casecmp?("cpc")
   end
 
   # Libellé court pour le CRM. `nil` = lead antérieur au tracking (18/07/2026)
@@ -241,7 +243,9 @@ class Estimation < ApplicationRecord
       "Mot-clé"  => utm_term,
       "Contenu"  => utm_content,
       "Atterrissage" => landing_page,
-      "gclid"    => gclid
+      "gclid"    => gclid,
+      "gbraid"   => gbraid,
+      "wbraid"   => wbraid
     }.compact_blank
   end
 

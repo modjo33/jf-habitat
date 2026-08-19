@@ -38,7 +38,8 @@ module TunnelTrackable
   # S'appuie sur la source déjà capturée par SourceTrackable à l'atterrissage.
   def source_tunnel
     src = session[:source] || {}
-    return "ads" if src["gclid"].present? || src["utm_medium"].to_s.match?(/cpc|ppc|paid/i)
+    return "ads" if src.values_at("gclid", "gbraid", "wbraid").any?(&:present?) ||
+                    src["utm_medium"].to_s.match?(/cpc|ppc|paid/i)
     return "autre" if src.any?
 
     "direct"

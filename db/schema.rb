@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_19_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -247,6 +247,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_080000) do
     t.decimal "devis_trajet_prix_jour", precision: 10, scale: 2, default: "0.0"
     t.string "email"
     t.integer "etage", default: 0, null: false
+    t.string "gbraid"
     t.string "gclid"
     t.string "landing_page"
     t.text "message"
@@ -268,6 +269,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_080000) do
     t.string "utm_source"
     t.string "utm_term"
     t.string "ville"
+    t.string "wbraid"
     t.index ["client_id"], name: "index_estimations_on_client_id"
     t.index ["created_at"], name: "index_estimations_on_created_at"
     t.index ["devis_accepte_at"], name: "index_estimations_on_devis_accepte_at"
