@@ -32,6 +32,13 @@ export default class extends Controller {
   // 18 m². Approximation assumée : le client connaît ses m², jamais le
   // développé de ses murs, et Johan affine au métré sur place.
   static COEF_PERIMETRE = 4.05
+  // Abattement portes & fenêtres sur le développé des murs (mode simple
+  // uniquement — les mesures saisies par le client priment toujours).
+  // Sans lui, la fourchette affichée surestimait systématiquement : le devis
+  // ferme de Gaëlle est sorti 5 % SOUS l'estimation web, et une fourchette
+  // trop haute, montrée AVANT les coordonnées, fait fuir des leads bons à
+  // prendre. 0,92 ≈ une porte + une fenêtre déduites d'une pièce moyenne.
+  static COEF_MENUISERIES = 0.92
 
   static GAMMES = [
     ["entree", "Entrée de gamme", "Finitions standards, matériaux courants"],
@@ -646,7 +653,7 @@ export default class extends Controller {
     return {
       mode: "simple",
       surfaceSol: surface, hauteur,
-      mursSurface: arrondi(perimetre * hauteur),
+      mursSurface: arrondi(perimetre * hauteur * this.constructor.COEF_MENUISERIES),
       solSurface:  arrondi(surface)
     }
   }

@@ -83,9 +83,12 @@
     <section class="wizard-step" data-wizard-target="step" data-step="type_chantier" data-validate="card">
       <div class="wizard-eyebrow">Votre projet</div>
       <h2 class="wizard-question">Quel type de chantier ?</h2>
+      <%# « Rénovation » est pré-sélectionnée : la quasi-totalité du trafic est
+          de la rénovation, et l'écran 1 perdait 60 % des visiteurs — un choix
+          déjà fait se confirme d'un tap, il ne se réfléchit pas. %>
       <div data-card-group data-auto-advance="true" class="wizard-cards">
-        <%= f.hidden_field :type_chantier, value: "" %>
-        <button type="button" data-card data-value="renovation" data-action="wizard#selectCard" class="wizard-card">
+        <%= f.hidden_field :type_chantier, value: "renovation" %>
+        <button type="button" data-card data-value="renovation" data-selected="true" data-action="wizard#selectCard" class="wizard-card">
           <span class="wizard-card-title">Rénovation</span>
           <span class="wizard-card-sub">Logement existant à rénover</span>
         </button>
@@ -93,6 +96,13 @@
           <span class="wizard-card-title">Construction neuve</span>
           <span class="wizard-card-sub">Logement neuf ou support neuf</span>
         </button>
+      </div>
+      <%# Réassurance à l'entrée : c'est ici que 60 % du trafic payé repartait,
+          sans aucun élément de confiance à l'écran. %>
+      <div class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-xs text-ink-light">
+        <span class="whitespace-nowrap">✓ Artisan local en Gironde</span>
+        <span class="whitespace-nowrap">✓ Devis en 2 minutes</span>
+        <span class="whitespace-nowrap">✓ Sans engagement</span>
       </div>
       <p data-wizard-target="error" class="wizard-error hidden"></p>
     </section>
@@ -278,10 +288,6 @@
           <%= f.label :telephone, "Téléphone *", class: "label-field" %>
           <%= f.telephone_field :telephone, placeholder: "06 12 34 56 78", class: "input-field" %>
         </div>
-        <div class="sm:col-span-2">
-          <%= f.label :adresse, "Adresse du chantier", class: "label-field" %>
-          <%= f.text_field :adresse, placeholder: "12 rue des Lilas", class: "input-field" %>
-        </div>
         <div>
           <%= f.label :code_postal, "Code postal *", class: "label-field" %>
           <%# Clavier numérique sur mobile (84 % du trafic) : cinq chiffres, pas un mot.
@@ -297,34 +303,51 @@
           <%= f.label :ville, "Ville", class: "label-field" %>
           <%= f.text_field :ville, placeholder: "Ayguemorte-les-Graves", class: "input-field" %>
         </div>
-        <div>
-          <%= f.label :delai, "Délai envisagé", class: "label-field" %>
-          <%= f.select :delai, Estimation::DELAIS.map { |k, v| [v, k] }, { include_blank: "Sélectionnez…" }, class: "input-field" %>
-        </div>
-        <div>
-          <label class="label-field">Vous êtes</label>
-          <select name="prec_profil" class="input-field">
-            <option value="">Sélectionnez…</option>
-            <% profils.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
-          </select>
-        </div>
-        <div class="sm:col-span-2">
-          <label class="label-field">Comment nous avez-vous connus ?</label>
-          <select name="prec_source" class="input-field">
-            <option value="">Sélectionnez…</option>
-            <% sources.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
-          </select>
-        </div>
-        <div class="sm:col-span-2">
-          <%= f.label :message, "Précisions (optionnel)", class: "label-field" %>
-          <%= f.text_area :message, rows: 2, placeholder: "État actuel, contraintes particulières…", class: "input-field" %>
-        </div>
-        <div class="sm:col-span-2">
-          <%= f.label :photos, "Photos du chantier (optionnel)", class: "label-field" %>
-          <%= f.file_field :photos, multiple: true, accept: "image/*",
-                class: "block w-full text-sm text-ink-soft file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent-dark cursor-pointer" %>
-        </div>
       </div>
+
+      <%# Le reste est REPLIÉ, volontairement. Mesuré du 11 au 18/08 : 5 visiteurs
+          sur l'écran contact, 4 n'ont jamais tapé le bouton — le mur de onze
+          champs devant un devis flouté faisait renoncer. Quatre champs requis
+          suffisent pour rappeler ; tout le reste s'obtient au téléphone. %>
+      <details class="w-full max-w-lg mt-3 text-left group">
+        <summary class="cursor-pointer text-sm font-semibold text-ink-soft hover:text-accent transition list-none flex items-center gap-2">
+          <span class="inline-block transition-transform group-open:rotate-90">▸</span>
+          Ajouter des précisions <span class="font-normal text-ink-light">(adresse, délai, photos…)</span>
+        </summary>
+        <div class="grid sm:grid-cols-2 gap-4 mt-4">
+          <div class="sm:col-span-2">
+            <%= f.label :adresse, "Adresse du chantier", class: "label-field" %>
+            <%= f.text_field :adresse, placeholder: "12 rue des Lilas", class: "input-field" %>
+          </div>
+          <div>
+            <%= f.label :delai, "Délai envisagé", class: "label-field" %>
+            <%= f.select :delai, Estimation::DELAIS.map { |k, v| [v, k] }, { include_blank: "Sélectionnez…" }, class: "input-field" %>
+          </div>
+          <div>
+            <label class="label-field">Vous êtes</label>
+            <select name="prec_profil" class="input-field">
+              <option value="">Sélectionnez…</option>
+              <% profils.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="label-field">Comment nous avez-vous connus ?</label>
+            <select name="prec_source" class="input-field">
+              <option value="">Sélectionnez…</option>
+              <% sources.each do |label| %><option value="<%= label %>"><%= label %></option><% end %>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <%= f.label :message, "Précisions (optionnel)", class: "label-field" %>
+            <%= f.text_area :message, rows: 2, placeholder: "État actuel, contraintes particulières…", class: "input-field" %>
+          </div>
+          <div class="sm:col-span-2">
+            <%= f.label :photos, "Photos du chantier (optionnel)", class: "label-field" %>
+            <%= f.file_field :photos, multiple: true, accept: "image/*",
+                  class: "block w-full text-sm text-ink-soft file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent-dark cursor-pointer" %>
+          </div>
+        </div>
+      </details>
 
       <% if @estimation.errors.any? %>
         <div class="w-full max-w-lg mt-5 p-4 bg-red-50 border border-red-200 rounded-xl text-left">
