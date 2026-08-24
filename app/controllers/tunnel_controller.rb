@@ -9,7 +9,7 @@ class TunnelController < ApplicationController
   rate_limit to: 200, within: 10.minutes, only: :create, key: "tunnel_suivi"
 
   def create
-    suivre_etape(params[:etape].to_s)
+    suivre_etape(params[:etape].to_s, detail: params[:detail].to_s.presence)
     head :no_content
   end
 end

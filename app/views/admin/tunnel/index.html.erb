@@ -171,6 +171,19 @@
           <strong class="text-red-700"><%= de[:bloques] %> visiteur<%= "s" if de[:bloques] > 1 %> ont tapé le bouton sans pouvoir envoyer.</strong>
           À traiter en priorité : un champ leur refuse le passage.
         </p>
+        <% if @motifs_blocage.any? %>
+          <div class="mt-3">
+            <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mb-2">Ce que la validation leur a répondu</div>
+            <ul class="space-y-1">
+              <% @motifs_blocage.each do |motif, n| %>
+                <li class="text-sm text-ink-soft flex items-baseline gap-2">
+                  <span class="font-display text-ink"><%= n %> ×</span>
+                  <span>« <%= motif %> »</span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
       <% end %>
     </div>
   <% end %>

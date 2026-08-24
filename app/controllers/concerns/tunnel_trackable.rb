@@ -20,14 +20,15 @@ module TunnelTrackable
     session[:visite] ||= SecureRandom.hex(16)
   end
 
-  def suivre_etape(etape)
+  def suivre_etape(etape, detail: nil)
     return if robot_tunnel?
 
     EtapeTunnel.enregistrer(
       visite: visite_tunnel,
       etape: etape,
       source: source_tunnel,
-      appareil: appareil_tunnel
+      appareil: appareil_tunnel,
+      detail: detail
     )
   end
 

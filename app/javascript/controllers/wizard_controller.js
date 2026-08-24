@@ -88,13 +88,13 @@ export default class extends Controller {
 
   // Envoi d'un événement de mesure. Silencieux par construction : la mesure ne
   // doit jamais gêner le parcours.
-  baliser(etape) {
+  baliser(etape, detail = null) {
     const jeton = document.querySelector('meta[name="csrf-token"]')?.content
     fetch("/suivi-tunnel", {
       method: "POST",
       keepalive: true,
       headers: { "Content-Type": "application/json", "X-CSRF-Token": jeton || "" },
-      body: JSON.stringify({ etape })
+      body: JSON.stringify(detail ? { etape, detail } : { etape })
     }).catch(() => {})
   }
 
@@ -301,6 +301,9 @@ export default class extends Controller {
   // visiteur tapait, rien ne bougeait, il recommençait, puis il partait. C'est
   // la première cause des parcours remplis jusqu'au bout sans aucun envoi.
   fail(step, msg, champ = null) {
+    // Mémorisé pour la balise `envoi_bloque` : côté admin, on veut savoir QUEL
+    // refus arrête les visiteurs, pas seulement qu'un refus a eu lieu.
+    this._motifRefus = msg
     this.clearError()
     const box = step.querySelector("[data-wizard-target='error']") || (this.hasErrorTarget && this.errorTarget)
     if (box) {
@@ -531,7 +534,7 @@ export default class extends Controller {
     // exactement à un visiteur qui renonce — c'est ce qui a coûté des semaines.
     this.baliser("envoi_tente")
     if (!this.validateStep(step)) {
-      this.baliser("envoi_bloque")
+      this.baliser("envoi_bloque", this._motifRefus)
       return
     }
     this.buildPrecisions()

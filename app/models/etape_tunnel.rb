@@ -61,7 +61,10 @@ class EtapeTunnel < ApplicationRecord
 
   # Écriture idempotente : l'unicité (visite, étape) est garantie par l'index,
   # une étape revisitée ne crée pas de doublon et ne lève pas d'erreur.
-  def self.enregistrer(visite:, etape:, source: "direct", appareil: "autre")
+  # `detail` n'est gardé que pour `envoi_bloque` (le motif du refus) : c'est un
+  # message générique du wizard, jamais une valeur saisie — et l'idempotence
+  # fait qu'une visite refusée plusieurs fois ne garde que son PREMIER motif.
+  def self.enregistrer(visite:, etape:, source: "direct", appareil: "autre", detail: nil)
     return unless visite.present? && EVENEMENTS.key?(etape)
 
     insert_all(
@@ -70,6 +73,7 @@ class EtapeTunnel < ApplicationRecord
         etape: etape,
         source: SOURCES.include?(source) ? source : "direct",
         appareil: APPAREILS.include?(appareil) ? appareil : "autre",
+        detail: etape == "envoi_bloque" ? detail.presence&.slice(0, 120) : nil,
         created_at: Time.current
       } ],
       unique_by: %i[visite etape]
@@ -159,6 +163,18 @@ class EtapeTunnel < ApplicationRecord
       # Part des visiteurs qui ont tapé le bouton sans jamais aboutir.
       bloques_pct: tentes.positive? ? (bloques * 100.0 / tentes).round(1) : nil
     }
+  end
+
+  # { "Merci d'indiquer votre téléphone." => 3, ... } — dit QUEL champ arrête
+  # les visiteurs refusés. Les lignes d'avant la colonne `detail` sortent en
+  # « motif non enregistré » plutôt que de disparaître du total.
+  def self.motifs_blocage(debut:, fin:, source: nil, appareil: nil)
+    scope = sur(debut, fin).where(etape: "envoi_bloque")
+    scope = scope.where(source: source)     if source.present?
+    scope = scope.where(appareil: appareil) if appareil.present?
+    scope.group(:detail).count
+         .transform_keys { |motif| motif.presence || "motif non enregistré" }
+         .sort_by { |_, n| -n }
   end
 
   def self.purger(avant: RETENTION.ago)
