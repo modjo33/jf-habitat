@@ -5,6 +5,9 @@ class PagesController < ApplicationController
   def services
   end
 
+  # La peinture d'abord (cœur de métier mis en avant), le placo en dernier.
+  ORDRE_METIERS = %w[peinture parquet placo].freeze
+
   def prestations
     # Comparatif des gammes par prestation, regroupé par métier.
     tarifs = Tarif.actifs.to_a
@@ -15,7 +18,7 @@ class PagesController < ApplicationController
         end
         { key: key, label: meta[:label], gammes: gammes }
       end
-    end
+    end.sort_by { |metier, _| ORDRE_METIERS.index(metier) || ORDRE_METIERS.size }.to_h
   end
 
   def realisations

@@ -26,7 +26,7 @@
   "@type": "HomeAndConstructionBusiness",
   "@id": "https://www.jfhabitat.fr/#business",
   "name": "JF Habitat",
-  "description": "Artisan peintre, plaquiste et parqueteur à Ayguemorte-les-Graves. Travaux de peinture, placo-plâtre et parquet en Gironde et sur Bordeaux Métropole, en rénovation comme en neuf.",
+  "description": "Artisan peintre à Ayguemorte-les-Graves. Travaux de peinture intérieure et extérieure, pose de parquet et placo-plâtre en Gironde et sur Bordeaux Métropole, en rénovation comme en neuf.",
   "url": "https://www.jfhabitat.fr",
   "telephone": ENV.fetch("BUSINESS_PHONE", "+33-X-XX-XX-XX-XX"),
   "email": ENV.fetch("BUSINESS_EMAIL", "contact@jfhabitat.fr"),
@@ -47,11 +47,11 @@
     "longitude": -0.5483
   },
   "areaServed": ENV.fetch("BUSINESS_AREA", "France").split(",").map(&:strip),
-  "knowsAbout": [ "Peinture intérieure et extérieure", "Placo-plâtre et cloisons", "Pose de parquet", "Rénovation", "Isolation" ],
+  "knowsAbout": [ "Peinture intérieure et extérieure", "Pose de parquet", "Placo-plâtre et cloisons", "Rénovation", "Isolation" ],
   "makesOffer": [
     { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Peinture intérieure et extérieure", "areaServed": "Gironde" } },
-    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Placo-plâtre, cloisons et plafonds", "areaServed": "Gironde" } },
-    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Pose et rénovation de parquet", "areaServed": "Gironde" } }
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Pose et rénovation de parquet", "areaServed": "Gironde" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Placo-plâtre, cloisons et plafonds", "areaServed": "Gironde" } }
   ],
   "openingHoursSpecification": [
     {

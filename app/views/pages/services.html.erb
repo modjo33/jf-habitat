@@ -1,5 +1,5 @@
-<% content_for :title, "Peinture, placo & parquet en Gironde — Services JF Habitat" %>
-<% content_for :description, "Travaux de peinture, placo-plâtre et pose de parquet en Gironde et sur Bordeaux Métropole. Préparation soignée, finitions durables, devis gratuit. Artisan à Ayguemorte-les-Graves (33)." %>
+<% content_for :title, "Peinture, parquet & placo en Gironde — Services JF Habitat" %>
+<% content_for :description, "Artisan peintre en Gironde et sur Bordeaux Métropole : peinture intérieure et extérieure, pose de parquet, placo-plâtre. Préparation soignée, finitions durables, devis gratuit. Ayguemorte-les-Graves (33)." %>
 
 <!-- HERO -->
 <section class="relative bg-ink text-sand overflow-hidden">
@@ -23,12 +23,12 @@
 
 <!-- 3 BLOCS SERVICES ALTERNÉS PHOTO/TEXTE -->
 <% [
-  { title: "Peinture", img: :service_peinture, price: "dès 18 €/m²", desc: "De la simple rafraîchissement à la décoration sur mesure, on travaille la peinture comme une matière vivante. Préparation minutieuse, choix des produits, application en plusieurs passes — la finition est notre signature.",
+  { title: "Peinture", img: :service_peinture, price: "dès 18 €/m²", desc: "Notre cœur de métier. Du simple rafraîchissement à la décoration sur mesure, on travaille la peinture comme une matière vivante. Préparation minutieuse, choix des produits, application en plusieurs passes — la finition est notre signature.",
     items: ["Murs intérieurs et extérieurs", "Plafonds", "Boiseries, menuiseries", "Préparation des supports (rebouchage, ponçage)", "Finitions mates, satinées, laquées"] },
-  { title: "Placo-plâtre", img: :service_placo, price: "dès 50 €/m²", desc: "Cloisons, doublages, plafonds suspendus — le placo est l'ossature invisible qui change tout. On soigne particulièrement les jonctions, les bandes et les finitions pour des surfaces parfaitement lisses, prêtes à recevoir leur revêtement.",
-    items: ["Cloisons BA13 standard ou phoniques", "Doublages isolants thermique/phonique", "Plafonds suspendus, faux plafonds", "Aménagements sur mesure (niches, têtes de lit)", "Plâtrerie traditionnelle"] },
   { title: "Parquet", img: :service_parquet, price: "dès 30 €/m²", desc: "Stratifié, contrecollé ou massif — chaque essence et chaque mode de pose a son usage. On vous conseille selon vos pièces, votre budget et l'usage attendu. Pose, ponçage et vitrification, tout est fait par nos soins.",
-    items: ["Stratifié AC3 / AC4 / AC5", "Contrecollé chêne, autres essences", "Massif (chêne, hêtre, exotiques)", "Pose flottante, collée ou clouée", "Ponçage, vitrification, rénovation"] }
+    items: ["Stratifié AC3 / AC4 / AC5", "Contrecollé chêne, autres essences", "Massif (chêne, hêtre, exotiques)", "Pose flottante, collée ou clouée", "Ponçage, vitrification, rénovation"] },
+  { title: "Placo-plâtre", img: :service_placo, price: "dès 50 €/m²", desc: "Cloisons, doublages, plafonds suspendus — le placo est l'ossature invisible qui change tout. On soigne particulièrement les jonctions, les bandes et les finitions pour des surfaces parfaitement lisses, prêtes à recevoir leur revêtement.",
+    items: ["Cloisons BA13 standard ou phoniques", "Doublages isolants thermique/phonique", "Plafonds suspendus, faux plafonds", "Aménagements sur mesure (niches, têtes de lit)", "Plâtrerie traditionnelle"] }
 ].each_with_index do |service, idx| %>
   <section class="<%= idx.even? ? 'bg-cream' : 'bg-sand' %> py-24 lg:py-32">
     <div class="max-w-7xl mx-auto px-6 lg:px-10">
