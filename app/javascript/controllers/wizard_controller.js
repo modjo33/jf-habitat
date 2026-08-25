@@ -502,6 +502,10 @@ export default class extends Controller {
     const eur = v => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " €"
     this.fourchetteMontantsTarget.textContent = `${eur(this._fourchette.min)} et ${eur(this._fourchette.max)}`
     this.fourchetteTarget.classList.remove("hidden")
+    // Balise le montant vu : les visiteurs de l'écran contact repartent alors
+    // qu'une fourchette s'affiche — sans savoir LAQUELLE, impossible de dire
+    // si c'est le prix qui fait fuir. Dédoublonnée côté serveur comme le reste.
+    this.baliser("fourchette_vue", `${this._fourchette.min}-${this._fourchette.max}`)
   }
 
   buildDevisTeaser() {

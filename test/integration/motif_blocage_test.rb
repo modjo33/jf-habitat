@@ -16,6 +16,11 @@ class MotifBlocageTest < ActionDispatch::IntegrationTest
     assert_equal [ [ "Merci d'indiquer votre téléphone.", 1 ] ], motifs
   end
 
+  test "la fourchette vue est stockée avec son montant" do
+    post suivi_tunnel_path, params: { etape: "fourchette_vue", detail: "1100-1600" }, as: :json
+    assert_equal "1100-1600", EtapeTunnel.find_by(etape: "fourchette_vue").detail
+  end
+
   test "le detail est ignoré hors envoi_bloque et tronqué à 120 caractères" do
     post suivi_tunnel_path, params: { etape: "contact", detail: "ne doit pas être stocké" }, as: :json
     assert_nil EtapeTunnel.find_by(etape: "contact").detail

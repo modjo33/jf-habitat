@@ -366,8 +366,24 @@
         Afficher mon devis chiffré
       </button>
       <p class="text-xs text-ink-light mt-4 max-w-md leading-relaxed">
-        En soumettant ce formulaire, vous acceptez d'être recontacté par JF Habitat au sujet de votre estimation. Vos données ne sont jamais cédées à des tiers.
+        Votre devis détaillé s'affiche immédiatement et vous est envoyé par e-mail.
+        Aucun démarchage : vos coordonnées ne servent qu'à ce devis et ne sont jamais cédées.
       </p>
+
+      <%# Le téléphone AU POINT DE DÉCISION : 13 visiteurs ont atteint cet écran
+          du 11 au 25/08 pour 1 seule soumission, pendant que le seul appel reçu
+          (24/08) est devenu un devis signé le jour même. Le bouton de la topbar
+          existe mais n'est plus visible au moment où l'on hésite devant le
+          formulaire. Fail-closed : sans BUSINESS_PHONE, le bloc disparaît. %>
+      <% if business_phone.present? %>
+        <div class="w-full max-w-md mt-5 pt-4 border-t border-border-warm/60 text-center">
+          <p class="text-sm font-semibold text-ink-soft">Vous préférez en parler de vive voix ?</p>
+          <a href="<%= business_phone_link %>" class="mt-1.5 inline-flex items-center gap-2 font-display text-xl text-accent hover:underline">
+            <span aria-hidden="true">📞</span> <%= business_phone %>
+          </a>
+          <p class="text-xs text-ink-light mt-1">Je réponds moi-même, du lundi au samedi, 8 h – 18 h.</p>
+        </div>
+      <% end %>
     </section>
 
   </main>

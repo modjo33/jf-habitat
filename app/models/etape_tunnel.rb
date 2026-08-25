@@ -34,9 +34,13 @@ class EtapeTunnel < ApplicationRecord
   # ce qui a fait accuser l'écran 1 pendant des semaines alors que le trou était
   # sur le dernier écran.
   HORS_ENTONNOIR = {
-    "appel"        => "Appel déclenché",
-    "envoi_tente"  => "Bouton final tapé",
-    "envoi_bloque" => "Envoi refusé par la validation"
+    "appel"          => "Appel déclenché",
+    "envoi_tente"    => "Bouton final tapé",
+    "envoi_bloque"   => "Envoi refusé par la validation",
+    # La fourchette affichée sur l'écran contact, avec son montant en `detail`
+    # (« 1100-1600 ») : croisée avec l'absence de soumission, elle dit si c'est
+    # le prix qui fait repartir les visiteurs arrivés au bout.
+    "fourchette_vue" => "Fourchette de prix affichée"
   }.freeze
   EVENEMENTS = ETAPES.merge(HORS_ENTONNOIR).freeze
 
@@ -73,7 +77,7 @@ class EtapeTunnel < ApplicationRecord
         etape: etape,
         source: SOURCES.include?(source) ? source : "direct",
         appareil: APPAREILS.include?(appareil) ? appareil : "autre",
-        detail: etape == "envoi_bloque" ? detail.presence&.slice(0, 120) : nil,
+        detail: %w[envoi_bloque fourchette_vue].include?(etape) ? detail.presence&.slice(0, 120) : nil,
         created_at: Time.current
       } ],
       unique_by: %i[visite etape]
