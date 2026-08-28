@@ -13,7 +13,7 @@ import { Controller } from "@hotwired/stimulus"
 // À la soumission, on assemble les estimation_lines_attributes (1 par pièce ×
 // prestation, surface calculée, options auto) et on poste sur l'action create.
 export default class extends Controller {
-  static targets = ["step", "progressBar", "progressText", "back", "piecesContainer", "pieceTemplate", "recap", "lines", "error", "loader", "devisTeaser", "devisRows", "submitBtn", "fourchette", "fourchetteMontants"]
+  static targets = ["step", "progressBar", "progressText", "back", "piecesContainer", "pieceTemplate", "recap", "lines", "error", "loader", "devisTeaser", "devisRows", "submitBtn"]
 
   // Travaux génériques proposés → résolution vers une prestation réelle + type de surface.
   static TRAVAUX = [
@@ -34,9 +34,9 @@ export default class extends Controller {
   static COEF_PERIMETRE = 4.05
   // Abattement portes & fenêtres sur le développé des murs (mode simple
   // uniquement — les mesures saisies par le client priment toujours).
-  // Sans lui, la fourchette affichée surestimait systématiquement : le devis
-  // ferme de Gaëlle est sorti 5 % SOUS l'estimation web, et une fourchette
-  // trop haute, montrée AVANT les coordonnées, fait fuir des leads bons à
+  // Sans lui, le montant affiché surestimait systématiquement : le devis
+  // ferme de Gaëlle est sorti 5 % SOUS l'estimation web, et un montant
+  // trop haut, montré AVANT les coordonnées, fait fuir des leads bons à
   // prendre. 0,92 ≈ une porte + une fenêtre déduites d'une pièce moyenne.
   static COEF_MENUISERIES = 0.92
 
@@ -263,16 +263,16 @@ export default class extends Controller {
       const tel = champTel?.value.trim()
       if (!nom) return this.fail(step, "Merci d'indiquer votre nom.", champNom)
       if (!email) return this.fail(step, "Merci d'indiquer votre e-mail.", champEmail)
-      if (!tel) return this.fail(step, "Merci d'indiquer votre téléphone.", champTel)
 
       // On nettoie le champ AVANT l'envoi plutôt que de refuser : un Français
       // écrit son numéro « 06 12 34 56 78 » ou « 06.12.34.56.78 », et le
       // serveur n'accepte que les dix chiffres collés. Le rejet arrivait après
       // six écrans remplis, effaçait tout le parcours, et personne ne
-      // recommençait.
+      // recommençait. Le téléphone est FACULTATIF depuis le 28/08/2026 :
+      // son format n'est contrôlé que s'il est rempli.
       if (champTel) champTel.value = tel.replace(/[\s.\-() ]/g, "")
       if (champEmail) champEmail.value = email
-      if (champTel && !/^(\+33|0)[1-9](\d{2}){4}$/.test(champTel.value)) {
+      if (champTel && champTel.value && !/^(\+33|0)[1-9](\d{2}){4}$/.test(champTel.value)) {
         return this.fail(step, "Le téléphone doit être un numéro français à 10 chiffres.", champTel)
       }
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
@@ -441,26 +441,27 @@ export default class extends Controller {
   revealDevis() {
     if (!this.hasLoaderTarget || !this.hasDevisTeaserTarget) return
     this.buildRecap()
-    this.buildDevisTeaser()
+    this.buildDevisRows()
     this.loaderTarget.classList.remove("hidden")
     this.devisTeaserTarget.classList.add("hidden")
     if (this.hasRecapTarget) this.recapTarget.classList.add("hidden")
-    if (this.hasFourchetteTarget) this.fourchetteTarget.classList.add("hidden")
-    this.chargerFourchette()
+    this.chargerDevis()
     clearTimeout(this._loaderTimer)
     this._loaderTimer = setTimeout(() => {
       this.loaderTarget.classList.add("hidden")
       this.devisTeaserTarget.classList.remove("hidden")
       if (this.hasRecapTarget) this.recapTarget.classList.remove("hidden")
-      if (this.hasFourchetteTarget && this._fourchette) this.afficherFourchette()
+      // La réponse serveur a pu arriver pendant le loader : on rend les
+      // montants maintenant qu'ils ont le droit d'être visibles.
+      if (this._devis) this.buildDevisRows()
     }, 1500)
   }
 
-  // Ordre de grandeur calculé PAR LE SERVEUR : le barème ne descend jamais
-  // dans le navigateur, et la réponse ne contient qu'un intervalle arrondi,
-  // jamais le total exact (cf. EstimationsController#gated_preview).
-  async chargerFourchette() {
-    this._fourchette = null
+  // Devis chiffré calculé PAR LE SERVEUR (le barème ne descend jamais dans le
+  // navigateur) et affiché EN CLAIR — renversement du 28/08/2026, cf.
+  // EstimationsController#preview_payload.
+  async chargerDevis() {
+    this._devis = null
     const lines = this.collectPieces().flatMap(p =>
       this.selectedTravaux().map(id => {
         const t = this.constructor.TRAVAUX.find(x => x.id === id)
@@ -491,40 +492,51 @@ export default class extends Controller {
       })
       if (!r.ok) return
       const data = await r.json()
-      this._fourchette = data.fourchette
+      if (!(Number(data.total_ttc) > 0)) return
+      this._devis = data
       // Le loader peut déjà être terminé si la réponse a tardé.
-      if (this.hasLoaderTarget && this.loaderTarget.classList.contains("hidden")) this.afficherFourchette()
-    } catch (_) { /* pas de fourchette : le tunnel continue normalement */ }
+      if (this.hasLoaderTarget && this.loaderTarget.classList.contains("hidden")) this.buildDevisRows()
+    } catch (_) { /* pas de montants : le tunnel continue, le PDF arrivera par mail */ }
   }
 
-  afficherFourchette() {
-    if (!this._fourchette || !this.hasFourchetteMontantsTarget) return
+  // Rend le devis ligne à ligne. Sans réponse serveur (rate-limit, réseau),
+  // les lignes s'affichent sans montants et le total renvoie vers l'e-mail —
+  // jamais de flou, jamais d'écran cassé.
+  buildDevisRows() {
     const eur = v => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " €"
-    this.fourchetteMontantsTarget.textContent = `${eur(this._fourchette.min)} et ${eur(this._fourchette.max)}`
-    this.fourchetteTarget.classList.remove("hidden")
-    // Balise le montant vu : les visiteurs de l'écran contact repartent alors
-    // qu'une fourchette s'affiche — sans savoir LAQUELLE, impossible de dire
-    // si c'est le prix qui fait fuir. Dédoublonnée côté serveur comme le reste.
-    this.baliser("fourchette_vue", `${this._fourchette.min}-${this._fourchette.max}`)
-  }
-
-  buildDevisTeaser() {
-    const pieces = this.collectPieces()
-    const labels = this.selectedTravaux()
-      .map(t => this.constructor.TRAVAUX.find(x => x.id === t)?.label).filter(Boolean).join(", ")
     let rows = ""
-    pieces.forEach(p => {
+    if (this._devis) {
+      this._devis.lines.forEach(l => {
+        const libelle = [l.type_piece_label || l.piece, l.prestation_label].filter(Boolean).join(" · ")
+        rows += `
+          <div class="flex items-center justify-between gap-4 py-1.5 border-b border-border-warm/50 last:border-0">
+            <span class="text-sm text-ink-soft">${this.escape(libelle)}${l.surface ? ` <span class="text-ink-light">(${this.escape(String(l.surface))} m²)</span>` : ""}</span>
+            <span class="font-semibold text-ink whitespace-nowrap">${eur(l.total)}</span>
+          </div>`
+      })
       rows += `
-        <div class="flex items-center justify-between gap-4 py-1.5 border-b border-border-warm/50 last:border-0">
-          <span class="text-sm text-ink-soft">${this.escape(p.typeLabel)} · ${this.escape(labels)}</span>
-          <span class="devis-blur font-semibold text-ink">•••• €</span>
+        <div class="flex items-center justify-between gap-4 pt-3 mt-1">
+          <span class="font-display text-lg text-ink">Total estimé TTC</span>
+          <span class="font-display text-xl text-accent whitespace-nowrap">${eur(this._devis.total_ttc)}</span>
         </div>`
-    })
-    rows += `
-      <div class="flex items-center justify-between gap-4 pt-3 mt-1">
-        <span class="font-display text-lg text-ink">Total estimé</span>
-        <span class="devis-blur font-display text-xl text-accent">• ••• €</span>
-      </div>`
+      // Balise le montant vu : croisée avec les non-envois, elle dit si c'est
+      // le prix qui fait fuir. Dédoublonnée côté serveur comme le reste.
+      this.baliser("devis_vu", String(Math.round(this._devis.total_ttc)))
+    } else {
+      const pieces = this.collectPieces()
+      const labels = this.selectedTravaux()
+        .map(t => this.constructor.TRAVAUX.find(x => x.id === t)?.label).filter(Boolean).join(", ")
+      pieces.forEach(p => {
+        rows += `
+          <div class="flex items-center justify-between gap-4 py-1.5 border-b border-border-warm/50 last:border-0">
+            <span class="text-sm text-ink-soft">${this.escape(p.typeLabel)} · ${this.escape(labels)}</span>
+          </div>`
+      })
+      rows += `
+        <div class="pt-3 mt-1">
+          <span class="text-sm text-ink-soft">Le détail chiffré vous est envoyé par e-mail.</span>
+        </div>`
+    }
     this.devisRowsTarget.innerHTML = rows
   }
 

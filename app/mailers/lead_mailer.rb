@@ -13,8 +13,17 @@ class LeadMailer < ApplicationMailer
 
   def confirmation_client(estimation)
     @estimation = estimation
+    # Le CTA du wizard promet « Recevoir mon devis par e-mail » (renversement
+    # du 28/08/2026) : le PDF doit donc être DANS ce mail, pas seulement
+    # derrière un lien. Un PDF qui échoue ne prive pas le client du mail.
+    begin
+      pdf = DevisPdfGenerator.new(estimation).generate.render
+      attachments["devis-jf-habitat-#{estimation.reference}.pdf"] = { mime_type: "application/pdf", content: pdf }
+    rescue => e
+      Rails.logger.error "[LeadMailer#confirmation_client] PDF non joint : #{e.class} · #{e.message}"
+    end
     mail to: estimation.email,
-         subject: "Votre estimation JF Habitat · #{estimation.reference}"
+         subject: "Votre devis estimatif JF Habitat · #{estimation.reference}"
   end
 
   # Message libre à un client, écrit depuis sa fiche. Il manquait tout un pan :

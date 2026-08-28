@@ -21,6 +21,13 @@ class MotifBlocageTest < ActionDispatch::IntegrationTest
     assert_equal "1100-1600", EtapeTunnel.find_by(etape: "fourchette_vue").detail
   end
 
+  # Renversement du 28/08/2026 : le devis s'affiche en clair, la balise porte
+  # le total vu — croisée avec les non-envois, elle dit si le prix fait fuir.
+  test "le devis vu est stocké avec son total" do
+    post suivi_tunnel_path, params: { etape: "devis_vu", detail: "5648" }, as: :json
+    assert_equal "5648", EtapeTunnel.find_by(etape: "devis_vu").detail
+  end
+
   test "le detail est ignoré hors envoi_bloque et tronqué à 120 caractères" do
     post suivi_tunnel_path, params: { etape: "contact", detail: "ne doit pas être stocké" }, as: :json
     assert_nil EtapeTunnel.find_by(etape: "contact").detail

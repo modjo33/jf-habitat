@@ -247,32 +247,27 @@
         <p class="text-ink-soft font-semibold">Calcul de votre devis en cours…</p>
       </div>
 
-      <%# Ordre de grandeur affiché AVANT les coordonnées : le client doit
-          pouvoir se situer sans devoir donner son numéro à l'aveugle. Le devis
-          chiffré, lui, reste derrière le formulaire. %>
-      <div data-wizard-target="fourchette" class="hidden w-full max-w-lg mb-4">
-        <div class="px-5 py-4 bg-ink text-sand rounded-2xl text-center">
-          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-sand/60">Votre projet se situe entre</div>
-          <div data-wizard-target="fourchetteMontants" class="font-display text-2xl text-accent mt-1"></div>
-          <div class="text-[11px] text-sand/60 mt-1">Estimation indicative · le détail poste par poste juste en dessous</div>
-        </div>
-      </div>
-
       <!-- Récapitulatif du projet + options (ex-écran « récap ») -->
       <div data-wizard-target="recap" class="hidden w-full max-w-lg mb-4 text-left"></div>
 
-      <!-- Devis chiffré flouté tant que les coordonnées ne sont pas saisies -->
-      <%# Les montants sont déjà masqués ligne à ligne (devis-blur) : un calque
-          par-dessus rendait le récapitulatif illisible sur mobile. Le message
-          passe en pied de carte, où il se lit. %>
+      <%# Devis affiché EN CLAIR, montants compris — renversement du 28/08/2026.
+          Le flou faisait payer en coordonnées un détail que la fourchette
+          laissait déjà deviner : 42 visiteurs Ads sur cet écran en 30 j,
+          3 envois, et des taps à vide « pour voir ». Le formulaire en dessous
+          n'est plus un péage, c'est une offre (PDF + affinage par l'artisan). %>
       <div data-wizard-target="devisTeaser" class="hidden w-full max-w-lg mb-6">
         <div class="bg-cream border border-border-warm rounded-2xl overflow-hidden">
           <div data-wizard-target="devisRows" class="space-y-2 p-5 text-left"></div>
           <div class="flex items-center gap-3 px-5 py-3 bg-sand border-t border-border-warm text-left">
-            <span class="text-lg shrink-0">🔒</span>
-            <p class="text-sm font-semibold text-ink">Complétez vos coordonnées ci-dessous pour afficher votre devis détaillé.</p>
+            <span class="text-lg shrink-0">✓</span>
+            <p class="text-sm text-ink-soft">Estimation indicative, calculée sur vos mesures — affinée gratuitement par l'artisan, sans engagement.</p>
           </div>
         </div>
+      </div>
+
+      <div class="w-full max-w-lg mb-2 text-left">
+        <h3 class="font-display text-xl text-ink">Recevez ce devis en PDF</h3>
+        <p class="text-sm text-ink-soft mt-1">Je vous l'envoie par e-mail et je peux l'affiner avec vous (photos, visite) — gratuit et sans engagement.</p>
       </div>
 
       <div class="w-full max-w-lg grid sm:grid-cols-2 gap-4 text-left">
@@ -285,7 +280,10 @@
           <%= f.email_field :email, placeholder: "jean@exemple.fr", class: "input-field" %>
         </div>
         <div>
-          <%= f.label :telephone, "Téléphone *", class: "label-field" %>
+          <%# Facultatif depuis le 28/08/2026 : exiger le numéro faisait partie
+              du mur. Ceux qui veulent être rappelés le laissent ; les autres
+              reçoivent le PDF et rappellent eux-mêmes (le canal voix convertit). %>
+          <%= f.label :telephone, "Téléphone (facultatif)", class: "label-field" %>
           <%= f.telephone_field :telephone, placeholder: "06 12 34 56 78", class: "input-field" %>
         </div>
         <div>
@@ -363,10 +361,10 @@
       <p data-wizard-target="error" class="wizard-error hidden"></p>
 
       <button type="button" data-action="wizard#submitForm" data-wizard-target="submitBtn" class="btn-primary wizard-cta mt-6">
-        Afficher mon devis chiffré
+        Recevoir mon devis par e-mail
       </button>
       <p class="text-xs text-ink-light mt-4 max-w-md leading-relaxed">
-        Votre devis détaillé s'affiche immédiatement et vous est envoyé par e-mail.
+        Le PDF part immédiatement dans votre boîte mail.
         Aucun démarchage : vos coordonnées ne servent qu'à ce devis et ne sont jamais cédées.
       </p>
 

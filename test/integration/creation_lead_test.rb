@@ -42,6 +42,40 @@ class CreationLeadTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  # Renversement du 28/08/2026 : le téléphone est facultatif — exiger le
+  # numéro faisait partie du mur mesuré sur l'écran contact.
+  test "une soumission SANS téléphone passe" do
+    p = params_valides
+    p[:estimation].delete(:telephone)
+    assert_difference "Estimation.count", 1 do
+      post estimation_path, params: p
+    end
+    assert_response :redirect
+  end
+
+  test "la confirmation client emporte le devis PDF en pièce jointe" do
+    post estimation_path, params: params_valides
+    confirmation = ActionMailer::Base.deliveries.find { |m| m.subject.include?("Votre devis estimatif") }
+    assert confirmation, "le mail de confirmation client doit partir"
+    pj = confirmation.attachments.first
+    assert pj, "le PDF promis par le CTA « Recevoir mon devis par e-mail » doit être joint"
+    assert_equal "application/pdf", pj.mime_type
+    assert pj.body.raw_source.start_with?("%PDF"), "la pièce jointe doit être un vrai PDF"
+  end
+
+  # Le devis s'affiche EN CLAIR avant les coordonnées (renversement du gate) :
+  # la preview doit livrer les montants ligne à ligne et le total.
+  test "la preview JSON renvoie les montants et le total" do
+    post "/estimation/preview.json", params: {
+      lines: [ { prestation: "peinture_murs_reno", gamme: "milieu", type_piece: "salon",
+                 mode_saisie: "surface", surface: "20" } ]
+    }
+    assert_response :success
+    data = JSON.parse(response.body)
+    assert_operator data["total_ttc"].to_f, :>, 0, "le total doit être chiffré"
+    assert_operator data["lines"].first["total"].to_f, :>, 0, "chaque ligne doit porter son montant"
+  end
+
   test "un mail qui explose ne fait pas échouer la création du lead" do
     LeadMailer.singleton_class.define_method(:nouveau_lead) { |*| raise "SMTP en panne" }
     assert_difference "Estimation.count", 1 do

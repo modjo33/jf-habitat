@@ -18,10 +18,7 @@ class EstimationsController < ApplicationController
     @preview = EstimationCalculatorService.preview(params[:lines] || [], context: context)
     respond_to do |format|
       format.turbo_stream
-      # Devis chiffré accessible uniquement après soumission des coordonnées :
-      # on n'expose que les éléments factuels (pièces, surfaces), jamais les
-      # prix unitaires ni les totaux.
-      format.json { render json: gated_preview(@preview) }
+      format.json { render json: preview_payload(@preview) }
     end
   end
 
@@ -95,37 +92,22 @@ class EstimationsController < ApplicationController
     Rails.logger.warn "[EstimationsController#create] client upsert failed: #{e.class} · #{e.message}"
   end
 
-  # Filtre la preview pour ne renvoyer côté client que des données sans prix.
-  # Le devis chiffré complet n'est disponible qu'une fois les coordonnées
-  # soumises (cf. action create + page show).
-  def gated_preview(preview)
-    safe_lines = (preview[:lines] || []).map do |line|
-      line.slice(:piece, :prestation_label, :gamme_label, :surface, :options)
+  # Devis affiché EN CLAIR avant les coordonnées — décision du 28/08/2026,
+  # renversement du gate historique. Mesuré du 29/07 au 27/08 : 42 visiteurs
+  # Ads sur l'écran contact, 3 soumissions ; les visiteurs tapaient le bouton
+  # champs vides pour voir ce que cachait le flou. La fourchette exposait déjà
+  # le prix : le flou ne protégeait plus que le détail, en coûtant la
+  # confiance. Le formulaire devient une offre (PDF + rappel), plus un péage.
+  def preview_payload(preview)
+    lines = (preview[:lines] || []).map do |line|
+      line.slice(:piece, :type_piece_label, :prestation_label, :gamme_label, :surface, :options, :total)
     end
     {
-      lines: safe_lines,
+      lines: lines,
       surface_totale: preview[:surface_totale],
-      count: preview[:count] || safe_lines.size,
-      fourchette: fourchette(preview[:total_ttc])
+      count: preview[:count] || lines.size,
+      total_ttc: preview[:total_ttc]
     }
-  end
-
-  # Ordre de grandeur, jamais le montant exact : le client doit pouvoir se
-  # situer avant de laisser ses coordonnées, sans que le devis chiffré ne fuite.
-  # ±15 % arrondi à la centaine — un intervalle assez large pour rester une
-  # fourchette, assez précis pour qu'il sache si c'est dans son budget.
-  MARGE_FOURCHETTE = 0.15
-  PAS_ARRONDI = 100
-
-  def fourchette(total)
-    total = total.to_f
-    return nil unless total.positive?
-    bas  = ((total * (1 - MARGE_FOURCHETTE)) / PAS_ARRONDI).floor * PAS_ARRONDI
-    haut = ((total * (1 + MARGE_FOURCHETTE)) / PAS_ARRONDI).ceil * PAS_ARRONDI
-    bas = 0 if bas.negative?
-    # Toujours un intervalle : sinon on afficherait le montant exact.
-    haut = bas + PAS_ARRONDI if haut <= bas
-    { min: bas, max: haut }
   end
 
   def estimation_params

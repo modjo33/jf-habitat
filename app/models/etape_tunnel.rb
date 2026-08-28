@@ -40,7 +40,12 @@ class EtapeTunnel < ApplicationRecord
     # La fourchette affichée sur l'écran contact, avec son montant en `detail`
     # (« 1100-1600 ») : croisée avec l'absence de soumission, elle dit si c'est
     # le prix qui fait repartir les visiteurs arrivés au bout.
-    "fourchette_vue" => "Fourchette de prix affichée"
+    # Conservée pour lire l'historique : remplacée par `devis_vu` le 28/08/2026.
+    "fourchette_vue" => "Fourchette de prix affichée",
+    # Le devis EN CLAIR affiché sur l'écran contact (renversement du gate,
+    # 28/08/2026), avec le total TTC en `detail` (« 5648 ») : même usage que
+    # la fourchette — prix vu vs coordonnées laissées.
+    "devis_vu"       => "Devis affiché en clair"
   }.freeze
   EVENEMENTS = ETAPES.merge(HORS_ENTONNOIR).freeze
 
@@ -77,7 +82,7 @@ class EtapeTunnel < ApplicationRecord
         etape: etape,
         source: SOURCES.include?(source) ? source : "direct",
         appareil: APPAREILS.include?(appareil) ? appareil : "autre",
-        detail: %w[envoi_bloque fourchette_vue].include?(etape) ? detail.presence&.slice(0, 120) : nil,
+        detail: %w[envoi_bloque fourchette_vue devis_vu].include?(etape) ? detail.presence&.slice(0, 120) : nil,
         created_at: Time.current
       } ],
       unique_by: %i[visite etape]

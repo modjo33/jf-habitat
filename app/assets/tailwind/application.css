@@ -173,10 +173,4 @@
   .wizard-error {
     @apply mt-4 text-sm font-semibold text-red-700;
   }
-  /* Montants du devis floutés tant que les coordonnées ne sont pas saisies */
-  .devis-blur {
-    filter: blur(7px);
-    user-select: none;
-    pointer-events: none;
-  }
 }

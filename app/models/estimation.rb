@@ -68,7 +68,9 @@ class Estimation < ApplicationRecord
   # prénom et rien d'autre. Le format reste vérifié quand la valeur est là.
   validates :email, presence: true, unless: :manuel?
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
-  validates :telephone, presence: true, unless: :manuel?
+  # Téléphone FACULTATIF depuis le 28/08/2026 (renversement du gate) : exiger
+  # le numéro faisait partie du mur de l'écran contact. Le format reste
+  # contrôlé quand il est fourni.
   validates :telephone, format: { with: /\A(\+33|0)[1-9](\d{2}){4}\z/, message: "doit être un numéro français valide" }, allow_blank: true
   # Exigé à la CRÉATION seulement : il dit si le chantier est dans la zone et
   # porte le coefficient régional. `on: :create` pour ne pas bloquer la mise à
