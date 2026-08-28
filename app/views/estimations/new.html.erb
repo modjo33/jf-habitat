@@ -392,14 +392,14 @@
     <section class="wizard-step hidden" data-wizard-target="step" data-piece-index="__N__"
              data-piece-type="__TYPE__" data-piece-label="__LABEL__" data-validate="dimensions">
       <div class="wizard-eyebrow">__LABEL__</div>
-      <h2 class="wizard-question !mb-2">Quelle taille fait cette pièce ?</h2>
-      <p class="text-ink-light text-sm mb-4 max-w-md">Sa surface au sol suffit — celle du bail ou de l'annonce.</p>
+      <h2 data-dim-question class="wizard-question !mb-2">Quelle taille fait cette pièce ?</h2>
+      <p data-dim-intro class="text-ink-light text-sm mb-4 max-w-md">Sa surface au sol suffit — celle du bail ou de l'annonce.</p>
 
       <%# Mode simple : une seule valeur, celle que le client connaît. Demander
           le « développé des murs » était la seule question du tunnel à laquelle
           un particulier ne sait pas répondre. %>
       <div data-mode="simple" class="w-full max-w-md">
-        <div class="grid grid-cols-3 gap-2 mb-4">
+        <div data-champ="tailles" class="grid grid-cols-3 gap-2 mb-4">
           <% [["Petite", "9", "≤ 12 m²"], ["Moyenne", "16", "12 – 20 m²"], ["Grande", "25", "> 20 m²"]].each do |label, valeur, sub| %>
             <button type="button" data-taille data-valeur="<%= valeur %>" data-action="wizard#choisirTaille"
                     class="px-2 py-2.5 border-2 border-border-warm rounded-xl transition
@@ -412,7 +412,7 @@
 
         <div class="p-4 bg-cream border border-border-warm rounded-xl text-left">
           <div class="grid grid-cols-2 gap-4">
-            <div>
+            <div data-champ="surface_sol">
               <label class="label-field">Surface au sol</label>
               <div class="flex items-center gap-2">
                 <input type="number" data-dim="surface_sol" min="1" step="0.5" inputmode="decimal" placeholder="16"
@@ -429,6 +429,20 @@
                        class="input-field text-center no-spin">
                 <span class="text-ink-light text-sm">m</span>
               </div>
+            </div>
+            <%# Cloison placo : un OUVRAGE dont on demande la longueur, jamais
+                déduit du périmètre de la pièce — l'ancienne déduction chiffrait
+                les 4 murs et sortait des devis 2 à 3× trop hauts (cf.
+                wizard_controller.js, TRAVAUX). Masqué sans travaux placo. %>
+            <div data-champ="cloison" class="hidden col-span-2">
+              <label class="label-field">Longueur de cloison à réaliser</label>
+              <div class="flex items-center gap-2">
+                <input type="number" data-dim="cloison_L" min="0.5" max="50" step="0.1" inputmode="decimal" placeholder="4"
+                       data-action="input->wizard#liveSurface"
+                       class="input-field text-center no-spin">
+                <span class="text-ink-light text-sm">m</span>
+              </div>
+              <p class="text-[11px] text-ink-light mt-1">Le total des cloisons ou doublages prévus dans cette pièce, en mètres.</p>
             </div>
           </div>
 
@@ -452,7 +466,7 @@
               <label class="label-field">Longueur des murs</label>
               <input type="number" data-dim="murs_L" min="0.1" step="0.05" inputmode="decimal" placeholder="14"
                      data-action="input->wizard#liveSurface" class="input-field text-center no-spin">
-              <p class="text-[11px] text-ink-light mt-1">Périmètre à peindre, en mètres.</p>
+              <p class="text-[11px] text-ink-light mt-1">Longueur totale à traiter (murs à peindre ou cloisons), en mètres.</p>
             </div>
             <div>
               <label class="label-field">Hauteur</label>

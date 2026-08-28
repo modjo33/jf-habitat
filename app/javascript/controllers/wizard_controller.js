@@ -16,12 +16,18 @@ export default class extends Controller {
   static targets = ["step", "progressBar", "progressText", "back", "piecesContainer", "pieceTemplate", "recap", "lines", "error", "loader", "devisTeaser", "devisRows", "submitBtn"]
 
   // Travaux génériques proposés → résolution vers une prestation réelle + type de surface.
+  // ⚠️ `cloison` ≠ `murs` : la peinture couvre tout le périmètre de la pièce,
+  // une cloison placo est UN ouvrage dont le client donne la longueur. Chiffrer
+  // le placo sur le développé des 4 murs multipliait le devis par 2 à 3 —
+  // constaté le 28/08/2026 sur le lead Segard : 29,46 m² de cloisons facturées
+  // par pièce de 10 m² au sol, devis « monstrueux » de 10 784 € pour un
+  // chantier qui en vaut la moitié.
   static TRAVAUX = [
     { id: "peinture_murs",       label: "Peinture des murs",     surface: "murs" },
     { id: "peinture_plafond",    label: "Peinture du plafond",   surface: "plafond" },
-    { id: "placo_cloison",       label: "Cloison placo",         surface: "murs" },
+    { id: "placo_cloison",       label: "Cloison placo",         surface: "cloison" },
     { id: "placo_plafond",       label: "Plafond placo",         surface: "plafond" },
-    { id: "placo_bandes_enduit", label: "Bandes & enduit",       surface: "murs" },
+    { id: "placo_bandes_enduit", label: "Bandes & enduit",       surface: "cloison" },
     { id: "parquet_stratifie",   label: "Parquet stratifié",     surface: "sol" },
     { id: "parquet_contrecolle", label: "Parquet contrecollé",   surface: "sol" },
     { id: "parquet_massif",      label: "Parquet massif",        surface: "sol" }
@@ -181,9 +187,10 @@ export default class extends Controller {
     const sortie = step.querySelector("[data-surface-live]")
     if (!sortie) return
     const p = this.lireDimensions(step)
-    const { hasFloor, hasWalls } = this.surfaceFlags()
+    const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags()
     const morceaux = []
     if (hasWalls && p.mursSurface > 0) morceaux.push(`≈ ${this.fmt(p.mursSurface)} m² de murs`)
+    if (hasCloison && p.cloisonSurface > 0) morceaux.push(`${this.fmt(p.cloisonSurface)} m² de cloison`)
     if (hasFloor && p.solSurface > 0) morceaux.push(`${this.fmt(p.solSurface)} m² au sol`)
     sortie.textContent = morceaux.length ? `→ ${morceaux.join(" · ")} à traiter` : ""
   }
@@ -251,9 +258,13 @@ export default class extends Controller {
       const horsBornes = this.champHorsBornes(step)
       if (horsBornes) return this.fail(step, horsBornes.message, horsBornes.champ)
       const p = this.lireDimensions(step)
-      const { hasFloor, hasWalls } = this.surfaceFlags()
+      const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags()
       if (hasWalls && !(p.mursSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
       if (hasFloor && !(p.solSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
+      if (hasCloison && !(p.cloisonSurface > 0)) {
+        return this.fail(step, "Indiquez la longueur de cloison à réaliser.",
+                         step.querySelector('[data-dim="cloison_L"], [data-dim="murs_L"]'))
+      }
     } else if (kind === "contact") {
       const champNom = step.querySelector('[name="estimation[nom]"]')
       const nom = champNom?.value.trim()
@@ -323,7 +334,8 @@ export default class extends Controller {
     const libelles = {
       hauteur: "la hauteur sous plafond", murs_L: "la longueur des murs",
       murs_H: "la hauteur des murs", sol_L: "la longueur du sol",
-      sol_l: "la largeur du sol", surface_sol: "la surface au sol"
+      sol_l: "la largeur du sol", surface_sol: "la surface au sol",
+      cloison_L: "la longueur de cloison"
     }
     for (const champ of step.querySelectorAll("input[data-dim]")) {
       const v = parseFloat(String(champ.value).replace(",", "."))
@@ -660,10 +672,14 @@ export default class extends Controller {
     const arrondi = v => Math.round(v * 100) / 100
 
     if (step.dataset.saisie === "precis") {
+      const murs = arrondi(dim("murs_L") * dim("murs_H"))
       return {
         mode: "precis",
-        mursSurface: arrondi(dim("murs_L") * dim("murs_H")),
-        solSurface:  arrondi(dim("sol_L") * dim("sol_l"))
+        mursSurface: murs,
+        solSurface:  arrondi(dim("sol_L") * dim("sol_l")),
+        // En mode précis, le bloc murs porte les mesures exactes du client :
+        // pour une cloison, il y saisit directement longueur × hauteur.
+        cloisonSurface: murs
       }
     }
     const surface = dim("surface_sol")
@@ -673,7 +689,10 @@ export default class extends Controller {
       mode: "simple",
       surfaceSol: surface, hauteur,
       mursSurface: arrondi(perimetre * hauteur * this.constructor.COEF_MENUISERIES),
-      solSurface:  arrondi(surface)
+      solSurface:  arrondi(surface),
+      // La cloison est un OUVRAGE, pas une propriété de la pièce : sa longueur
+      // est saisie, jamais déduite (cf. le commentaire de TRAVAUX).
+      cloisonSurface: arrondi(dim("cloison_L") * hauteur)
     }
   }
 
@@ -684,7 +703,9 @@ export default class extends Controller {
   }
 
   computeSurface(kind, p) {
-    return kind === "murs" ? (p.mursSurface || 0) : (p.solSurface || 0)
+    if (kind === "murs") return p.mursSurface || 0
+    if (kind === "cloison") return p.cloisonSurface || 0
+    return p.solSurface || 0
   }
 
   surfaceFlags() {
@@ -692,18 +713,32 @@ export default class extends Controller {
       .map(id => this.constructor.TRAVAUX.find(t => t.id === id)?.surface)
     return {
       hasFloor: kinds.some(k => k === "sol" || k === "plafond"),
-      hasWalls: kinds.includes("murs")
+      hasWalls: kinds.includes("murs"),
+      hasCloison: kinds.includes("cloison")
     }
   }
 
   // N'affiche que ce qui sert : pas de hauteur sous plafond quand il n'y a que
-  // du sol à poser, pas de bloc « murs » quand aucun mur n'est concerné.
+  // du sol à poser, pas de bloc « murs » quand aucun mur n'est concerné, et la
+  // surface au sol disparaît quand seule une cloison est à chiffrer (elle ne
+  // sert à rien et sa question ferait hésiter).
   configureDimensions(step) {
-    const { hasFloor, hasWalls } = this.surfaceFlags()
+    const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags()
     step.dataset.saisie ||= "simple"
-    step.querySelector('[data-champ="hauteur"]')?.classList.toggle("hidden", !hasWalls)
-    step.querySelector('[data-dim-group="murs"]')?.classList.toggle("hidden", !hasWalls)
+    step.querySelector('[data-champ="hauteur"]')?.classList.toggle("hidden", !hasWalls && !hasCloison)
+    step.querySelector('[data-champ="cloison"]')?.classList.toggle("hidden", !hasCloison)
+    step.querySelector('[data-champ="surface_sol"]')?.classList.toggle("hidden", !hasFloor && !hasWalls)
+    step.querySelector('[data-champ="tailles"]')?.classList.toggle("hidden", !hasFloor && !hasWalls)
+    step.querySelector('[data-dim-group="murs"]')?.classList.toggle("hidden", !hasWalls && !hasCloison)
     step.querySelector('[data-dim-group="sol"]')?.classList.toggle("hidden", !hasFloor)
+    // Cloison seule : la question « quelle taille fait la pièce ? » n'a plus
+    // de sens puisque la surface au sol est masquée.
+    if (!hasFloor && !hasWalls && hasCloison) {
+      const q = step.querySelector("[data-dim-question]")
+      const intro = step.querySelector("[data-dim-intro]")
+      if (q) q.textContent = "Votre cloison dans cette pièce"
+      if (intro) intro.textContent = "Sa longueur et la hauteur sous plafond suffisent pour la chiffrer."
+    }
     this.majSurface(step)
   }
 
