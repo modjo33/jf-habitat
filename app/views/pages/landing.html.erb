@@ -1,0 +1,163 @@
+<% content_for :title, @m[:titre_seo] %>
+<% content_for :description, @m[:desc_seo] %>
+
+<%# HERO volontairement COMPACT sur mobile (84 % du trafic Ads) : eyebrow, titre,
+    une accroche courte, puis le CTA. Le paragraphe d'introduction complet est
+    passé dans la section suivante — dans le hero, il repoussait le bouton à
+    y=634-730 pour 568-664 px utiles, donc hors écran, et sur iPhone 13 sous le
+    bandeau cookies. Mesuré au WebKit : ne pas y remettre de texte long. %>
+<!-- ============================================================ HERO -->
+<section class="relative bg-sand overflow-hidden">
+  <div class="relative grid lg:grid-cols-[1.1fr_1fr] lg:min-h-[70vh]">
+    <div class="relative z-10 flex items-center px-6 sm:px-10 lg:px-16 py-8 lg:py-20">
+      <div class="max-w-xl">
+        <div class="eyebrow mb-3 lg:mb-6"><%= @m[:eyebrow] %></div>
+        <h1 class="h-display text-3xl sm:text-4xl lg:text-6xl text-ink mb-3 lg:mb-6">
+          <%= @m[:h1] %><br>
+          <em class="text-accent not-italic"><%= @m[:h1_accent] %></em>
+        </h1>
+        <p class="text-ink-soft text-base lg:text-lg leading-relaxed mb-5 lg:mb-8">
+          <%= @m[:accroche] %>
+        </p>
+        <div class="flex flex-wrap gap-3 lg:gap-4 items-center mb-3 lg:mb-4">
+          <%= link_to "Estimer mes travaux en 2 min", new_estimation_path, class: "btn-primary" %>
+          <% if business_phone %>
+            <a href="<%= business_phone_link %>" class="btn-ghost">📞 <%= business_phone %></a>
+          <% end %>
+        </div>
+        <p class="text-xs lg:text-sm text-ink-light">
+          ✓ Artisan local en Gironde&nbsp;&nbsp;✓ Devis chiffré immédiat&nbsp;&nbsp;✓ Sans engagement
+        </p>
+      </div>
+    </div>
+    <%# La photo passe APRÈS le texte sur mobile : en tête (order-first), ses
+        160 px repoussaient le CTA à y=615 pour 568 px utiles sur iPhone SE,
+        soit sous le bandeau cookies. Mesuré au WebKit — ne pas la remonter. %>
+    <div class="relative h-40 sm:h-56 lg:h-auto lg:min-h-full">
+      <%= image_tag stock_photo_url(@m[:photo], w: 1400, h: 1200),
+            alt: @m[:photo_alt],
+            loading: "eager",
+            class: "absolute inset-0 w-full h-full object-cover" %>
+      <div class="absolute inset-0 bg-gradient-to-r from-sand/60 via-transparent to-transparent lg:from-sand/40"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ INTRO -->
+<section class="py-12 lg:py-16 bg-cream">
+  <div class="max-w-3xl mx-auto px-6 lg:px-10">
+    <p class="text-ink-soft text-base lg:text-lg leading-relaxed"><%= @m[:intro] %></p>
+  </div>
+</section>
+
+<!-- ============================================================ PRESTATIONS -->
+<section class="py-20 bg-cream">
+  <div class="max-w-5xl mx-auto px-6 lg:px-10">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <div class="eyebrow mb-4">Ce que je fais pour vous</div>
+      <h2 class="h-display text-3xl lg:text-4xl text-ink">Prestations & tarifs indicatifs</h2>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-6">
+      <% @m[:prestations].each do |titre, desc, prix| %>
+        <div class="bg-white border border-border-warm rounded-2xl p-6 shadow-card">
+          <div class="flex items-baseline justify-between gap-3 mb-2">
+            <h3 class="font-display text-xl text-ink"><%= titre %></h3>
+            <span class="shrink-0 text-sm font-semibold text-accent"><%= prix %></span>
+          </div>
+          <p class="text-sm text-ink-soft leading-relaxed"><%= desc %></p>
+        </div>
+      <% end %>
+    </div>
+    <p class="text-center text-sm text-ink-light mt-8">
+      Les prix dépendent de l'état des supports et de la gamme choisie —
+      <%= link_to "l'estimateur en ligne", new_estimation_path, class: "underline hover:text-accent" %>
+      vous donne un chiffrage détaillé, ligne par ligne, adapté à votre chantier.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ COMMENT ÇA SE PASSE -->
+<section class="py-20 bg-sand">
+  <div class="max-w-5xl mx-auto px-6 lg:px-10">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <div class="eyebrow mb-4">Simple et sans surprise</div>
+      <h2 class="h-display text-3xl lg:text-4xl text-ink">Comment ça se passe</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <% [
+        ["1", "Estimez en ligne", "Décrivez vos travaux en 2 minutes : vous voyez immédiatement un devis chiffré, poste par poste. Sans créer de compte, sans engagement."],
+        ["2", "On en parle", "Je vous rappelle pour affiner : état des supports, contraintes, envies. Si besoin, je passe voir le chantier — gratuitement."],
+        ["3", "Chantier soigné", "Devis signé, date posée, chantier protégé et rangé chaque soir. Vous payez selon l'échéancier prévu, jamais de surprise."]
+      ].each do |num, titre, desc| %>
+        <div class="text-center">
+          <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-accent text-white font-display text-xl flex items-center justify-center"><%= num %></div>
+          <h3 class="font-display text-xl text-ink mb-2"><%= titre %></h3>
+          <p class="text-sm text-ink-soft leading-relaxed"><%= desc %></p>
+        </div>
+      <% end %>
+    </div>
+    <div class="text-center mt-12">
+      <%= link_to "Démarrer mon estimation gratuite", new_estimation_path, class: "btn-primary" %>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ZONE D'INTERVENTION -->
+<section class="py-20 bg-cream">
+  <div class="max-w-5xl mx-auto px-6 lg:px-10 grid lg:grid-cols-[1fr_1.2fr] gap-12 items-center">
+    <div>
+      <div class="eyebrow mb-4">Artisan local</div>
+      <h2 class="h-display text-3xl lg:text-4xl text-ink mb-5">J'interviens autour de chez vous</h2>
+      <p class="text-ink-soft leading-relaxed">
+        Installé à Ayguemorte-les-Graves, j'interviens sur <strong>Bordeaux, sa métropole et la
+        Gironde Sud</strong> — à moins de 35&nbsp;km de l'atelier, pour rester réactif
+        et garder des frais de déplacement raisonnables.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <% %w[Bordeaux Bègles Talence Villenave-d'Ornon Gradignan Pessac Léognan Cadaujac
+            La\ Brède Saint-Médard-d'Eyrans Martillac Castres-Gironde Beautiran Portets
+            Podensac Cérons Langon Créon Latresne Camblanes-et-Meynac].each do |ville| %>
+        <span class="px-3 py-1.5 bg-sand border border-border-warm rounded-full text-sm text-ink-soft"><%= ville %></span>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FAQ -->
+<section class="py-20 bg-sand">
+  <div class="max-w-3xl mx-auto px-6 lg:px-10">
+    <div class="text-center mb-12">
+      <div class="eyebrow mb-4">Vos questions</div>
+      <h2 class="h-display text-3xl lg:text-4xl text-ink">Questions fréquentes</h2>
+    </div>
+    <div class="space-y-4">
+      <% @m[:faq].each do |question, reponse| %>
+        <details class="bg-cream border border-border-warm rounded-2xl px-6 py-4 group">
+          <summary class="cursor-pointer font-display text-lg text-ink list-none flex items-center justify-between gap-4">
+            <%= question %>
+            <span class="shrink-0 text-accent transition-transform group-open:rotate-45 text-xl leading-none">+</span>
+          </summary>
+          <p class="text-ink-soft text-sm leading-relaxed mt-3"><%= reponse %></p>
+        </details>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CTA FINAL -->
+<section class="py-20 bg-cream">
+  <div class="max-w-2xl mx-auto px-6 text-center">
+    <h2 class="h-display text-3xl lg:text-4xl text-ink mb-4">Votre devis chiffré en 2 minutes</h2>
+    <p class="text-ink-soft mb-8">
+      Décrivez vos travaux, le prix s'affiche immédiatement — détaillé, gratuit, sans engagement.
+      Vous préférez en parler de vive voix&nbsp;? Appelez, je réponds ou je rappelle vite.
+    </p>
+    <div class="flex flex-wrap gap-4 justify-center items-center">
+      <%= link_to "Estimer mes travaux", new_estimation_path, class: "btn-primary" %>
+      <% if business_phone %>
+        <a href="<%= business_phone_link %>" class="btn-ghost">📞 <%= business_phone %></a>
+      <% end %>
+    </div>
+  </div>
+</section>

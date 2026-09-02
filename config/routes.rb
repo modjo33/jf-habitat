@@ -6,6 +6,14 @@ Rails.application.routes.draw do
   get "/prestations", to: "pages#prestations"
   get "/realisations", to: "pages#realisations"
   get "/contact",     to: "pages#contact"
+  # Pages d'atterrissage Google Ads — une par groupe d'annonces. L'URL porte le
+  # mot-clé : c'est elle que Google évalue pour l'« expérience de la page de
+  # destination » (notée « inférieure à la moyenne » sur /estimation/new le
+  # 02/09/2026, niveau de qualité 2-3/10 → 67 % d'impressions perdues au rang).
+  get "/peintre-bordeaux",   to: "pages#landing", defaults: { metier: "peinture" }, as: :landing_peinture
+  get "/plaquiste-bordeaux", to: "pages#landing", defaults: { metier: "placo" },    as: :landing_placo
+  get "/parquet-bordeaux",   to: "pages#landing", defaults: { metier: "parquet" },  as: :landing_parquet
+
   get "/mentions-legales",             to: "pages#mentions_legales"
   get "/politique-de-confidentialite", to: "pages#politique_confidentialite", as: :politique_confidentialite
   get "/cgu",                          to: "pages#cgu",                       as: :cgu
