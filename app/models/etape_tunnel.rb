@@ -34,6 +34,11 @@ class EtapeTunnel < ApplicationRecord
   # ce qui a fait accuser l'écran 1 pendant des semaines alors que le trou était
   # sur le dernier écran.
   HORS_ENTONNOIR = {
+    # Les pages métier (/peintre-bordeaux, /plaquiste-bordeaux, /parquet-bordeaux)
+    # sont devenues la destination des annonces le 02/09/2026. Sans cette
+    # balise, l'entonnoir ne voyait plus les clics facturés : ils atterrissaient
+    # une page AVANT `arrivee`. `detail` porte le métier (« peinture »…).
+    "atterrissage"   => "Arrivée sur une page métier",
     "appel"          => "Appel déclenché",
     "envoi_tente"    => "Bouton final tapé",
     "envoi_bloque"   => "Envoi refusé par la validation",
@@ -82,7 +87,7 @@ class EtapeTunnel < ApplicationRecord
         etape: etape,
         source: SOURCES.include?(source) ? source : "direct",
         appareil: APPAREILS.include?(appareil) ? appareil : "autre",
-        detail: %w[envoi_bloque fourchette_vue devis_vu].include?(etape) ? detail.presence&.slice(0, 120) : nil,
+        detail: %w[envoi_bloque fourchette_vue devis_vu atterrissage].include?(etape) ? detail.presence&.slice(0, 120) : nil,
         created_at: Time.current
       } ],
       unique_by: %i[visite etape]
@@ -184,6 +189,26 @@ class EtapeTunnel < ApplicationRecord
     scope.group(:detail).count
          .transform_keys { |motif| motif.presence || "motif non enregistré" }
          .sort_by { |_, n| -n }
+  end
+
+  # Les pages métier, marche d'avant l'estimateur : combien y atterrissent, par
+  # métier, et combien poursuivent jusqu'à l'estimateur (même visite ayant
+  # aussi émis `arrivee`) ou appellent directement. C'est le taux que les
+  # annonces achètent depuis le 02/09/2026 : un clic facturé qui s'arrête à
+  # la page métier ne se voit nulle part ailleurs.
+  def self.pages_metier(debut:, fin:, source: nil, appareil: nil)
+    scope = sur(debut, fin)
+    scope = scope.where(source: source)     if source.present?
+    scope = scope.where(appareil: appareil) if appareil.present?
+    atterrissages = scope.where(etape: "atterrissage")
+    visites = atterrissages.select(:visite)
+
+    {
+      total: atterrissages.count,
+      par_metier: atterrissages.group(:detail).count.transform_keys { |m| m.presence || "inconnu" }.sort_by { |_, n| -n },
+      vers_estimateur: where(etape: "arrivee", visite: visites).count,
+      appels: where(etape: "appel", visite: visites).count
+    }
   end
 
   def self.purger(avant: RETENTION.ago)

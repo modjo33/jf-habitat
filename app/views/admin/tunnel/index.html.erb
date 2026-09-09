@@ -64,7 +64,7 @@
   <% end %>
 </div>
 
-<% if arrivees.zero? %>
+<% if arrivees.zero? && @pages_metier[:total].zero? %>
   <div class="card-premium p-10 text-center text-ink-light">
     <p class="text-lg text-ink font-semibold mb-2">Aucune visite mesurée sur la période.</p>
     <% if @premiere_mesure.nil? %>
@@ -123,6 +123,54 @@
         <strong><%= reels %> visiteurs réels</strong> comptés ici sur la période, l'écart est du trafic invalide,
         à signaler à Google. Les taux ci-dessous ignorent ces chargements.
       </p>
+    </div>
+  <% end %>
+
+  <%# Depuis le 02/09/2026 les annonces n'envoient plus sur l'estimateur mais
+      sur une page métier. Sans cette carte, un clic facturé qui s'arrête à la
+      page métier n'apparaissait nulle part : l'entonnoir semblait vide alors
+      que la campagne diffusait normalement (constaté du 03 au 09/09). %>
+  <% pm = @pages_metier %>
+  <% if pm[:total].positive? %>
+    <% libelle_metier = { "peinture" => "Peintre", "placo" => "Plaquiste", "parquet" => "Parquet" } %>
+    <div class="card-premium p-7 mb-6">
+      <h2 class="font-display text-xl text-ink mb-1">Pages métier : la marche d'avant l'estimateur</h2>
+      <p class="text-sm text-ink-light mb-5">
+        Les annonces atterrissent sur /peintre-bordeaux, /plaquiste-bordeaux ou /parquet-bordeaux.
+        Le chiffre à regarder : la part de ces visiteurs qui <strong>ouvrent l'estimateur ou appellent</strong>.
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Arrivés sur une page métier</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= pm[:total] %></div>
+          <div class="text-xs text-ink-light mt-1">
+            <%= pm[:par_metier].map { |m, n| "#{libelle_metier[m] || m} #{n}" }.join(" · ") %>
+          </div>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Passés à l'estimateur</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= pm[:vers_estimateur] %></div>
+          <div class="text-xs text-ink-light mt-1"><%= number_with_precision(pm[:vers_estimateur] * 100.0 / pm[:total], precision: 0) %> % des arrivés</div>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Ont appelé</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= pm[:appels] %></div>
+          <div class="text-xs text-ink-light mt-1">depuis la même visite</div>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Repartis sans rien faire</div>
+          <% perdus = [ pm[:total] - pm[:vers_estimateur] - pm[:appels], 0 ].max %>
+          <div class="font-display text-3xl mt-1 <%= perdus * 100.0 / pm[:total] >= 70 ? "text-red-600" : "text-ink" %>"><%= perdus %></div>
+          <div class="text-xs text-ink-light mt-1"><%= number_with_precision(perdus * 100.0 / pm[:total], precision: 0) %> % des arrivés</div>
+        </div>
+      </div>
+      <% if pm[:total] >= 20 && (pm[:vers_estimateur] + pm[:appels]) * 100.0 / pm[:total] < 20 %>
+        <p class="text-sm text-ink-soft mt-4 pt-4 border-t border-border-warm">
+          <strong class="text-red-700">Moins d'un visiteur sur cinq passe à l'action depuis la page métier.</strong>
+          C'est là que la campagne perd le plus : le clic est payé, la page est lue, mais le bouton n'est pas tapé.
+          Suspects habituels sur mobile : bouton trop bas, page trop longue avant l'offre, numéro de téléphone peu visible.
+        </p>
+      <% end %>
     </div>
   <% end %>
 

@@ -101,6 +101,9 @@ class PagesController < ApplicationController
 
   def landing
     @m = LANDINGS.fetch(params[:metier]) { return redirect_to(root_path) }
+    # Marche d'avant l'estimateur : c'est ici que les clics Ads atterrissent
+    # depuis le 02/09/2026. Sans cette balise, /admin/tunnel les perdait tous.
+    suivre_etape("atterrissage", detail: params[:metier])
   end
 
   def contact
