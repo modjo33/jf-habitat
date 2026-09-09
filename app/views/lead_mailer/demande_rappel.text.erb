@@ -1,0 +1,10 @@
+RAPPEL DEMANDÉ — JF HABITAT
+
+Nom       : <%= @client.nom %>
+Téléphone : <%= @client.telephone %>
+Origine   : <%= @contexte %>
+<% if @travaux.present? %>
+Travaux   : <%= @travaux %>
+<% end %>
+La personne attend un appel dans la journée.
+Fiche client : <%= admin_client_url(@client) %>

@@ -1,0 +1,42 @@
+<%# Trois champs, dix secondes. `valeurs` réinjecte la saisie après une erreur,
+    `erreurs` liste ce qui manque. Le champ `site_web` est un pot de miel :
+    invisible pour un humain, rempli par les robots. %>
+<% valeurs ||= {} %>
+<% erreurs ||= [] %>
+<% metier ||= nil %>
+<% page ||= nil %>
+<div class="flex items-start justify-between gap-4 mb-4">
+  <div>
+    <div class="eyebrow mb-1">Rappel gratuit</div>
+    <h3 id="rappel-titre" class="font-display text-2xl text-ink leading-tight">Je vous rappelle dans la journée</h3>
+  </div>
+  <button type="button" data-action="rappel#close" class="shrink-0 w-9 h-9 rounded-full border border-ink/15 text-ink hover:bg-sand transition" aria-label="Fermer">✕</button>
+</div>
+<% if erreurs.any? %>
+  <div class="mb-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+    <%= erreurs.join(" ") %>
+  </div>
+<% end %>
+<%= form_with url: rappel_path, id: "rappel-form", data: { turbo: true } do |f| %>
+  <%= f.hidden_field :metier, name: "rappel[metier]", value: metier %>
+  <%= f.hidden_field :page, name: "rappel[page]", value: page %>
+  <div class="hidden" aria-hidden="true">
+    <label>Site web <input type="text" name="rappel[site_web]" tabindex="-1" autocomplete="off"></label>
+  </div>
+  <div class="space-y-3">
+    <div>
+      <label for="rappel_nom" class="label-field">Votre prénom ou nom</label>
+      <input type="text" id="rappel_nom" name="rappel[nom]" value="<%= valeurs[:nom] || valeurs["nom"] %>" required minlength="2" autocomplete="name" class="input-field" placeholder="Ex. : Marie Dupont">
+    </div>
+    <div>
+      <label for="rappel_telephone" class="label-field">Votre téléphone</label>
+      <input type="tel" id="rappel_telephone" name="rappel[telephone]" value="<%= valeurs[:telephone] || valeurs["telephone"] %>" required autocomplete="tel" inputmode="tel" class="input-field" placeholder="06 12 34 56 78">
+    </div>
+    <div>
+      <label for="rappel_travaux" class="label-field">Vos travaux, en une ligne <span class="font-normal text-ink-light">(facultatif)</span></label>
+      <input type="text" id="rappel_travaux" name="rappel[travaux]" value="<%= valeurs[:travaux] || valeurs["travaux"] %>" maxlength="500" class="input-field" placeholder="Ex. : repeindre un salon de 20 m² à Pessac">
+    </div>
+  </div>
+  <button type="submit" class="btn-primary w-full mt-5">Demander un rappel</button>
+  <p class="text-xs text-ink-light text-center mt-3">Aucun démarchage : votre numéro ne sert qu'à ce rappel. Du lundi au samedi, 8 h – 18 h.</p>
+<% end %>

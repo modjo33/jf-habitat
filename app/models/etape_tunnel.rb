@@ -40,6 +40,10 @@ class EtapeTunnel < ApplicationRecord
     # une page AVANT `arrivee`. `detail` porte le métier (« peinture »…).
     "atterrissage"   => "Arrivée sur une page métier",
     "appel"          => "Appel déclenché",
+    # « Être rappelé » (09/09/2026) : ouverture du panneau puis envoi. Un
+    # rappel demandé vaut un devis demandé — c'est un client au téléphone.
+    "rappel_ouvert"  => "Formulaire de rappel ouvert",
+    "rappel"         => "Rappel demandé",
     "envoi_tente"    => "Bouton final tapé",
     "envoi_bloque"   => "Envoi refusé par la validation",
     # La fourchette affichée sur l'écran contact, avec son montant en `detail`
@@ -87,7 +91,7 @@ class EtapeTunnel < ApplicationRecord
         etape: etape,
         source: SOURCES.include?(source) ? source : "direct",
         appareil: APPAREILS.include?(appareil) ? appareil : "autre",
-        detail: %w[envoi_bloque fourchette_vue devis_vu atterrissage].include?(etape) ? detail.presence&.slice(0, 120) : nil,
+        detail: %w[envoi_bloque fourchette_vue devis_vu atterrissage rappel].include?(etape) ? detail.presence&.slice(0, 120) : nil,
         created_at: Time.current
       } ],
       unique_by: %i[visite etape]
@@ -157,6 +161,22 @@ class EtapeTunnel < ApplicationRecord
   # conditionné au consentement cookies, donc il n'en voit presque aucun.
   def self.appels(debut:, fin:, source: nil, appareil: nil)
     scope = sur(debut, fin).where(etape: "appel")
+    scope = scope.where(source: source)     if source.present?
+    scope = scope.where(appareil: appareil) if appareil.present?
+    scope.count
+  end
+
+  # Rappels demandés via le panneau « Être rappelé » — comptés comme contacts,
+  # au même titre qu'un appel ou qu'un devis demandé.
+  def self.rappels(debut:, fin:, source: nil, appareil: nil)
+    scope = sur(debut, fin).where(etape: "rappel")
+    scope = scope.where(source: source)     if source.present?
+    scope = scope.where(appareil: appareil) if appareil.present?
+    scope.count
+  end
+
+  def self.rappels_ouverts(debut:, fin:, source: nil, appareil: nil)
+    scope = sur(debut, fin).where(etape: "rappel_ouvert")
     scope = scope.where(source: source)     if source.present?
     scope = scope.where(appareil: appareil) if appareil.present?
     scope.count

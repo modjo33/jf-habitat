@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:system-ui,-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#FAF5EE;padding:20px;">
+  <div style="background:#2A2218;color:white;padding:24px;border-radius:12px 12px 0 0;">
+    <h1 style="margin:0;font-size:22px;">📞 Rappel demandé</h1>
+    <p style="margin:8px 0 0 0;color:rgba(255,255,255,0.7);font-size:14px;">La personne attend un appel dans la journée.</p>
+  </div>
+  <div style="background:white;padding:28px;border-radius:0 0 12px 12px;">
+    <p style="font-size:28px;margin:0 0 6px 0;"><a href="tel:<%= @client.telephone %>" style="color:#B85C38;text-decoration:none;font-weight:700;"><%= @client.telephone %></a></p>
+    <p style="font-size:18px;margin:0 0 18px 0;color:#2A2218;font-weight:600;"><%= @client.nom %></p>
+    <% if @travaux.present? %>
+      <div style="background:#FAF5EE;padding:14px;border-radius:8px;font-size:15px;color:#4A3F30;margin-bottom:18px;">
+        <strong>Travaux :</strong> <%= @travaux %>
+      </div>
+    <% end %>
+    <p style="font-size:13px;color:#7A6F5E;margin:0 0 18px 0;">Origine : <%= @contexte %></p>
+    <a href="<%= admin_client_url(@client) %>" style="display:inline-block;background:#2A2218;color:white;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600;font-size:14px;">Ouvrir la fiche client</a>
+  </div>
+</body>
+</html>

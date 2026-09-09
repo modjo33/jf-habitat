@@ -26,8 +26,8 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="font-body bg-sand text-ink antialiased">
-    <% fullscreen = content_for?(:fullscreen) %>
+  <% fullscreen = content_for?(:fullscreen) %>
+  <body class="font-body bg-sand text-ink antialiased" data-controller="rappel">
     <%= render "shared/navbar" unless fullscreen %>
 
     <% if notice %>
@@ -42,11 +42,15 @@
       </div>
     <% end %>
 
-    <main>
+    <%# pb-24 mobile : l'espace du bandeau d'action fixe (shared/contact_bar),
+        sinon il masque le bas du footer. Le wizard (fullscreen) a son propre CTA. %>
+    <main class="<%= fullscreen ? "" : "pb-24 md:pb-0" %>">
       <%= yield %>
     </main>
 
     <%= render "shared/footer" unless fullscreen %>
+    <%= render "shared/contact_bar" unless fullscreen %>
+    <%= render "shared/rappel_panel" %>
     <%= render "shared/cookie_banner" %>
   </body>
 </html>

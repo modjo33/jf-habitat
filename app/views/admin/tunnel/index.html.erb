@@ -8,8 +8,8 @@
   reels = @navigateurs
   sans_navigateur = [ arrivees - reels, 0 ].max
   part_sans_navigateur = arrivees.positive? ? sans_navigateur * 100.0 / arrivees : 0
-  # Un appel vaut un devis demandé : c'est un client au téléphone.
-  conversions = soumis + @appels
+  # Un appel ou un rappel demandé vaut un devis demandé : c'est un client au téléphone.
+  conversions = soumis + @appels + @rappels
   cout_periode = @campagne&.active? ? @campagne.cout_journalier.to_f * @jours : nil
 %>
 
@@ -64,7 +64,7 @@
   <% end %>
 </div>
 
-<% if arrivees.zero? && @pages_metier[:total].zero? %>
+<% if arrivees.zero? && @pages_metier[:total].zero? && @rappels.zero? %>
   <div class="card-premium p-10 text-center text-ink-light">
     <p class="text-lg text-ink font-semibold mb-2">Aucune visite mesurée sur la période.</p>
     <% if @premiere_mesure.nil? %>
@@ -75,7 +75,7 @@
     <% end %>
   </div>
 <% else %>
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
     <div class="card-premium p-6">
       <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Visiteurs réels</div>
       <div class="font-display text-3xl text-ink mt-1"><%= reels %></div>
@@ -96,11 +96,18 @@
       <div class="text-xs text-ink-light mt-1">clics sur le numéro, tous appareils</div>
     </div>
     <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Rappels demandés</div>
+      <div class="font-display text-3xl text-ink mt-1"><%= @rappels %></div>
+      <div class="text-xs text-ink-light mt-1">
+        <%= @rappels_ouverts.positive? ? "sur #{@rappels_ouverts} formulaire#{"s" if @rappels_ouverts > 1} ouvert#{"s" if @rappels_ouverts > 1}" : "bouton « Être rappelé »" %>
+      </div>
+    </div>
+    <div class="card-premium p-6">
       <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Coût estimé de la période</div>
       <% if cout_periode %>
         <div class="font-display text-3xl text-ink mt-1"><%= montant.(cout_periode) %></div>
         <div class="text-xs text-ink-light mt-1">
-          <%= conversions.positive? ? "#{montant.(cout_periode / conversions)} par contact (devis + appels)" : "aucun contact sur la période" %>
+          <%= conversions.positive? ? "#{montant.(cout_periode / conversions)} par contact (devis + appels + rappels)" : "aucun contact sur la période" %>
         </div>
       <% else %>
         <div class="font-display text-3xl text-ink/30 mt-1">—</div>

@@ -60,3 +60,6 @@ function fireLeadConversion(attempt = 0) {
 }
 
 document.addEventListener("turbo:load", () => fireLeadConversion())
+// Le panneau « Être rappelé » insère #lead-conversion-data par turbo-stream,
+// hors turbo:load : son contrôleur rappelle cette fonction après l'envoi.
+window.fireLeadConversion = fireLeadConversion

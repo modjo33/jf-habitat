@@ -23,6 +23,10 @@ Rails.application.routes.draw do
     post :preview, on: :collection
   end
 
+  # « Être rappelé » : prénom + téléphone + une ligne, depuis n'importe quelle
+  # page publique (bandeau mobile, hero des pages métier, écran contact du wizard).
+  post "/rappel", to: "rappels#create", as: :rappel
+
   # Balise de mesure du tunnel (agrégée, sans donnée personnelle).
   post "/suivi-tunnel", to: "tunnel#create", as: :suivi_tunnel
 

@@ -11,6 +11,16 @@ class LeadMailer < ApplicationMailer
          subject: "🔔 Nouveau lead · #{estimation.nom} · #{number_to_currency(estimation.total_ttc, unit: '€')}"
   end
 
+  # « Être rappelé » : le lead le plus court du site (prénom, téléphone, une
+  # ligne). Pas de PDF, pas de montant — juste le numéro à composer.
+  def demande_rappel(client, travaux, contexte)
+    @client = client
+    @travaux = travaux.to_s
+    @contexte = contexte.to_s
+    mail to: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
+         subject: "📞 Rappel demandé · #{client.nom} · #{client.telephone}"
+  end
+
   def confirmation_client(estimation)
     @estimation = estimation
     # Le CTA du wizard promet « Recevoir mon devis par e-mail » (renversement

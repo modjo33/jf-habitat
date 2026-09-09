@@ -1,0 +1,22 @@
+<%# Bandeau d'action fixe, MOBILE seulement (84 % du trafic Ads). Trois
+    sorties, toujours sous le pouce : appeler, être rappelé, estimer. Il se
+    pose AU-DESSUS du bandeau cookies (variable --cookie-banner-h publiée par
+    cookie_consent_controller, +16 px de marge qu'on retire ici), et <main>
+    réserve sa hauteur en bas de page pour ne rien masquer. %>
+<% colonnes = business_phone.present? ? "grid-cols-3" : "grid-cols-2" %>
+<div id="contact-bar" class="contact-bar md:hidden fixed left-0 right-0 z-40 bg-cream/95 backdrop-blur border-t border-border-warm shadow-[0_-8px_24px_rgba(42,34,24,0.08)] px-3 py-2 grid <%= colonnes %> gap-2">
+  <% if business_phone.present? %>
+    <a href="<%= business_phone_link %>" class="inline-flex flex-col items-center justify-center rounded-xl bg-ink text-sand py-2.5 leading-tight" aria-label="Appeler <%= business_phone %>">
+      <span class="text-base" aria-hidden="true">📞</span>
+      <span class="text-[11px] font-bold uppercase tracking-wide">Appeler</span>
+    </a>
+  <% end %>
+  <button type="button" data-action="rappel#open" class="inline-flex flex-col items-center justify-center rounded-xl border border-ink/20 text-ink bg-cream py-2.5 leading-tight">
+    <span class="text-base" aria-hidden="true">↩︎</span>
+    <span class="text-[11px] font-bold uppercase tracking-wide">Être rappelé</span>
+  </button>
+  <%= link_to new_estimation_path, class: "inline-flex flex-col items-center justify-center rounded-xl bg-accent text-white py-2.5 leading-tight" do %>
+    <span class="text-base" aria-hidden="true">✎</span>
+    <span class="text-[11px] font-bold uppercase tracking-wide">Estimer en 2 min</span>
+  <% end %>
+</div>

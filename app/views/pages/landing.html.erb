@@ -24,6 +24,8 @@
           <% if business_phone %>
             <a href="<%= business_phone_link %>" class="btn-ghost">📞 <%= business_phone %></a>
           <% end %>
+          <%# Sur mobile, le bandeau d'action fixe porte déjà « Être rappelé ». %>
+          <button type="button" data-action="rappel#open" class="btn-ghost hidden md:inline-flex">Être rappelé</button>
         </div>
         <p class="text-xs lg:text-sm text-ink-light">
           ✓ Artisan local en Gironde&nbsp;&nbsp;✓ Devis chiffré immédiat&nbsp;&nbsp;✓ Sans engagement

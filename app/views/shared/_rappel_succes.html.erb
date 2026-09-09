@@ -1,0 +1,15 @@
+<div class="text-center py-2">
+  <div class="text-4xl mb-3" aria-hidden="true">✅</div>
+  <h3 id="rappel-titre" class="font-display text-2xl text-ink mb-2">C'est noté<%= ", #{nom.to_s.strip}" if nom.present? %> !</h3>
+  <p class="text-ink-soft">
+    Je vous rappelle au <strong class="text-ink whitespace-nowrap"><%= telephone.to_s.gsub(/[^+\d]/, "").gsub(/(\d{2})(?=\d)/, '\1 ') %></strong> dans la journée
+    <span class="text-ink-light">(du lundi au samedi, 8 h – 18 h)</span>.
+  </p>
+  <%# Conversion (GA4 generate_lead + Google Ads) : même mécanisme que la page
+      devis, lu par fireLeadConversion() depuis application.js. %>
+  <div id="lead-conversion-data" hidden
+       data-value="0"
+       data-reference="RAPPEL-<%= client&.id || 'x' %>"
+       <% if google_ads_lead_send_to.present? %>data-ads-send-to="<%= google_ads_lead_send_to %>"<% end %>></div>
+  <button type="button" data-action="rappel#close" class="btn-secondary mt-5">Fermer</button>
+</div>

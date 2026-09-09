@@ -3,8 +3,18 @@ class SmsNotificationService
     new(estimation).notify_new_lead
   end
 
+  def self.notify_rappel(client, travaux)
+    new(nil).notify_rappel(client, travaux)
+  end
+
   def initialize(estimation)
     @estimation = estimation
+  end
+
+  def notify_rappel(client, travaux)
+    body = "📞 JF Habitat: rappel demandé par #{client.nom} au #{client.telephone}"
+    body += " · #{travaux.to_s.first(80)}" if travaux.present?
+    deliver(body)
   end
 
   def notify_new_lead

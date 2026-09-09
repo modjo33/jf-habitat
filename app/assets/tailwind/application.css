@@ -139,6 +139,12 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
+  /* Bandeau d'action mobile (appeler / être rappelé / estimer) : posé juste
+     au-dessus du bandeau cookies. --cookie-banner-h inclut 16 px de marge
+     prévus pour le CTA du wizard ; ici on les retire, sans passer sous 0. */
+  .contact-bar {
+    bottom: max(0px, calc(var(--cookie-banner-h, 0px) - 16px));
+  }
   .wizard-cta {
     position: sticky;
     bottom: calc(var(--cookie-banner-h, 0px) + 0.75rem);
