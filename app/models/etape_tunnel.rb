@@ -39,6 +39,13 @@ class EtapeTunnel < ApplicationRecord
     # balise, l'entonnoir ne voyait plus les clics facturés : ils atterrissaient
     # une page AVANT `arrivee`. `detail` porte le métier (« peinture »…).
     "atterrissage"   => "Arrivée sur une page métier",
+    # Émise par le navigateur dès que la page métier est affichée : même rôle
+    # que `type_chantier` pour l'estimateur. `atterrissage` est posée côté
+    # serveur, donc gonflée par les robots à user-agent normal et les
+    # préchargements (~50 % des chargements, mesuré sur `arrivee`). Rapporter
+    # les actions aux atterrissages accusait la page de départs qui n'ont
+    # jamais eu lieu — l'erreur de juillet, rejouée une marche plus tôt.
+    "page_lue"       => "Page métier affichée (navigateur)",
     "appel"          => "Appel déclenché",
     # « Être rappelé » (09/09/2026) : ouverture du panneau puis envoi. Un
     # rappel demandé vaut un devis demandé — c'est un client au téléphone.
@@ -225,9 +232,15 @@ class EtapeTunnel < ApplicationRecord
 
     {
       total: atterrissages.count,
+      # Visiteurs réels = ceux dont le navigateur a exécuté la page. Zéro avant
+      # le 14/09/2026 (balise inexistante) : la vue retombe alors sur `total`.
+      reels: where(etape: "page_lue", visite: visites).distinct.count(:visite),
       par_metier: atterrissages.group(:detail).count.transform_keys { |m| m.presence || "inconnu" }.sort_by { |_, n| -n },
       vers_estimateur: where(etape: "arrivee", visite: visites).count,
-      appels: where(etape: "appel", visite: visites).count
+      appels: where(etape: "appel", visite: visites).count,
+      # Un rappel demandé depuis la page métier est une action au même titre
+      # qu'un appel : sans lui, ces visiteurs passaient pour « repartis ».
+      rappels: where(etape: "rappel", visite: visites).count
     }
   end
 

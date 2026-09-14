@@ -140,41 +140,57 @@
   <% pm = @pages_metier %>
   <% if pm[:total].positive? %>
     <% libelle_metier = { "peinture" => "Peintre", "placo" => "Plaquiste", "parquet" => "Parquet" } %>
+    <%# Base des taux = visiteurs dont le navigateur a affiché la page (balise
+        `page_lue`, 14/09/2026). Avant cette date la balise n'existait pas : on
+        retombe sur les chargements, en le disant. %>
+    <% base = pm[:reels].positive? ? pm[:reels] : pm[:total] %>
+    <% actifs = pm[:vers_estimateur] + pm[:appels] + pm[:rappels] %>
     <div class="card-premium p-7 mb-6">
       <h2 class="font-display text-xl text-ink mb-1">Pages métier : la marche d'avant l'estimateur</h2>
       <p class="text-sm text-ink-light mb-5">
         Les annonces atterrissent sur /peintre-bordeaux, /plaquiste-bordeaux ou /parquet-bordeaux.
-        Le chiffre à regarder : la part de ces visiteurs qui <strong>ouvrent l'estimateur ou appellent</strong>.
+        Le chiffre à regarder : la part de ces visiteurs qui <strong>ouvrent l'estimateur, appellent ou demandent un rappel</strong>.
       </p>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div>
-          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Arrivés sur une page métier</div>
-          <div class="font-display text-3xl text-ink mt-1"><%= pm[:total] %></div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Visiteurs réels</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= pm[:reels].positive? ? pm[:reels] : pm[:total] %></div>
           <div class="text-xs text-ink-light mt-1">
+            <% if pm[:reels].positive? %>
+              sur <%= pm[:total] %> chargement<%= "s" if pm[:total] > 1 %>, robots inclus
+            <% else %>
+              chargements, robots inclus (mesure navigateur depuis le 14/09)
+            <% end %>
+          </div>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Par métier</div>
+          <div class="text-sm text-ink mt-2 leading-relaxed">
             <%= pm[:par_metier].map { |m, n| "#{libelle_metier[m] || m} #{n}" }.join(" · ") %>
           </div>
+          <div class="text-xs text-ink-light mt-1">chargements</div>
         </div>
         <div>
           <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Passés à l'estimateur</div>
           <div class="font-display text-3xl text-ink mt-1"><%= pm[:vers_estimateur] %></div>
-          <div class="text-xs text-ink-light mt-1"><%= number_with_precision(pm[:vers_estimateur] * 100.0 / pm[:total], precision: 0) %> % des arrivés</div>
+          <div class="text-xs text-ink-light mt-1"><%= number_with_precision(pm[:vers_estimateur] * 100.0 / base, precision: 0) %> % des visiteurs</div>
         </div>
         <div>
-          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Ont appelé</div>
-          <div class="font-display text-3xl text-ink mt-1"><%= pm[:appels] %></div>
-          <div class="text-xs text-ink-light mt-1">depuis la même visite</div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Ont appelé ou demandé un rappel</div>
+          <div class="font-display text-3xl text-ink mt-1"><%= pm[:appels] + pm[:rappels] %></div>
+          <div class="text-xs text-ink-light mt-1"><%= pm[:appels] %> appel<%= "s" if pm[:appels] > 1 %> · <%= pm[:rappels] %> rappel<%= "s" if pm[:rappels] > 1 %></div>
         </div>
         <div>
           <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light">Repartis sans rien faire</div>
-          <% perdus = [ pm[:total] - pm[:vers_estimateur] - pm[:appels], 0 ].max %>
-          <div class="font-display text-3xl mt-1 <%= perdus * 100.0 / pm[:total] >= 70 ? "text-red-600" : "text-ink" %>"><%= perdus %></div>
-          <div class="text-xs text-ink-light mt-1"><%= number_with_precision(perdus * 100.0 / pm[:total], precision: 0) %> % des arrivés</div>
+          <% perdus = [ base - actifs, 0 ].max %>
+          <div class="font-display text-3xl mt-1 <%= perdus * 100.0 / base >= 70 ? "text-red-600" : "text-ink" %>"><%= perdus %></div>
+          <div class="text-xs text-ink-light mt-1"><%= number_with_precision(perdus * 100.0 / base, precision: 0) %> % des visiteurs</div>
         </div>
       </div>
-      <% if pm[:total] >= 20 && (pm[:vers_estimateur] + pm[:appels]) * 100.0 / pm[:total] < 20 %>
+      <% if base >= 20 && actifs * 100.0 / base < 20 %>
         <p class="text-sm text-ink-soft mt-4 pt-4 border-t border-border-warm">
           <strong class="text-red-700">Moins d'un visiteur sur cinq passe à l'action depuis la page métier.</strong>
-          C'est là que la campagne perd le plus : le clic est payé, la page est lue, mais le bouton n'est pas tapé.
+          C'est là que la campagne perd le plus : le clic est payé, la page est lue, mais aucun bouton n'est tapé.
           Suspects habituels sur mobile : bouton trop bas, page trop longue avant l'offre, numéro de téléphone peu visible.
         </p>
       <% end %>

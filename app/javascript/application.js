@@ -30,6 +30,22 @@ document.addEventListener("click", (event) => {
   })
 })
 
+// Mesure serveur des pages métier : `atterrissage` est posée par le serveur à
+// chaque chargement, robots compris ; cette balise ne part que si le navigateur
+// a réellement affiché la page. C'est elle qui compte les visiteurs réels dans
+// /admin/tunnel (même logique que `type_chantier` pour l'estimateur).
+document.addEventListener("turbo:load", () => {
+  const page = document.querySelector("[data-page-metier]")
+  if (!page) return
+  const jeton = document.querySelector('meta[name="csrf-token"]')?.content
+  fetch("/suivi-tunnel", {
+    method: "POST",
+    keepalive: true,
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": jeton || "" },
+    body: JSON.stringify({ etape: "page_lue", detail: page.dataset.pageMetier })
+  }).catch(() => {})
+})
+
 // Conversion GA4 — lead (soumission d'estimation). Les données sont posées dans
 // #lead-conversion-data par la page de devis ; on envoie l'event ICI (et non via un
 // <script> inline, bloqué par la CSP après une navigation Turbo). On retire l'élément
