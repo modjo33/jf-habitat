@@ -16,7 +16,7 @@ class FacturePdfGenerator
   end
 
   def generate
-    pdf = Prawn::Document.new(page_size: "A4", margin: [40, 40, 40, 40])
+    pdf = Prawn::Document.new(page_size: "A4", margin: [36, 40, 36, 40])
     setup_fonts(pdf)
     render_header(pdf)
     render_client_block(pdf)
@@ -52,7 +52,7 @@ class FacturePdfGenerator
     pdf.fill_color hex(couleur)
     pdf.fill_rectangle [pdf.bounds.right - 210, y], 130, 16
     pdf.fill_color "FFFFFF"
-    pdf.text_box libelle, at: [pdf.bounds.right - 202, y - 4], size: 8, style: :bold
+    pdf.text_box libelle, at: [pdf.bounds.right - 202, y - 4], size: 9, style: :bold
     pdf.fill_color hex(INK)
     pdf.move_down 12
   end
@@ -60,17 +60,17 @@ class FacturePdfGenerator
   def render_client_block(pdf)
     c = @facture.client
     pdf.fill_color hex(INK)
-    pdf.font_size 11
+    pdf.font_size 12
     pdf.text "CLIENT", style: :bold
     pdf.move_down 4
-    pdf.font_size 10
+    pdf.font_size 11
     pdf.fill_color hex(INK_SOFT)
     pdf.text c.nom.to_s.strip
     pdf.text c.adresse if c.adresse.present?
     pdf.text "#{c.code_postal} #{c.ville}".strip if c.code_postal.present? || c.ville.present?
     if @facture.chantier_adresse.present? || @facture.objet.present?
       pdf.move_down 6
-      pdf.font_size 8
+      pdf.font_size 9
       detail = ["Chantier : #{@facture.chantier_adresse}".strip, @facture.objet].reject(&:blank?)
       pdf.text detail.join(" · ")
     end
@@ -79,14 +79,14 @@ class FacturePdfGenerator
 
   def render_lignes(pdf)
     pdf.fill_color hex(INK)
-    pdf.font_size 11
+    pdf.font_size 12
     pdf.text "DÉTAIL DES PRESTATIONS", style: :bold
     pdf.move_down 8
 
     @facture.facture_lignes.ordered.group_by { |l| l.section.presence }.each do |section, lignes|
       if section.present?
         pdf.fill_color hex(INK)
-        pdf.font_size 10
+        pdf.font_size 11
         pdf.text section, style: :bold
         pdf.move_down 2
       end
@@ -94,7 +94,8 @@ class FacturePdfGenerator
       rows = [["Désignation", "Quantité", "Prix unit.", "Total"]]
       lignes.each { |l| rows << ligne_row(l) }
 
-      pdf.font_size 8
+      # Mêmes tailles que le devis en lignes (15/09/2026) : 9,5 pt, descriptions 8.
+      pdf.font_size 9.5
       pdf.table(rows, width: pdf.bounds.width, header: true,
                 column_widths: { 1 => 80, 2 => 75, 3 => 75 }) do |t|
         t.row(0).background_color = hex(INK)
@@ -115,7 +116,7 @@ class FacturePdfGenerator
   def ligne_row(ligne)
     designation = "<b>#{escape(ligne.libelle)}</b>"
     if ligne.description.present?
-      designation += "\n<font size='7'>#{escape(ligne.description)}</font>"
+      designation += "\n<font size='8'>#{escape(ligne.description)}</font>"
     end
     qte = ligne.forfait? ? "forfait" : "#{fmt_num(ligne.quantite)} #{ligne.unite_label}"
     pu  = ligne.forfait? ? "—" : format_eur(ligne.prix_unitaire)
@@ -129,7 +130,7 @@ class FacturePdfGenerator
     DevisPdfBranding.reserver_place(pdf, lignes_detail: @facture.montant_encaisse.positive? ? 3 : 2)
 
     pdf.bounding_box([pdf.bounds.right - 250, pdf.cursor], width: 250) do
-      pdf.font_size 9
+      pdf.font_size 10
       pdf.fill_color hex(INK_SOFT)
       line(pdf, "Total", format_eur(@facture.total), bold: true)
       line(pdf, "TVA non applicable, art. 293 B du CGI", "—")
@@ -146,10 +147,10 @@ class FacturePdfGenerator
       pdf.fill_rectangle [0, pdf.cursor + 2], 250, 30
       pdf.fill_color "FFFFFF"
       pdf.text_box(@facture.payee? ? "PAYÉE" : "SOLDE À RÉGLER",
-                   at: [12, pdf.cursor - 4], size: 10, style: :bold)
+                   at: [12, pdf.cursor - 4], size: 11, style: :bold)
       pdf.fill_color hex(ACCENT)
       pdf.text_box format_eur(@facture.payee? ? @facture.total : @facture.solde),
-                   at: [130, pdf.cursor - 2], size: 14, style: :bold, align: :right, width: 108
+                   at: [130, pdf.cursor - 3], size: 16, style: :bold, align: :right, width: 108
       pdf.move_down 34
     end
     pdf.move_down 10
@@ -158,11 +159,11 @@ class FacturePdfGenerator
   def render_conditions(pdf)
     pdf.move_down 6
     pdf.fill_color hex(INK)
-    pdf.font_size 10
+    pdf.font_size 11
     pdf.text "CONDITIONS DE RÈGLEMENT", style: :bold
     pdf.move_down 4
     pdf.fill_color hex(INK_SOFT)
-    pdf.font_size 8
+    pdf.font_size 9.5
     if @facture.conditions.present?
       @facture.conditions.each_line { |l| pdf.text l.strip }
       pdf.move_down 4
@@ -176,7 +177,7 @@ class FacturePdfGenerator
     if @facture.encaissements.any?
       pdf.move_down 6
       pdf.fill_color hex(INK)
-      pdf.text "RÈGLEMENTS REÇUS", style: :bold, size: 9
+      pdf.text "RÈGLEMENTS REÇUS", style: :bold, size: 10
       pdf.fill_color hex(INK_SOFT)
       @facture.encaissements.chronologique.each do |e|
         pdf.text "#{e.date_encaissement.strftime('%d/%m/%Y')} — #{e.mode_reglement_label} : #{format_eur(e.montant)}"
@@ -189,24 +190,31 @@ class FacturePdfGenerator
     # L'assurance décennale est obligatoire sur les FACTURES aussi (art. 22-2
     # loi Hamon) — même source fail-closed que les devis.
     mentions = DevisPdfBranding.mentions_reglementaires
-    pdf.start_new_page if pdf.cursor < (mentions.any? ? 84 : 62)
-    pdf.move_cursor_to(mentions.any? ? 72 : 50)
     pdf.fill_color hex(INK_SOFT)
-    pdf.font_size 7
+    pdf.font_size 8
+    # Hauteur réelle du pied ; s'il reste de quoi l'écrire, il suit le contenu
+    # plutôt que de partir seul sur une page vide (cf. devis, 15/09/2026).
+    besoin = (mentions.any? ? pdf.height_of(mentions.join(" "), leading: 1) + 4 : 0) + 4 + 12
+    if pdf.cursor >= (mentions.any? ? 84 : 62)
+      pdf.move_cursor_to(mentions.any? ? 72 : 50)
+    elsif pdf.cursor < besoin
+      pdf.start_new_page
+      pdf.move_cursor_to(mentions.any? ? 72 : 50)
+    end
     pdf.text mentions.join(" "), leading: 1 if mentions.any?
     pdf.move_down 4 if mentions.any?
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule
     pdf.move_down 4
-    pdf.text DevisPdfBranding.identity_line, align: :center, size: 7
+    pdf.text DevisPdfBranding.identity_line, align: :center, size: 8
   end
 
   def line(pdf, label, value, bold: false)
-    pdf.text_box label, at: [0, pdf.cursor], width: 150, size: (label.length > 30 ? 7 : 9),
+    pdf.text_box label, at: [0, pdf.cursor], width: 150, size: (label.length > 30 ? 8 : 10),
                         style: (bold ? :bold : :normal)
-    pdf.text_box value, at: [150, pdf.cursor], width: 90, size: 9, align: :right,
+    pdf.text_box value, at: [150, pdf.cursor], width: 90, size: 10, align: :right,
                         style: (bold ? :bold : :normal)
-    pdf.move_down 14
+    pdf.move_down 15
   end
 
   def format_eur(amount) = "#{fmt_num(amount)} €"
