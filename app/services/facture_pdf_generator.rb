@@ -210,7 +210,9 @@ class FacturePdfGenerator
   end
 
   def line(pdf, label, value, bold: false)
-    pdf.text_box label, at: [0, pdf.cursor], width: 150, size: (label.length > 30 ? 8 : 10),
+    # 200 et non 150 : « TVA non applicable, art. 293 B du CGI » en 8 pt passait
+    # sur deux lignes et la seconde disparaissait sous le bandeau du solde.
+    pdf.text_box label, at: [0, pdf.cursor], width: 200, size: (label.length > 30 ? 8 : 10),
                         style: (bold ? :bold : :normal)
     pdf.text_box value, at: [150, pdf.cursor], width: 90, size: 10, align: :right,
                         style: (bold ? :bold : :normal)
