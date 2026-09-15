@@ -16,7 +16,7 @@ class DevisLignePdfGenerator
   end
 
   def generate
-    pdf = Prawn::Document.new(page_size: "A4", margin: [40, 40, 40, 40])
+    pdf = Prawn::Document.new(page_size: "A4", margin: [36, 40, 36, 40])
     setup_fonts(pdf)
     render_header(pdf)
     render_client_block(pdf)
@@ -50,10 +50,10 @@ class DevisLignePdfGenerator
 
   def render_client_block(pdf)
     pdf.fill_color hex(INK)
-    pdf.font_size 11
+    pdf.font_size 12
     pdf.text "CLIENT", style: :bold
     pdf.move_down 4
-    pdf.font_size 10
+    pdf.font_size 11
     pdf.fill_color hex(INK_SOFT)
     pdf.text @estimation.nom
     pdf.text @estimation.email if @estimation.email.present?
@@ -67,13 +67,13 @@ class DevisLignePdfGenerator
 
   def render_lignes(pdf)
     pdf.fill_color hex(INK)
-    pdf.font_size 11
+    pdf.font_size 12
     pdf.text "DÉTAIL DES TRAVAUX", style: :bold
     pdf.move_down 8
 
     @estimation.devis_lignes.ordered.group_by(&:section).each do |section, lignes|
       pdf.fill_color hex(INK)
-      pdf.font_size 10
+      pdf.font_size 11
       pdf.text section.presence || "Travaux", style: :bold
       pdf.move_down 2
 
@@ -83,7 +83,9 @@ class DevisLignePdfGenerator
       rows << [{ content: "Sous-total #{section.presence || 'Travaux'}", colspan: 3,
                  inline_format: true, font_style: :bold }, format_eur(sous_total)]
 
-      pdf.font_size 8
+      # 9,5 pt (et 8,5 pour les descriptions) : demandé par Johan le 15/09/2026,
+      # le 8/7 était trop petit à lire pour le client.
+      pdf.font_size 9.5
       pdf.table(rows, width: pdf.bounds.width, header: true,
                 column_widths: { 1 => 80, 2 => 75, 3 => 75 }) do |t|
         t.row(0).background_color = hex(INK)
@@ -110,7 +112,7 @@ class DevisLignePdfGenerator
   def ligne_row(ligne)
     prestation = "<b>#{escape(ligne.libelle)}</b>"
     if ligne.description.present?
-      prestation += "\n<font size='7'>#{escape(ligne.description)}</font>"
+      prestation += "\n<font size='8'>#{escape(ligne.description)}</font>"
     end
     qte = if ligne.forfait?
             "forfait"
@@ -126,7 +128,7 @@ class DevisLignePdfGenerator
     DevisPdfBranding.reserver_place(pdf, lignes_detail: nb_lignes_totaux)
 
     pdf.bounding_box([pdf.bounds.right - 250, pdf.cursor], width: 250) do
-      pdf.font_size 9
+      pdf.font_size 10
       pdf.fill_color hex(INK_SOFT)
 
       detail = @estimation.devis_remise_montant.to_d.positive? || @estimation.devis_extras_total.to_d.positive?
@@ -155,12 +157,12 @@ class DevisLignePdfGenerator
       pdf.fill_color hex(INK)
       pdf.fill_rectangle [0, pdf.cursor + 2], 250, 30
       pdf.fill_color "FFFFFF"
-      pdf.text_box "TOTAL", at: [12, pdf.cursor - 4], size: 10, style: :bold
+      pdf.text_box "TOTAL", at: [12, pdf.cursor - 4], size: 11, style: :bold
       pdf.fill_color hex(ACCENT)
-      pdf.text_box format_eur(@estimation.devis_total), at: [130, pdf.cursor - 2], size: 14, style: :bold, align: :right, width: 108
+      pdf.text_box format_eur(@estimation.devis_total), at: [130, pdf.cursor - 3], size: 16, style: :bold, align: :right, width: 108
       pdf.move_down 34
       pdf.fill_color hex(INK_SOFT)
-      pdf.text "TVA non applicable, art. 293 B du CGI", size: 8, align: :right
+      pdf.text "TVA non applicable, art. 293 B du CGI", size: 9, align: :right
     end
     pdf.move_down 10
   end
@@ -190,11 +192,11 @@ class DevisLignePdfGenerator
 
     pdf.move_down 6
     pdf.fill_color hex(INK)
-    pdf.font_size 10
+    pdf.font_size 11
     pdf.text "CONDITIONS DE PAIEMENT", style: :bold
     pdf.move_down 4
     pdf.fill_color hex(INK_SOFT)
-    pdf.font_size 9
+    pdf.font_size 10
     if echeances.any?
       echeances.each do |e|
         libelle = e[:pct] ? "#{e[:libelle]} (#{fmt_pct(e[:pct])} %)" : e[:libelle]
@@ -221,10 +223,10 @@ class DevisLignePdfGenerator
     pdf.stroke_horizontal_rule
     pdf.move_down 10
     pdf.fill_color hex(INK)
-    pdf.font_size 10
+    pdf.font_size 11
     pdf.text "Bon pour accord", style: :bold
     pdf.fill_color hex(INK_SOFT)
-    pdf.font_size 9
+    pdf.font_size 10
     pdf.text "Signé par #{@estimation.devis_signataire} le #{@estimation.devis_signe_at.strftime('%d/%m/%Y à %H:%M')}"
     begin
       png = @estimation.devis_signature.download
@@ -236,28 +238,37 @@ class DevisLignePdfGenerator
   end
 
   def render_footer(pdf)
-    # 84 et non 60 : les mentions réglementaires (décennale, médiateur) peuvent
-    # ajouter deux lignes. Si le contenu descend déjà plus bas, on change de
-    # page plutôt que d'écrire par-dessus.
-    pdf.start_new_page if pdf.cursor < 96
-    pdf.move_cursor_to 84
     pdf.fill_color hex(INK_SOFT)
-    pdf.font_size 7
+    pdf.font_size 8
     proof = @estimation.devis_signe? ? " Signature électronique enregistrée (IP #{@estimation.devis_signature_ip})." : ""
     mentions = ["Devis valable 3 mois. Micro-entreprise, TVA non applicable (art. 293 B du CGI)."] +
                DevisPdfBranding.mentions_reglementaires
-    pdf.text mentions.join(" ") + proof, leading: 1
+    texte = mentions.join(" ") + proof
+    # Hauteur réelle du pied : les mentions (une à trois lignes selon les
+    # variables LEGAL_*), le filet et la ligne d'identité.
+    besoin = pdf.height_of(texte, leading: 1) + 6 + 4 + 12
+    # Trois cas : de la place en bas → pied en bas de page ; le contenu est
+    # descendu dans la zone du pied mais il reste de quoi l'écrire → le pied
+    # suit le contenu (plutôt qu'une page quasi vide, vécue le 15/09/2026) ;
+    # plus de place du tout → page suivante.
+    if pdf.cursor >= 96
+      pdf.move_cursor_to 84
+    elsif pdf.cursor < besoin
+      pdf.start_new_page
+      pdf.move_cursor_to 84
+    end
+    pdf.text texte, leading: 1
     pdf.move_down 6
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule
     pdf.move_down 4
-    pdf.text DevisPdfBranding.identity_line, align: :center, size: 7
+    pdf.text DevisPdfBranding.identity_line, align: :center, size: 8
   end
 
   def line(pdf, label, value, bold: false)
-    pdf.text_box label, at: [0, pdf.cursor], width: 150, size: 9, style: (bold ? :bold : :normal)
-    pdf.text_box value, at: [150, pdf.cursor], width: 90, size: 9, align: :right, style: (bold ? :bold : :normal)
-    pdf.move_down 14
+    pdf.text_box label, at: [0, pdf.cursor], width: 150, size: 10, style: (bold ? :bold : :normal)
+    pdf.text_box value, at: [150, pdf.cursor], width: 90, size: 10, align: :right, style: (bold ? :bold : :normal)
+    pdf.move_down 15
   end
 
   def format_eur(amount)
