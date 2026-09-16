@@ -98,7 +98,7 @@ class EtapeTunnel < ApplicationRecord
         etape: etape,
         source: SOURCES.include?(source) ? source : "direct",
         appareil: APPAREILS.include?(appareil) ? appareil : "autre",
-        detail: %w[envoi_bloque fourchette_vue devis_vu atterrissage rappel].include?(etape) ? detail.presence&.slice(0, 120) : nil,
+        detail: %w[envoi_bloque fourchette_vue devis_vu atterrissage page_lue rappel].include?(etape) ? detail.presence&.slice(0, 120) : nil,
         created_at: Time.current
       } ],
       unique_by: %i[visite etape]

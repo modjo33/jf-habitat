@@ -35,6 +35,7 @@ class PagesMetierTunnelTest < ActionDispatch::IntegrationTest
     pm = EtapeTunnel.pages_metier(debut: Date.current, fin: Date.current)
     assert_equal 1, pm[:total]
     assert_equal 1, pm[:reels], "une visite = un visiteur réel, même balisée deux fois"
+    assert_equal "placo", EtapeTunnel.find_by(etape: "page_lue").detail, "le métier de la page lue doit être conservé"
     assert_equal 1, pm[:rappels]
     assert_equal 0, pm[:vers_estimateur]
   end
