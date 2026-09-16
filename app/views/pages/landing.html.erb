@@ -44,7 +44,7 @@
       <picture>
         <source media="(max-width: 1023px)"
                 sizes="100vw"
-                srcset="<%= stock_photo_url(@m[:photo], w: 800, h: 320) %> 800w, <%= stock_photo_url(@m[:photo], w: 1200, h: 480) %> 1200w">
+                srcset="<%= stock_photo_url(@m[:photo], w: 800, h: 320, q: 60) %> 800w, <%= stock_photo_url(@m[:photo], w: 1200, h: 480, q: 60) %> 1200w">
         <%= image_tag stock_photo_url(@m[:photo], w: 1000, h: 860),
               srcset: "#{stock_photo_url(@m[:photo], w: 1000, h: 860)} 1000w, #{stock_photo_url(@m[:photo], w: 1400, h: 1200)} 1400w",
               sizes: "48vw",
