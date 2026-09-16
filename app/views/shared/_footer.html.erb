@@ -11,7 +11,7 @@
       </div>
 
       <div>
-        <h4 class="font-display text-lg mb-5">Prestations</h4>
+        <h3 class="font-display text-lg mb-5">Prestations</h3>
         <ul class="space-y-3 text-sand/60 text-sm">
           <li><%= link_to "Peinture", services_path, class: "hover:text-accent transition" %></li>
           <li><%= link_to "Placo-plâtre", services_path, class: "hover:text-accent transition" %></li>
@@ -21,7 +21,7 @@
       </div>
 
       <div>
-        <h4 class="font-display text-lg mb-5">Contact</h4>
+        <h3 class="font-display text-lg mb-5">Contact</h3>
         <ul class="space-y-3 text-sand/60 text-sm">
           <li><%= ENV.fetch("BUSINESS_AREA", "France") %></li>
           <% if ENV["BUSINESS_PHONE"].present? %>

@@ -36,19 +36,24 @@
         160 px repoussaient le CTA à y=615 pour 568 px utiles sur iPhone SE,
         soit sous le bandeau cookies. Mesuré au WebKit — ne pas la remonter. %>
     <div class="relative h-40 sm:h-56 lg:h-auto lg:min-h-full">
-      <%# srcset : un mobile (84 % du trafic Ads) recevait le JPEG 1400×1868 de
-          ~500 Ko pour une vignette de 160 px de haut — de loin l'élément le plus
-          lourd de la page, alors que Google juge la « convivialité de la page de
-          destination » inférieure à la moyenne (export du 16/09/2026). %>
-      <%= image_tag stock_photo_url(@m[:photo], w: 640, h: 550),
-            srcset: [ [ stock_photo_url(@m[:photo], w: 640, h: 550), "640w" ],
-                      [ stock_photo_url(@m[:photo], w: 1000, h: 860), "1000w" ],
-                      [ stock_photo_url(@m[:photo], w: 1400, h: 1200), "1400w" ] ].map { |u, d| "#{u} #{d}" }.join(", "),
-            sizes: "(min-width: 1024px) 48vw, 100vw",
-            alt: @m[:photo_alt],
-            loading: "eager",
-            decoding: "async",
-            class: "absolute inset-0 w-full h-full object-cover" %>
+      <%# Sur mobile (84 % du trafic Ads) la photo est une bande de 160 px de
+          haut : on demande à Unsplash un recadrage PAYSAGE (1200×480 max) au
+          lieu du portrait 1400×1868 de ~500 Ko qui partait avant le 16/09.
+          Le portrait ne sert qu'au vis-à-vis desktop. width/height posés pour
+          l'audit Lighthouse ; le rendu réel est fixé par le conteneur. %>
+      <picture>
+        <source media="(max-width: 1023px)"
+                sizes="100vw"
+                srcset="<%= stock_photo_url(@m[:photo], w: 800, h: 320) %> 800w, <%= stock_photo_url(@m[:photo], w: 1200, h: 480) %> 1200w">
+        <%= image_tag stock_photo_url(@m[:photo], w: 1000, h: 860),
+              srcset: "#{stock_photo_url(@m[:photo], w: 1000, h: 860)} 1000w, #{stock_photo_url(@m[:photo], w: 1400, h: 1200)} 1400w",
+              sizes: "48vw",
+              width: 1000, height: 860,
+              alt: @m[:photo_alt],
+              loading: "eager",
+              decoding: "async",
+              class: "absolute inset-0 w-full h-full object-cover" %>
+      </picture>
       <div class="absolute inset-0 bg-gradient-to-r from-sand/60 via-transparent to-transparent lg:from-sand/40"></div>
     </div>
   </div>

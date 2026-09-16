@@ -14,9 +14,10 @@
     <%= render "shared/seo_meta" %>
     <%= render "shared/analytics" %>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,0..100&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%# Polices auto-hébergées (cf. application.css) : préchargées pour que le
+        titre s'affiche avec la bonne police dès le premier rendu. %>
+    <%= preload_link_tag asset_path("fraunces-latin.woff2"), as: "font", type: "font/woff2", crossorigin: "anonymous" %>
+    <%= preload_link_tag asset_path("inter-latin.woff2"), as: "font", type: "font/woff2", crossorigin: "anonymous" %>
 
     <%= yield :head %>
 
