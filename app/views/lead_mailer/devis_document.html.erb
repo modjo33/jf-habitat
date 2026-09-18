@@ -1,16 +1,12 @@
-<div style="font-family: Arial, sans-serif; color: #0F2A44; max-width: 560px;">
+<%= render layout: "lead_mailer/enveloppe", locals: { estimation: @estimation, titre: "Devis", montant: @estimation.devis_total } do %>
   <% if @message.present? %>
-    <div style="white-space: pre-wrap; line-height: 1.5;"><%= @message %></div>
+    <%# Les retours à la ligne saisis dans l'admin deviennent de vrais
+        paragraphes : les clients mail ignorent `white-space`. %>
+    <%= simple_format(@message, { style: "margin:0 0 14px 0;" }) %>
   <% else %>
-    <h2 style="color: #0F2A44;">Bonjour <%= @estimation.nom %>,</h2>
-    <p>Suite à notre échange, veuillez trouver <strong>votre devis en pièce jointe</strong> (PDF),
-      détaillant l'ensemble des travaux à réaliser.</p>
-    <p>Je reste à votre disposition pour toute question ou ajustement.</p>
-    <p style="margin-top: 24px;">Bien cordialement,<br><strong>Johan — JF Habitat</strong></p>
+    <p style="margin:0 0 14px 0;">Bonjour <%= @estimation.nom %>,</p>
+    <p style="margin:0 0 14px 0;">Suite à notre échange, veuillez trouver <strong>votre devis en pièce jointe</strong> (PDF), détaillant l'ensemble des travaux à réaliser.</p>
+    <p style="margin:0 0 14px 0;">Je reste à votre disposition pour toute question ou ajustement.</p>
+    <p style="margin:0 0 14px 0;">Bien cordialement,<br><strong>Johan — JF Habitat</strong></p>
   <% end %>
-
-  <p style="margin-top: 20px; color: #4A6785; font-size: 13px;">
-    Référence du devis : <strong><%= @estimation.reference %></strong><br>
-    JF Habitat · Artisan peintre · plaquiste · parqueteur · 06 73 28 16 07 · contact@jfhabitat.fr
-  </p>
-</div>
+<% end %>

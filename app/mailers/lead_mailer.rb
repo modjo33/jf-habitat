@@ -52,6 +52,7 @@ class LeadMailer < ApplicationMailer
   def devis_document(estimation, message = nil)
     @estimation = estimation
     @message = message.presence
+    joindre_logo
     if estimation.devis_document&.data.present?
       attachments["devis-jf-habitat-#{estimation.reference}.pdf"] = {
         mime_type: "application/pdf", content: estimation.devis_document.data
@@ -65,6 +66,7 @@ class LeadMailer < ApplicationMailer
   # Devis signé sur place : PDF joint, envoyé au client + copie interne.
   def devis_signe(estimation)
     @estimation = estimation
+    joindre_logo
     pdf = estimation.devis_pdf_generator.generate.render
     attachments["devis-jf-habitat-#{estimation.reference}.pdf"] = { mime_type: "application/pdf", content: pdf }
     mail to: estimation.email,
@@ -90,5 +92,12 @@ class LeadMailer < ApplicationMailer
 
   def number_to_currency(amount, unit: "€")
     "#{format('%.2f', amount.to_f).gsub('.', ',')} #{unit}"
+  end
+
+  # Logo en image « inline » (cid) : affiché dans l'en-tête du mail sans
+  # dépendre d'une URL distante que les clients mail bloquent par défaut.
+  def joindre_logo
+    chemin = Rails.root.join("app/assets/images/logo-nav.png")
+    attachments.inline["logo.png"] = File.binread(chemin) if File.exist?(chemin)
   end
 end
