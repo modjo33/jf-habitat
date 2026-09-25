@@ -20,7 +20,6 @@ class DevisLignePdfGenerator
     setup_fonts(pdf)
     render_header(pdf)
     render_client_block(pdf)
-    render_mention_estimatif(pdf)
     render_lignes(pdf)
     render_totals(pdf)
     render_conditions(pdf)
@@ -50,19 +49,25 @@ class DevisLignePdfGenerator
   end
 
   def render_client_block(pdf)
-    pdf.fill_color hex(INK)
-    pdf.font_size 12
-    pdf.text "CLIENT", style: :bold
-    pdf.move_down 4
-    pdf.font_size 11
-    pdf.fill_color hex(INK_SOFT)
-    pdf.text @estimation.nom
-    pdf.text @estimation.email if @estimation.email.present?
-    pdf.text @estimation.telephone if @estimation.telephone.present?
-    if @estimation.adresse.present?
-      pdf.text @estimation.adresse
-      pdf.text "#{@estimation.code_postal} #{@estimation.ville}".strip
+    top = pdf.cursor
+    bas_mention = render_mention_estimatif(pdf, top)
+    # Le texte client ne doit pas passer sous l'encadré de droite.
+    pdf.indent(0, bas_mention ? 262 : 0) do
+      pdf.fill_color hex(INK)
+      pdf.font_size 12
+      pdf.text "CLIENT", style: :bold
+      pdf.move_down 4
+      pdf.font_size 11
+      pdf.fill_color hex(INK_SOFT)
+      pdf.text @estimation.nom
+      pdf.text @estimation.email if @estimation.email.present?
+      pdf.text @estimation.telephone if @estimation.telephone.present?
+      if @estimation.adresse.present?
+        pdf.text @estimation.adresse
+        pdf.text "#{@estimation.code_postal} #{@estimation.ville}".strip
+      end
     end
+    pdf.move_cursor_to [pdf.cursor, bas_mention].min if bas_mention
     pdf.move_down 16
   end
 
@@ -73,19 +78,20 @@ class DevisLignePdfGenerator
     "visite du chantier ; les montants pourront être ajustés selon l'état réel des supports "\
     "constaté sur place.".freeze
 
-  def render_mention_estimatif(pdf)
+  # Encadré à droite du bloc client : il ne prend pas de hauteur au devis,
+  # sinon le total bascule seul en page 2. Rend le bas de l'encadré.
+  def render_mention_estimatif(pdf, top)
     return unless @estimation.devis_estimatif?
-    largeur = pdf.bounds.width
-    hauteur = pdf.height_of(MENTION_ESTIMATIF, width: largeur - 24, size: 9.5) + 18
-    top = pdf.cursor
+    largeur = 250
+    x = pdf.bounds.right - largeur
+    hauteur = pdf.height_of(MENTION_ESTIMATIF, width: largeur - 20, size: 8.5) + 14
     pdf.fill_color hex(SAND)
-    pdf.fill_rectangle [0, top], largeur, hauteur
+    pdf.fill_rectangle [x, top], largeur, hauteur
     pdf.fill_color hex(ACCENT)
-    pdf.fill_rectangle [0, top], 3, hauteur
+    pdf.fill_rectangle [x, top], 3, hauteur
     pdf.fill_color hex(INK)
-    pdf.text_box MENTION_ESTIMATIF, at: [12, top - 9], width: largeur - 24, size: 9.5
-    pdf.move_cursor_to top - hauteur
-    pdf.move_down 16
+    pdf.text_box MENTION_ESTIMATIF, at: [x + 12, top - 7], width: largeur - 20, size: 8.5
+    top - hauteur
   end
 
   def render_lignes(pdf)
