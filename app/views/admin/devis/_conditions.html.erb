@@ -32,6 +32,13 @@
       <%= render "admin/devis/echeance_row", libelle: "", pct: "", montant: 0 %>
     </template>
 
+    <label class="flex items-start gap-2 mt-4 text-sm cursor-pointer">
+      <%= hidden_field_tag "estimation[devis_estimatif]", "0", id: nil %>
+      <%= check_box_tag "estimation[devis_estimatif]", "1", estimation.devis_estimatif?,
+            data: { action: "change->autosave#save" }, class: "mt-0.5" %>
+      <span><strong>Devis estimatif</strong> <span class="text-ink-light">— titre « Devis estimatif » sur le PDF et mention « devis définitif après visite du chantier »</span></span>
+    </label>
+
     <div class="mt-4">
       <span class="label-field !text-xs !mb-1">Modalités complémentaires (moyens de paiement, remarques…)</span>
       <%= text_area_tag "estimation[devis_conditions]", estimation.devis_conditions, rows: 2,

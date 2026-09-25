@@ -39,4 +39,19 @@ class LeadMailerTest < ActionMailer::TestCase
     assert_includes html, "Bonjour Client Test,"
     assert_includes html, "devis-jf-habitat-#{@estimation.reference}.pdf"
   end
+
+  test "un devis estimatif le dit dans l'objet et dans l'enveloppe" do
+    assert_equal "Votre devis · JF Habitat · #{@estimation.reference}", LeadMailer.devis_document(@estimation).subject
+    @estimation.update!(devis_estimatif: true)
+    mail = LeadMailer.devis_document(@estimation)
+    assert_equal "Votre devis estimatif · JF Habitat · #{@estimation.reference}", mail.subject
+    assert_includes mail.html_part.body.decoded, "Devis estimatif détaillé en pièce jointe"
+  end
+
+  test "un devis estimatif génère un PDF valide avec la mention après visite" do
+    @estimation.update!(devis_estimatif: true)
+    pdf = DevisLignePdfGenerator.new(@estimation).generate.render
+    assert pdf.start_with?("%PDF")
+    assert DevisLignePdfGenerator::MENTION_ESTIMATIF.include?("après visite du chantier")
+  end
 end

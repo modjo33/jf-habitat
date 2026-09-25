@@ -60,7 +60,7 @@ class LeadMailer < ApplicationMailer
     end
     mail to: estimation.email,
          cc: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
-         subject: "Votre devis · JF Habitat · #{estimation.reference}"
+         subject: "Votre #{estimation.devis_estimatif? ? "devis estimatif" : "devis"} · JF Habitat · #{estimation.reference}"
   end
 
   # Devis signé sur place : PDF joint, envoyé au client + copie interne.

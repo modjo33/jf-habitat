@@ -58,7 +58,7 @@
               <tr>
                 <td style="padding:14px 16px;font-size:13px;color:<%= ink %>;">
                   📎 <strong>devis-jf-habitat-<%= estimation.reference %>.pdf</strong><br>
-                  <span style="color:<%= ink_soft %>;">Devis détaillé en pièce jointe</span>
+                  <span style="color:<%= ink_soft %>;"><%= estimation.devis_estimatif? ? "Devis estimatif détaillé en pièce jointe" : "Devis détaillé en pièce jointe" %></span>
                 </td>
                 <td align="right" style="padding:14px 16px;white-space:nowrap;">
                   <div style="font-size:11px;letter-spacing:1px;color:<%= ink_soft %>;text-transform:uppercase;">Total</div>

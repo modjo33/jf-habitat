@@ -157,6 +157,8 @@ class Admin::DevisController < Admin::BaseController
   def echeances
     @estimation.devis_conditions = params.dig(:estimation, :devis_conditions)
     @estimation.devis_echeances  = echeances_param
+    estimatif = params.dig(:estimation, :devis_estimatif)
+    @estimation.devis_estimatif = (estimatif == "1") unless estimatif.nil?
     @estimation.save!
     respond_to do |format|
       format.turbo_stream do
