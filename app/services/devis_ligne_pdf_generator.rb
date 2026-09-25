@@ -101,11 +101,6 @@ class DevisLignePdfGenerator
     pdf.move_down 8
 
     @estimation.devis_lignes.ordered.group_by(&:section).each do |section, lignes|
-      pdf.fill_color hex(INK)
-      pdf.font_size 11
-      pdf.text section.presence || "Travaux", style: :bold
-      pdf.move_down 2
-
       rows = [["Prestation", "Quantité", "Prix unit.", "Total"]]
       lignes.each { |l| rows << ligne_row(l) }
       sous_total = lignes.sum { |l| l.total.to_d }
@@ -115,7 +110,7 @@ class DevisLignePdfGenerator
       # 9,5 pt (et 8,5 pour les descriptions) : demandé par Johan le 15/09/2026,
       # le 8/7 était trop petit à lire pour le client.
       pdf.font_size 9.5
-      pdf.table(rows, width: pdf.bounds.width, header: true,
+      table = pdf.make_table(rows, width: pdf.bounds.width, header: true,
                 column_widths: { 1 => 80, 2 => 75, 3 => 75 }) do |t|
         t.row(0).background_color = hex(INK)
         t.row(0).text_color = "FFFFFF"
@@ -132,6 +127,19 @@ class DevisLignePdfGenerator
         t.row(rows.size - 1).background_color = hex(SAND)
         t.row(rows.size - 1).column(3).align = :right
       end
+
+      # Le titre de section ne reste jamais seul en bas de page : il part avec
+      # l'en-tête du tableau et sa première ligne.
+      titre = section.presence || "Travaux"
+      pdf.font_size(11) do
+        garde = pdf.height_of(titre, style: :bold) + 2 + table.row(0..1).height
+        pdf.start_new_page if pdf.cursor < garde
+      end
+      pdf.fill_color hex(INK)
+      pdf.font_size(11) { pdf.text titre, style: :bold }
+      pdf.move_down 2
+      pdf.font_size 9.5
+      table.draw
       pdf.move_down 8
     end
   end
