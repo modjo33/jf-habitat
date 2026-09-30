@@ -47,16 +47,17 @@ namespace :tunnel do
     puts format("  %-28s %5d", "Appels (tel: tapé)", EtapeTunnel.appels(**args))
     puts format("  %-28s %5d", "Panneau rappel ouvert", EtapeTunnel.rappels_ouverts(**args))
     puts format("  %-28s %5d", "Rappels demandés", EtapeTunnel.rappels(**args))
+    puts format("  %-28s %5d", "Téléphones avant le prix", EtapeTunnel.telephones(**args))
     puts format("  %-28s %5d", "Devis vus en clair", devis_vus.count)
     montants = devis_vus.order(:created_at).pluck(:created_at, :source, :appareil, :detail)
     montants.each { |t, s, a, d| puts format("    %s %s/%s %s €", t.strftime("%d/%m %H:%M"), s, a, d) }
 
-    puts "\nPar jour (page_lue · atterrissage · arrivée · réels · contact · devis_vu · appel · rappel · soumis)"
+    puts "\nPar jour (page_lue · atterrissage · arrivée · réels · contact · tel · devis_vu · appel · rappel · soumis)"
     (debut..fin).each do |jour|
       c = EtapeTunnel.where(created_at: jour.beginning_of_day..jour.end_of_day).group(:etape).count
-      puts format("  %s  lue=%-3d att=%-3d arr=%-3d réel=%-3d contact=%-2d devis=%-2d appel=%-2d rappel=%-2d soumis=%d",
+      puts format("  %s  lue=%-3d att=%-3d arr=%-3d réel=%-3d contact=%-2d tel=%-2d devis=%-2d appel=%-2d rappel=%-2d soumis=%d",
                   jour.strftime("%d/%m"), c["page_lue"].to_i, c["atterrissage"].to_i, c["arrivee"].to_i,
-                  c[EtapeTunnel::ETAPE_NAVIGATEUR].to_i, c["contact"].to_i, c["devis_vu"].to_i,
+                  c[EtapeTunnel::ETAPE_NAVIGATEUR].to_i, c["contact"].to_i, c["tel_donne"].to_i, c["devis_vu"].to_i,
                   c["appel"].to_i, c["rappel"].to_i, c["soumis"].to_i)
     end
 

@@ -12,12 +12,17 @@ class Client < ApplicationRecord
   has_many :client_notes, dependent: :destroy
   has_many :encaissements, dependent: :nullify
 
+  FORMAT_TELEPHONE = /\A(\+33|0)[1-9](\d{2}){4}\z/
+  # Nom posé quand le visiteur n'a laissé que son numéro sur l'estimateur
+  # (avant le prix) : remplacé par le vrai nom s'il envoie ensuite le formulaire.
+  NOM_PROVISOIRE = "Contact estimateur".freeze
+
   validates :nom,    presence: true, length: { minimum: 2, maximum: 120 }
   # Email optionnel : un client créé à la main (devis manuel, bouche-à-oreille) peut
   # n'avoir qu'un téléphone. Reste unique + au bon format quand il est renseigné.
   validates :email,  uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :statut, inclusion: { in: STATUTS.keys }
-  validates :telephone, format: { with: /\A(\+33|0)[1-9](\d{2}){4}\z/, message: "doit être un numéro français valide" }, allow_blank: true
+  validates :telephone, format: { with: FORMAT_TELEPHONE, message: "doit être un numéro français valide" }, allow_blank: true
 
   before_validation :downcase_email
   before_validation :nettoyer_espaces
@@ -29,8 +34,14 @@ class Client < ApplicationRecord
   # Trouve ou crée un client à partir d'une estimation entrante.
   # Met à jour les champs mutables (téléphone/adresse) si vides côté client.
   def self.upsert_from_estimation(estimation)
-    client = find_or_initialize_by(email: estimation.email.to_s.downcase.strip)
-    client.nom         = estimation.nom         if client.nom.blank?
+    email = estimation.email.to_s.downcase.strip
+    # Le visiteur a pu laisser son numéro AVANT le prix : sa fiche existe déjà,
+    # sans e-mail. On la complète au lieu de créer un doublon.
+    client = find_by(email: email) ||
+             (estimation.telephone.present? && where(email: [ nil, "" ]).find_by(telephone: estimation.telephone)) ||
+             new
+    client.email = email if client.email.blank?
+    client.nom         = estimation.nom         if client.nom.blank? || client.nom == NOM_PROVISOIRE
     client.telephone ||= estimation.telephone
     client.adresse   ||= estimation.adresse
     client.code_postal ||= estimation.code_postal

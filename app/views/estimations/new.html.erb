@@ -247,15 +247,41 @@
         <p class="text-ink-soft font-semibold">Calcul de votre devis en cours…</p>
       </div>
 
+      <%# Téléphone AVANT le prix — décision du 30/09/2026. Du 25 au 30/09,
+          4 visiteurs ont vu leur devis en clair, aucun n'a tapé le bouton
+          d'envoi : ils repartaient avec le prix, sans rien pour les rappeler.
+          Un seul champ, pas le formulaire complet d'avant le 28/08 : le
+          numéro entre dans le CRM dès qu'il est validé (wizard#validerTel). %>
+      <div data-wizard-target="telGate" hidden class="w-full max-w-lg mb-4 text-left">
+        <div class="bg-cream border border-border-warm rounded-2xl p-5">
+          <h3 class="font-display text-xl text-ink">À quel numéro puis-je vous joindre ?</h3>
+          <p class="text-sm text-ink-soft mt-1">Votre devis chiffré s'affiche juste après. Je peux vous rappeler pour l'affiner avec vous, gratuitement et sans engagement.</p>
+          <label for="tel_avant_prix" class="label-field mt-4">Votre téléphone</label>
+          <input type="tel" id="tel_avant_prix" inputmode="tel" autocomplete="tel" maxlength="20"
+                 placeholder="06 12 34 56 78" class="input-field"
+                 data-wizard-target="telInput" data-action="keydown.enter->wizard#validerTel">
+          <%# Pot de miel : invisible pour un humain. %>
+          <input type="text" name="tel_site_web" data-wizard-target="telPiege" tabindex="-1" autocomplete="off"
+                 class="absolute -left-[9999px] w-px h-px opacity-0" aria-hidden="true">
+          <p data-wizard-target="telErreur" class="wizard-error hidden"></p>
+          <button type="button" data-action="wizard#validerTel" data-wizard-target="telBtn" class="btn-primary mt-4 w-full justify-center">
+            Afficher mon devis
+          </button>
+          <p class="text-xs text-ink-light mt-3 leading-relaxed">Aucun démarchage : votre numéro ne sert qu'à ce devis et n'est jamais cédé.</p>
+        </div>
+      </div>
+
       <!-- Récapitulatif du projet + options (ex-écran « récap ») -->
       <div data-wizard-target="recap" class="hidden w-full max-w-lg mb-4 text-left"></div>
 
+      <%# Tout ce qui suit n'apparaît qu'une fois le numéro laissé. %>
+      <div data-wizard-target="suiteDevis" hidden class="w-full flex flex-col items-center">
       <%# Devis affiché EN CLAIR, montants compris — renversement du 28/08/2026.
           Le flou faisait payer en coordonnées un détail que la fourchette
           laissait déjà deviner : 42 visiteurs Ads sur cet écran en 30 j,
           3 envois, et des taps à vide « pour voir ». Le formulaire en dessous
           n'est plus un péage, c'est une offre (PDF + affinage par l'artisan). %>
-      <div data-wizard-target="devisTeaser" class="hidden w-full max-w-lg mb-6">
+      <div data-wizard-target="devisTeaser" class="hidden w-full max-w-lg mb-6 scroll-mt-24">
         <div class="bg-cream border border-border-warm rounded-2xl overflow-hidden">
           <div data-wizard-target="devisRows" class="space-y-2 p-5 text-left"></div>
           <div class="flex items-center gap-3 px-5 py-3 bg-sand border-t border-border-warm text-left">
@@ -283,7 +309,8 @@
           <%# Facultatif depuis le 28/08/2026 : exiger le numéro faisait partie
               du mur. Ceux qui veulent être rappelés le laissent ; les autres
               reçoivent le PDF et rappellent eux-mêmes (le canal voix convertit). %>
-          <%= f.label :telephone, "Téléphone (facultatif)", class: "label-field" %>
+          <%# Pré-rempli avec le numéro laissé avant le prix (30/09/2026). %>
+          <%= f.label :telephone, "Téléphone", class: "label-field" %>
           <%= f.telephone_field :telephone, placeholder: "06 12 34 56 78", class: "input-field" %>
         </div>
         <div>
@@ -367,6 +394,7 @@
         Le PDF part immédiatement dans votre boîte mail.
         Aucun démarchage : vos coordonnées ne servent qu'à ce devis et ne sont jamais cédées.
       </p>
+      </div>
 
       <%# Le téléphone AU POINT DE DÉCISION : 13 visiteurs ont atteint cet écran
           du 11 au 25/08 pour 1 seule soumission, pendant que le seul appel reçu

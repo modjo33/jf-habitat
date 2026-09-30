@@ -13,7 +13,8 @@ import { Controller } from "@hotwired/stimulus"
 // À la soumission, on assemble les estimation_lines_attributes (1 par pièce ×
 // prestation, surface calculée, options auto) et on poste sur l'action create.
 export default class extends Controller {
-  static targets = ["step", "progressBar", "progressText", "back", "piecesContainer", "pieceTemplate", "recap", "lines", "error", "loader", "devisTeaser", "devisRows", "submitBtn"]
+  static targets = ["step", "progressBar", "progressText", "back", "piecesContainer", "pieceTemplate", "recap", "lines", "error", "loader", "devisTeaser", "devisRows", "submitBtn",
+                    "telGate", "telInput", "telPiege", "telErreur", "telBtn", "suiteDevis"]
 
   // Travaux génériques proposés → résolution vers une prestation réelle + type de surface.
   // ⚠️ `cloison` ≠ `murs` : la peinture couvre tout le périmètre de la pièce,
@@ -457,16 +458,98 @@ export default class extends Controller {
     this.loaderTarget.classList.remove("hidden")
     this.devisTeaserTarget.classList.add("hidden")
     if (this.hasRecapTarget) this.recapTarget.classList.add("hidden")
+    if (this.hasTelGateTarget) this.telGateTarget.hidden = true
+    if (this.hasSuiteDevisTarget) this.suiteDevisTarget.hidden = true
     this.chargerDevis()
     clearTimeout(this._loaderTimer)
     this._loaderTimer = setTimeout(() => {
       this.loaderTarget.classList.add("hidden")
-      this.devisTeaserTarget.classList.remove("hidden")
       if (this.hasRecapTarget) this.recapTarget.classList.remove("hidden")
-      // La réponse serveur a pu arriver pendant le loader : on rend les
-      // montants maintenant qu'ils ont le droit d'être visibles.
-      if (this._devis) this.buildDevisRows()
+      // Téléphone AVANT le prix (30/09/2026) : tant que le numéro n'est pas
+      // laissé, seul le champ téléphone s'affiche sous le récapitulatif.
+      if (this.telExige && !this._telDonne) {
+        this.telGateTarget.hidden = false
+        setTimeout(() => { try { this.telInputTarget.focus() } catch (e) {} }, 60)
+      } else {
+        this.afficherDevis()
+      }
     }, 1500)
+  }
+
+  get telExige() { return this.hasTelGateTarget && this.hasSuiteDevisTarget }
+
+  afficherDevis() {
+    if (this.hasTelGateTarget) this.telGateTarget.hidden = true
+    if (this.hasSuiteDevisTarget) this.suiteDevisTarget.hidden = false
+    this.devisTeaserTarget.classList.remove("hidden")
+    // La réponse serveur a pu arriver pendant le loader : on rend les
+    // montants maintenant qu'ils ont le droit d'être visibles.
+    this.buildDevisRows()
+  }
+
+  // Valide le numéro, l'enregistre côté serveur (fiche client + alerte à
+  // Johan), puis affiche le prix. Seul un numéro mal formé bloque : une panne
+  // serveur ou réseau affiche quand même le devis — le numéro reste dans le
+  // formulaire et partira avec l'envoi. Jamais de visiteur coincé ici.
+  async validerTel(event) {
+    if (event) event.preventDefault()
+    if (this._telEnCours) return
+    const erreur = this.telErreurTarget
+    erreur.classList.add("hidden")
+    const tel = this.telInputTarget.value.replace(/[\s.\-() ]/g, "")
+    if (!/^(\+33|0)[1-9](\d{2}){4}$/.test(tel)) {
+      erreur.textContent = tel ? "Le téléphone doit être un numéro français à 10 chiffres." : "Merci d'indiquer votre numéro de téléphone."
+      erreur.classList.remove("hidden")
+      setTimeout(() => { try { this.telInputTarget.focus() } catch (e) {} }, 100)
+      return
+    }
+    this.telInputTarget.value = tel
+    this._telEnCours = true
+    this.telBtnTarget.disabled = true
+    this.telBtnTarget.classList.add("opacity-70")
+
+    let refuse = null
+    try {
+      const jeton = document.querySelector('meta[name="csrf-token"]')?.content
+      const r = await fetch("/estimation/telephone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json",
+                   ...(jeton ? { "X-CSRF-Token": jeton } : {}) },
+        body: JSON.stringify({
+          telephone: tel,
+          total: this._devis ? String(Math.round(this._devis.total_ttc)) : "",
+          projet: this.resumeProjet(),
+          site_web: this.hasTelPiegeTarget ? this.telPiegeTarget.value : ""
+        })
+      })
+      if (r.status === 422) refuse = (await r.json().catch(() => ({}))).erreur || "Ce numéro n'a pas pu être enregistré."
+    } catch (_) { /* réseau : on affiche quand même le devis */ }
+
+    this._telEnCours = false
+    this.telBtnTarget.disabled = false
+    this.telBtnTarget.classList.remove("opacity-70")
+    if (refuse) {
+      erreur.textContent = refuse
+      erreur.classList.remove("hidden")
+      return
+    }
+
+    const champ = this.element.querySelector('[name="estimation[telephone]"]')
+    if (champ) champ.value = tel
+    this._telDonne = true
+    this.afficherDevis()
+    this.devisTeaserTarget.scrollIntoView({ block: "start", behavior: "smooth" })
+  }
+
+  // « Salon, Chambre · Peinture des murs, Peinture du plafond · Milieu de gamme »
+  // — ce que Johan lit dans la note et le SMS pour préparer son appel.
+  resumeProjet() {
+    try {
+      const pieces = this.collectPieces().map(p => p.typeLabel).filter(Boolean).join(", ")
+      const travaux = this.selectedTravaux()
+        .map(t => this.constructor.TRAVAUX.find(x => x.id === t)?.label).filter(Boolean).join(", ")
+      return [pieces, travaux, this.gammeLabel()].filter(Boolean).join(" · ")
+    } catch (_) { return "" }
   }
 
   // Devis chiffré calculé PAR LE SERVEUR (le barème ne descend jamais dans le
@@ -507,7 +590,8 @@ export default class extends Controller {
       if (!(Number(data.total_ttc) > 0)) return
       this._devis = data
       // Le loader peut déjà être terminé si la réponse a tardé.
-      if (this.hasLoaderTarget && this.loaderTarget.classList.contains("hidden")) this.buildDevisRows()
+      if (this.hasLoaderTarget && this.loaderTarget.classList.contains("hidden") &&
+          (!this.telExige || this._telDonne)) this.buildDevisRows()
     } catch (_) { /* pas de montants : le tunnel continue, le PDF arrivera par mail */ }
   }
 
@@ -515,6 +599,9 @@ export default class extends Controller {
   // les lignes s'affichent sans montants et le total renvoie vers l'e-mail —
   // jamais de flou, jamais d'écran cassé.
   buildDevisRows() {
+    // Rien à rendre tant que le numéro n'est pas laissé : sinon la balise
+    // `devis_vu` compterait un prix que personne n'a vu.
+    if (this.telExige && !this._telDonne) return
     const eur = v => Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " €"
     let rows = ""
     if (this._devis) {

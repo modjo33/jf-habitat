@@ -9,7 +9,11 @@
   sans_navigateur = [ arrivees - reels, 0 ].max
   part_sans_navigateur = arrivees.positive? ? sans_navigateur * 100.0 / arrivees : 0
   # Un appel ou un rappel demandé vaut un devis demandé : c'est un client au téléphone.
-  conversions = soumis + @appels + @rappels
+  # Depuis le 30/09/2026, tout devis demandé passe d'abord par le téléphone
+  # laissé avant le prix : additionner les deux compterait deux fois le même
+  # visiteur. On garde le plus grand des deux (les périodes d'avant n'ont que
+  # des soumissions).
+  conversions = [ soumis, @telephones ].max + @appels + @rappels
   cout_periode = @campagne&.active? ? @campagne.cout_journalier.to_f * @jours : nil
 %>
 
@@ -100,6 +104,9 @@
       <div class="font-display text-3xl text-ink mt-1"><%= @rappels %></div>
       <div class="text-xs text-ink-light mt-1">
         <%= @rappels_ouverts.positive? ? "sur #{@rappels_ouverts} formulaire#{"s" if @rappels_ouverts > 1} ouvert#{"s" if @rappels_ouverts > 1}" : "bouton « Être rappelé »" %>
+      </div>
+      <div class="text-xs text-ink mt-1 font-semibold">
+        + <%= @telephones %> téléphone<%= "s" if @telephones > 1 %> laissé<%= "s" if @telephones > 1 %> avant le prix (estimateur)
       </div>
     </div>
     <div class="card-premium p-6">

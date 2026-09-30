@@ -12,6 +12,7 @@ class Admin::TunnelController < Admin::BaseController
     @navigateurs = EtapeTunnel.navigateurs(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @appels      = EtapeTunnel.appels(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @rappels     = EtapeTunnel.rappels(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
+    @telephones  = EtapeTunnel.telephones(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @rappels_ouverts = EtapeTunnel.rappels_ouverts(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @dernier_ecran = EtapeTunnel.dernier_ecran(debut: @debut, fin: @fin, source: @source, appareil: @appareil)
     @motifs_blocage = EtapeTunnel.motifs_blocage(debut: @debut, fin: @fin, source: @source, appareil: @appareil)

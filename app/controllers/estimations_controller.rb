@@ -4,6 +4,7 @@ class EstimationsController < ApplicationController
   # preview : calcul en lecture seule appelé à chaque saisie → quota large et séparé,
   # sinon le simple remplissage du formulaire épuiserait le quota et bloquerait la soumission.
   rate_limit to: 300, within: 10.minutes, only: :preview, key: "estimation_preview"
+  rate_limit to: 10, within: 1.hour, only: :telephone, key: "estimation_telephone"
 
   def new
     @estimation = Estimation.new
@@ -58,6 +59,52 @@ class EstimationsController < ApplicationController
     render :new, status: :unprocessable_entity
   end
 
+  # Téléphone demandé AVANT le prix — décision de Johan du 30/09/2026.
+  # Mesuré du 25 au 30/09 avec le prix en clair : 4 visiteurs ont vu leur
+  # devis (dont 10 115 € le 29/09), aucun n'a tapé le bouton d'envoi. Ils
+  # repartaient avec le prix et on n'avait rien pour les rappeler. On demande
+  # donc UN seul champ, le numéro, et le contact entre dans le CRM tout de
+  # suite (action « Rappeler » datée du jour), avant même d'afficher le prix.
+  # ⚠️ Différent du gate d'avant le 28/08 : c'était le formulaire complet
+  # (nom + e-mail + téléphone…) devant un devis flouté.
+  def telephone
+    saisie = params.permit(:telephone, :projet, :total, :site_web)
+    # Pot de miel : on répond OK sans rien créer.
+    return head(:no_content) if saisie[:site_web].present?
+
+    telephone = saisie[:telephone].to_s.gsub(/[[:space:].\-()]/, "")
+    unless telephone.match?(Client::FORMAT_TELEPHONE)
+      return render(json: { erreur: "Le téléphone doit être un numéro français à 10 chiffres." },
+                    status: :unprocessable_entity)
+    end
+
+    total = saisie[:total].to_s[/\d+/]
+    projet = saisie[:projet].to_s.strip.first(500)
+    client = Client.find_by(telephone: telephone) ||
+             Client.new(nom: Client::NOM_PROVISOIRE, telephone: telephone, statut: "nouveau")
+    client.statut = "nouveau" if client.statut == "perdu"
+    montant = total ? " — a vu un devis de #{total} € TTC" : ""
+    client.prochaine_action = "Rappeler #{telephone} (estimateur#{montant})"
+    client.prochaine_action_date = Date.current
+    client.derniere_interaction_at = Time.current
+    client.save!
+
+    contexte = contexte_telephone
+    detail = [ "Téléphone laissé sur l'estimateur, avant l'affichage du prix · #{contexte}",
+               total && "Devis affiché : #{total} € TTC",
+               projet.presence && "Projet : #{projet}" ].compact.join("\n")
+    client.client_notes.create!(auteur: "Site", body: detail)
+
+    suivre_etape("tel_donne", detail: total)
+    resume = [ total && "devis vu #{total} € TTC", projet.presence ].compact.join(" · ")
+    envoyer_sans_bloquer { LeadMailer.demande_rappel(client, "Estimateur : #{resume}", contexte).deliver_now }
+    envoyer_sans_bloquer { SmsNotificationService.notify_rappel(client, "estimateur, #{resume}") }
+    head :no_content
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "[EstimationsController#telephone] #{e.message}"
+    render json: { erreur: "Ce numéro n'a pas pu être enregistré." }, status: :unprocessable_entity
+  end
+
   def show
     @estimation = Estimation.find_by!(reference: params[:reference])
 
@@ -81,6 +128,12 @@ class EstimationsController < ApplicationController
     yield
   rescue => e
     Rails.logger.error "[EstimationsController#create] notification échouée : #{e.class} · #{e.message}"
+  end
+
+  # « Google Ads · mobile » : d'où vient la personne, pour la note et le mail.
+  def contexte_telephone
+    source = { "ads" => "Google Ads", "autre" => "campagne", "direct" => "direct" }[source_tunnel]
+    [ "/estimation/new", source, appareil_tunnel ].compact.join(" · ")
   end
 
   # Rattache l'estimation à un Client existant (par email) ou en crée un.

@@ -21,6 +21,9 @@ Rails.application.routes.draw do
 
   resource :estimation, only: [:new, :create, :show] do
     post :preview, on: :collection
+    # Téléphone demandé AVANT d'afficher le prix (30/09/2026) : le contact est
+    # enregistré dès ce moment, même si le visiteur repart ensuite.
+    post :telephone, on: :collection
   end
 
   # « Être rappelé » : prénom + téléphone + une ligne, depuis n'importe quelle

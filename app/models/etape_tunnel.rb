@@ -61,7 +61,11 @@ class EtapeTunnel < ApplicationRecord
     # Le devis EN CLAIR affiché sur l'écran contact (renversement du gate,
     # 28/08/2026), avec le total TTC en `detail` (« 5648 ») : même usage que
     # la fourchette — prix vu vs coordonnées laissées.
-    "devis_vu"       => "Devis affiché en clair"
+    "devis_vu"       => "Devis affiché en clair",
+    # Téléphone laissé sur l'écran contact AVANT l'affichage du prix
+    # (30/09/2026), total TTC en `detail`. C'est un contact : il compte comme
+    # un rappel demandé dans le coût par contact.
+    "tel_donne"      => "Téléphone laissé avant le prix"
   }.freeze
   EVENEMENTS = ETAPES.merge(HORS_ENTONNOIR).freeze
 
@@ -98,7 +102,7 @@ class EtapeTunnel < ApplicationRecord
         etape: etape,
         source: SOURCES.include?(source) ? source : "direct",
         appareil: APPAREILS.include?(appareil) ? appareil : "autre",
-        detail: %w[envoi_bloque fourchette_vue devis_vu atterrissage page_lue rappel].include?(etape) ? detail.presence&.slice(0, 120) : nil,
+        detail: %w[envoi_bloque fourchette_vue devis_vu atterrissage page_lue rappel tel_donne].include?(etape) ? detail.presence&.slice(0, 120) : nil,
         created_at: Time.current
       } ],
       unique_by: %i[visite etape]
@@ -177,6 +181,14 @@ class EtapeTunnel < ApplicationRecord
   # au même titre qu'un appel ou qu'un devis demandé.
   def self.rappels(debut:, fin:, source: nil, appareil: nil)
     scope = sur(debut, fin).where(etape: "rappel")
+    scope = scope.where(source: source)     if source.present?
+    scope = scope.where(appareil: appareil) if appareil.present?
+    scope.count
+  end
+
+  # Téléphones laissés avant le prix (30/09/2026) : des contacts, comme les rappels.
+  def self.telephones(debut:, fin:, source: nil, appareil: nil)
+    scope = sur(debut, fin).where(etape: "tel_donne")
     scope = scope.where(source: source)     if source.present?
     scope = scope.where(appareil: appareil) if appareil.present?
     scope.count
