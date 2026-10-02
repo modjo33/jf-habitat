@@ -67,3 +67,13 @@ class TelephoneAvantPrixTest < ActionDispatch::IntegrationTest
     assert_equal "marie@exemple.fr", c.email
   end
 end
+
+class ClientEmailVideTest < ActiveSupport::TestCase
+  test "deux fiches sans e-mail saisi vide peuvent coexister (e-mail vide = NULL)" do
+    a = Client.create!(nom: "Sans mail A", email: "", telephone: "0611111111")
+    b = Client.create!(nom: "Sans mail B", telephone: "0622222222")
+    assert_nil a.reload.email
+    b.update!(email: "", statut: "perdu")
+    assert_nil b.reload.email
+  end
+end

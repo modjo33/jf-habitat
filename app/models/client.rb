@@ -117,8 +117,13 @@ class Client < ApplicationRecord
 
   private
 
+  # Un e-mail vide est enregistré NULL, jamais "" : l'index unique sur
+  # `email` n'accepte qu'UNE fiche à "" mais autant de NULL qu'on veut. Les
+  # fiches créées par le téléphone avant le prix (sans e-mail) ne pouvaient
+  # plus être enregistrées depuis l'admin, qui renvoie le champ vide en ""
+  # (erreur 500 sur /admin/clients/38 le 02/10/2026).
   def downcase_email
-    self.email = email.to_s.downcase.strip if email.present?
+    self.email = email.to_s.downcase.strip.presence
   end
 
   # Une espace invisible en début de champ ne se voit pas dans l'admin mais
