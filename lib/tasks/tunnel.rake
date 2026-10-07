@@ -45,6 +45,14 @@ namespace :tunnel do
     devis_vus = EtapeTunnel.where(etape: "devis_vu", created_at: debut.beginning_of_day..fin.end_of_day)
     puts "\nContacts et signaux hors entonnoir"
     puts format("  %-28s %5d", "Appels (tel: tapé)", EtapeTunnel.appels(**args))
+    EtapeTunnel.liste_appels(**args).each do |a|
+      suite = []
+      suite << "estimateur ouvert" if a[:estimateur]
+      suite << "devis vu #{a[:devis_vu]} €" if a[:devis_vu]
+      suite << "tel laissé" if a[:tel_donne]
+      puts format("    %s %s/%s page %s%s", a[:heure].strftime("%d/%m %H:%M"), a[:source], a[:appareil],
+                  a[:page], suite.any? ? " · #{suite.join(' · ')}" : "")
+    end
     puts format("  %-28s %5d", "Panneau rappel ouvert", EtapeTunnel.rappels_ouverts(**args))
     puts format("  %-28s %5d", "Rappels demandés", EtapeTunnel.rappels(**args))
     puts format("  %-28s %5d", "Téléphones avant le prix", EtapeTunnel.telephones(**args))

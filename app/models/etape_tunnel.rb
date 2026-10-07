@@ -177,6 +177,36 @@ class EtapeTunnel < ApplicationRecord
     scope.count
   end
 
+  # Les appels un par un, pour que Johan les rapproche de son journal d'appels :
+  # heure du tap, source, appareil, page métier d'atterrissage de la même visite
+  # et ce que le visiteur avait vu de l'estimateur avant d'appeler. Aucune
+  # donnée personnelle : le numéro de l'appelant n'est jamais connu du site.
+  def self.liste_appels(debut:, fin:)
+    appels = sur(debut, fin).where(etape: "appel").order(:created_at).to_a
+    visites = appels.map(&:visite).uniq
+    contexte = where(visite: visites)
+                 .where(etape: %w[atterrissage arrivee devis_vu tel_donne])
+                 .order(:created_at)
+                 .pluck(:visite, :etape, :detail)
+                 .group_by(&:first)
+
+    appels.map do |appel|
+      lignes = contexte[appel.visite] || []
+      etapes = lignes.map { |_, etape, _| etape }
+      devis  = lignes.find { |_, etape, _| etape == "devis_vu" }
+      {
+        heure: appel.created_at,
+        source: appel.source,
+        appareil: appel.appareil,
+        page: lignes.find { |_, etape, _| etape == "atterrissage" }&.last.presence ||
+              (etapes.include?("arrivee") ? "estimateur" : "autre page"),
+        estimateur: etapes.include?("arrivee"),
+        devis_vu: devis&.last,
+        tel_donne: etapes.include?("tel_donne")
+      }
+    end
+  end
+
   # Rappels demandés via le panneau « Être rappelé » — comptés comme contacts,
   # au même titre qu'un appel ou qu'un devis demandé.
   def self.rappels(debut:, fin:, source: nil, appareil: nil)
