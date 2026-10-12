@@ -224,5 +224,35 @@
             new_admin_facture_path(client_id: @client.id),
             class: "block text-center text-xs font-bold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition" %>
     </div>
+
+    <%# Contrats, bons de commande, PV… La liste et ses boutons Supprimer restent
+        HORS du formulaire d'envoi : un button_to dans un form_with imbrique deux
+        formulaires et fait partir le mauvais. %>
+    <div class="card-premium p-6">
+      <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-light mb-3">Documents</div>
+      <% documents = @client.client_documents.recents_dabord.select(:id, :titre, :nom_fichier, :taille, :created_at) %>
+      <% if documents.any? %>
+        <ul class="space-y-2.5 mb-4">
+          <% documents.each do |d| %>
+            <li class="flex items-center justify-between gap-2 group">
+              <%= link_to admin_client_document_path(@client, d), target: "_blank", class: "min-w-0" do %>
+                <span class="block text-sm font-semibold text-accent hover:underline truncate">📄 <%= d.titre %></span>
+                <span class="block text-[11px] text-ink-light">Ajouté le <%= d.created_at.strftime("%d/%m/%Y") %><% if d.taille %> · <%= number_to_human_size(d.taille, locale: :fr) %><% end %></span>
+              <% end %>
+              <%= button_to "Supprimer", admin_client_document_path(@client, d), method: :delete,
+                    data: { turbo_confirm: "Supprimer « #{d.titre} » ?" },
+                    class: "opacity-0 group-hover:opacity-100 text-xs text-red-600 hover:underline shrink-0" %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-xs text-ink-light mb-4">Aucun document.</p>
+      <% end %>
+      <%= form_with model: ClientDocument.new, url: admin_client_documents_path(@client), multipart: true, class: "space-y-2" do |f| %>
+        <%= f.text_field :titre, placeholder: "Titre (facultatif) : contrat d'entretien…", class: "input-field text-sm" %>
+        <%= f.file_field :fichier, accept: "application/pdf", required: true, class: "block w-full text-xs text-ink-light" %>
+        <%= f.submit "📎 Ajouter le PDF", class: "w-full text-xs font-bold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition cursor-pointer" %>
+      <% end %>
+    </div>
   </div>
 </div>

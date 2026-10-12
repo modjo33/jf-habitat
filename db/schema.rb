@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_12_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -52,6 +52,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_170000) do
     t.string "nom", default: "Travaux Gironde Sud"
     t.datetime "updated_at", null: false
     t.date "validation_deadline", default: "2026-08-06"
+  end
+
+  create_table "client_documents", force: :cascade do |t|
+    t.bigint "client_id", null: false
+    t.binary "contenu", null: false
+    t.datetime "created_at", null: false
+    t.string "nom_fichier"
+    t.integer "taille"
+    t.string "titre", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_client_documents_on_client_id"
   end
 
   create_table "client_notes", force: :cascade do |t|
@@ -479,6 +490,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_170000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "client_documents", "clients"
   add_foreign_key "client_notes", "clients"
   add_foreign_key "deductions", "murs"
   add_foreign_key "depenses", "estimations"

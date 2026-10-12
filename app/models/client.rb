@@ -10,6 +10,7 @@ class Client < ApplicationRecord
 
   has_many :estimations, dependent: :nullify
   has_many :client_notes, dependent: :destroy
+  has_many :client_documents, dependent: :destroy
   has_many :encaissements, dependent: :nullify
 
   FORMAT_TELEPHONE = /\A(\+33|0)[1-9](\d{2}){4}\z/

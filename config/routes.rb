@@ -97,6 +97,7 @@ Rails.application.routes.draw do
         post  :message, action: :envoyer_message, as: :envoyer_message
       end
       resources :notes, only: [:create, :destroy], controller: "client_notes"
+      resources :documents, only: [:create, :show, :destroy], controller: "client_documents"
     end
 
     patch "campagne-ads", to: "campagne_ads#update", as: :campagne_ads
