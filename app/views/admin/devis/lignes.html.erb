@@ -7,6 +7,7 @@
       <h1 class="h-display text-3xl text-ink">Devis détaillé — <%= @estimation.nom %></h1>
       <div class="mt-1 flex items-center gap-3 text-sm text-ink-light">
         <span class="font-mono text-xs text-accent font-semibold"><%= @estimation.reference %></span>
+        <%= render "admin/devis/envoi_mail", estimation: @estimation %>
         <% if @estimation.adresse.present? %>
           <span><%= @estimation.adresse %> · <%= @estimation.code_postal %> <%= @estimation.ville %></span>
         <% end %>

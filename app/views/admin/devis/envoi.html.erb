@@ -5,6 +5,14 @@
     <p class="text-ink-light mt-1">À <strong><%= @estimation.nom %></strong> · <%= @estimation.email %></p>
   </div>
 
+  <% if @estimation.devis_envoye? %>
+    <div class="mb-4 p-4 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-900">
+      ⚠️ Ce devis a déjà été envoyé le <%= l @estimation.devis_envoye_at, format: "%d/%m/%Y à %H:%M" %>.
+      <% if @estimation.devis_modifie_apres_envoi? %>Le PDF a été modifié depuis : le client n'a pas cette version.<% end %>
+      Un nouvel envoi lui transmettra la version actuelle.
+    </div>
+  <% end %>
+
   <div class="card-premium p-6">
     <div class="mb-4 flex items-center justify-between p-3 bg-sand rounded-lg">
       <span class="text-sm text-ink">📎 devis-jf-habitat-<%= @estimation.reference %>.pdf<% if @estimation.devis_total.to_d.positive? %> · <%= eur(@estimation.devis_total) %><% end %></span>

@@ -34,6 +34,13 @@
       <div class="text-xs text-ink-light">TVA non applicable · le chiffrage web ci-dessous (<%= eur(@estimation.total_ttc) %>) est la première estimation en ligne du client.</div>
       <%# Verdict de rentabilité — interne, jamais sur un document client. %>
       <div class="mt-2"><%= render "admin/estimations/pastille_rentabilite", estimation: @estimation %></div>
+      <div class="mt-2 flex flex-wrap items-center gap-2">
+        <%= render "admin/devis/envoi_mail", estimation: @estimation %>
+        <% if @estimation.devis_document_maj_at %>
+          <%= link_to (@estimation.devis_envoye? ? "Renvoyer" : "Envoyer au client"), devis_envoi_admin_estimation_path(@estimation),
+                class: "text-xs font-semibold text-accent hover:underline" %>
+        <% end %>
+      </div>
     </div>
     <div class="flex flex-wrap gap-3">
       <% if @estimation.devis_lignes.exists? %>

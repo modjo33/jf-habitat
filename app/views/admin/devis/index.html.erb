@@ -80,10 +80,9 @@
                   signé le <%= l e.devis_signe_at.to_date, format: "%d/%m" %>
                 <% elsif e.devis_accepte_at.present? %>
                   accepté le <%= l e.devis_accepte_at.to_date, format: "%d/%m" %>
-                <% elsif e.devis_envoye_at.present? %>
-                  envoyé le <%= l e.devis_envoye_at.to_date, format: "%d/%m" %>
                 <% end %>
               </div>
+              <div class="mt-1.5 flex flex-wrap gap-1"><%= render "admin/devis/envoi_mail", estimation: e %></div>
             </td>
             <td class="p-4 text-right font-display text-lg text-ink whitespace-nowrap"><%= eur(e.devis_total) %></td>
             <td class="p-4"><%= render "admin/estimations/pastille_rentabilite", estimation: e, compact: true %></td>

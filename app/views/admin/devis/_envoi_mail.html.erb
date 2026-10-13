@@ -1,0 +1,13 @@
+<%# Indicateur « mail envoyé ou pas » du devis. Seul l'envoi par le bouton de
+    l'appli est tracé. locals: estimation %>
+<% e = estimation %>
+<% if e.devis_envoye? %>
+  <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-sauge-soft text-ink border border-sauge/50"
+        title="Envoyé à <%= e.email %>">✉️ Mail envoyé le <%= l e.devis_envoye_at, format: "%d/%m à %H:%M" %></span>
+  <% if e.devis_modifie_apres_envoi? %>
+    <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300"
+          title="PDF régénéré le <%= l e.devis_document_maj_at, format: "%d/%m à %H:%M" %>">⚠️ PDF modifié depuis l'envoi</span>
+  <% end %>
+<% else %>
+  <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-sand text-ink-light border border-border-warm">✉️ Mail pas encore envoyé</span>
+<% end %>

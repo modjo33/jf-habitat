@@ -289,6 +289,25 @@ class Estimation < ApplicationRecord
   end
 
   def devis_etat_label = DEVIS_ETATS[devis_etat]
+
+  # Indicateur « mail envoyé ou pas ». Seul l'envoi par le bouton « Envoyer »
+  # de l'appli est tracé (`devis_envoye_at`) : un PDF transmis depuis la
+  # messagerie perso n'apparaît pas ici.
+  def devis_envoye? = devis_envoye_at.present?
+
+  # Date de la dernière version du PDF, sans charger les octets du document.
+  def devis_document_maj_at
+    return @devis_document_maj_at if defined?(@devis_document_maj_at)
+
+    @devis_document_maj_at = DevisDocument.where(estimation_id: id).pick(:updated_at)
+  end
+
+  # PDF régénéré après le mail : le client a en main une version périmée.
+  # Une minute de marge, l'envoi suivant de près la génération.
+  def devis_modifie_apres_envoi?
+    maj = devis_document_maj_at
+    devis_envoye? && maj.present? && maj > devis_envoye_at + 1.minute
+  end
   def devis_accepte?   = devis_etat == "accepte"
 
   # Accepter un devis renvoyé signé par mail ou validé au téléphone : c'est ce
