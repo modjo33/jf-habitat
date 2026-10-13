@@ -430,6 +430,14 @@
       <h2 data-dim-question class="wizard-question !mb-2">Quelle taille fait cette pièce ?</h2>
       <p data-dim-intro class="text-ink-light text-sm mb-4 max-w-md">Sa surface au sol suffit — celle du bail ou de l'annonce.</p>
 
+      <%# Travaux de CETTE pièce (13/10/2026) : remplis par wizard#remplirTravauxPiece,
+          masqués s'il n'y a qu'un seul type de travaux. %>
+      <div data-piece-travaux class="hidden w-full max-w-md mb-4 text-left">
+        <div class="text-xs font-bold uppercase tracking-wide text-accent mb-2">Travaux dans cette pièce</div>
+        <div data-piece-travaux-liste class="grid grid-cols-2 gap-2"></div>
+        <p class="text-[11px] text-ink-light mt-1">Décochez ce qui ne concerne pas cette pièce.</p>
+      </div>
+
       <%# Mode simple : une seule valeur, celle que le client connaît. Demander
           le « développé des murs » était la seule question du tunnel à laquelle
           un particulier ne sait pas répondre. %>

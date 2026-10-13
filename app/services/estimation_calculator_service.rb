@@ -19,7 +19,10 @@ class EstimationCalculatorService
 
     apres_coefs = sous_total * coef_region * coef_etage
 
-    tva = 10.0
+    # Franchise en base (art. 293 B du CGI) : même taux que l'estimation
+    # enregistrée. L'aperçu ajoutait 10 % de TVA jamais facturée : le client
+    # voyait un prix plus haut que le devis qu'il recevait (lead Bègles, 13/10/2026).
+    tva = Estimation.column_defaults["tva_taux"].to_f
     total_ttc = (apres_coefs * (1 + tva / 100)).round(2)
 
     {
@@ -52,7 +55,11 @@ class EstimationCalculatorService
     base_prix = Tarif.prix_for(prestation: prestation, gamme: gamme) || 0
 
     coef_piece = EstimationLine::TYPES_PIECE.dig(type_piece, :coef) || 1.0
-    prix_unit = base_prix.to_d.round(2)
+    # Mêmes suppléments que la ligne enregistrée (EstimationLine#calculer_prix) :
+    # sans eux, le prix vu à l'écran et celui du devis divergeaient.
+    supplements = supplements_coches(params, prestation)
+    prix_supp = supplements.sum { |k| (Tarif.prix_for(prestation: k.to_s, gamme: "milieu") || 0).to_d }
+    prix_unit = (base_prix.to_d + prix_supp).round(2)
     total = (surface.to_d * prix_unit * coef_piece).round(2)
 
     {
@@ -68,7 +75,7 @@ class EstimationCalculatorService
       prix_unitaire: prix_unit.to_f,
       coef_piece: coef_piece,
       total: total.to_f,
-      options: []
+      options: supplements.map { |k| EstimationLine::SUPPLEMENTS[k][:label] }
     }
   end
 
@@ -86,6 +93,11 @@ class EstimationCalculatorService
       return 0 if l <= 0 || w <= 0
       l * w
     end
+  end
+
+  def supplements_coches(params, prestation)
+    metier = Tarif::PRESTATIONS.dig(prestation, :categorie)
+    EstimationLine::SUPPLEMENTS.select { |k, v| v[:metiers].include?(metier) && truthy?(params[k.to_s]) }.keys
   end
 
   def truthy?(val)

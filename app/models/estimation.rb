@@ -18,7 +18,9 @@ class Estimation < ApplicationRecord
     paris_intra:    { cp: %w[75], coef: 1.20, label: "Paris intra-muros" },
     petite_couronne:{ cp: %w[92 93 94], coef: 1.15, label: "Petite couronne parisienne" },
     grande_couronne:{ cp: %w[77 78 91 95], coef: 1.08, label: "Grande couronne parisienne" },
-    grandes_villes: { cp: %w[06 13 33 59 69 31 67 44], coef: 1.05, label: "Grandes métropoles" }
+    # La Gironde (33) en est sortie le 13/10/2026 : c'est la zone de travail de
+    # JF Habitat, ses prix réels n'y portent aucune majoration.
+    grandes_villes: { cp: %w[06 13 59 69 31 67 44], coef: 1.05, label: "Grandes métropoles" }
   }.freeze
 
   DEVIS_REMISE_TYPES = %w[pourcentage montant].freeze

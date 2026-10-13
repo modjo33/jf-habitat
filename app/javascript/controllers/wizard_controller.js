@@ -188,7 +188,7 @@ export default class extends Controller {
     const sortie = step.querySelector("[data-surface-live]")
     if (!sortie) return
     const p = this.lireDimensions(step)
-    const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags()
+    const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags(step)
     const morceaux = []
     if (hasWalls && p.mursSurface > 0) morceaux.push(`≈ ${this.fmt(p.mursSurface)} m² de murs`)
     if (hasCloison && p.cloisonSurface > 0) morceaux.push(`${this.fmt(p.cloisonSurface)} m² de cloison`)
@@ -258,8 +258,11 @@ export default class extends Controller {
       // serveur et gonflait le chiffrage d'un facteur dix.
       const horsBornes = this.champHorsBornes(step)
       if (horsBornes) return this.fail(step, horsBornes.message, horsBornes.champ)
+      if (this.travauxPiece(step).length === 0) {
+        return this.fail(step, "Gardez au moins un type de travaux pour cette pièce.")
+      }
       const p = this.lireDimensions(step)
-      const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags()
+      const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags(step)
       if (hasWalls && !(p.mursSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
       if (hasFloor && !(p.solSurface > 0)) return this.fail(step, "Indiquez la taille de la pièce.")
       if (hasCloison && !(p.cloisonSurface > 0)) {
@@ -369,6 +372,43 @@ export default class extends Controller {
         .replace(/__LABEL__/g, this.escape(this.labelForPiece(pieces, i)))
       this.piecesContainerTarget.insertAdjacentHTML("beforeend", html)
     })
+    this.piecesContainerTarget.querySelectorAll("[data-piece-index]").forEach(step => this.remplirTravauxPiece(step))
+  }
+
+  // Travaux pièce par pièce (13/10/2026) : les travaux étaient communs à tout
+  // le chantier, un plafond placo demandé pour le salon était aussi chiffré
+  // dans la salle de bain. Chaque écran « dimensions » propose les travaux
+  // choisis, tous cochés : le client décoche ce qui ne concerne pas la pièce.
+  remplirTravauxPiece(step) {
+    const bloc = step.querySelector("[data-piece-travaux]")
+    if (!bloc) return
+    const travaux = this.selectedTravaux()
+    if (travaux.length < 2) { bloc.classList.add("hidden"); return }
+    const cases = travaux.map(id => {
+      const t = this.constructor.TRAVAUX.find(x => x.id === id)
+      if (!t) return ""
+      return `
+        <label class="flex items-center gap-2 px-3 py-2 border border-border-warm rounded-lg cursor-pointer text-sm text-ink-soft bg-cream">
+          <input type="checkbox" data-piece-travail="${id}" checked data-action="change->wizard#changerTravauxPiece"
+                 class="w-4 h-4 rounded border-border-warm text-accent focus:ring-accent/40">
+          ${this.escape(t.label)}
+        </label>`
+    }).join("")
+    bloc.querySelector("[data-piece-travaux-liste]").innerHTML = cases
+    bloc.classList.remove("hidden")
+  }
+
+  changerTravauxPiece(event) {
+    const step = event.currentTarget.closest(".wizard-step")
+    this.configureDimensions(step)
+    this.clearError()
+  }
+
+  // Travaux retenus pour une pièce : ceux du chantier, moins ceux décochés.
+  travauxPiece(step) {
+    const travaux = this.selectedTravaux()
+    if (!step || !step.querySelector("[data-piece-travail]")) return travaux
+    return travaux.filter(id => step.querySelector(`[data-piece-travail="${id}"]`)?.checked)
   }
 
   // ---- Précisions : ne montrer que les blocs pertinents -------------------
@@ -406,6 +446,9 @@ export default class extends Controller {
       const dimParts = []
       if (p.mursL > 0 && p.mursH > 0) dimParts.push(`murs ${p.mursL}×${p.mursH} m`)
       if (p.solL > 0 && p.soll > 0) dimParts.push(`sol ${p.solL}×${p.soll} m`)
+      if (p.travaux.length < this.selectedTravaux().length) {
+        dimParts.push(p.travaux.map(id => this.constructor.TRAVAUX.find(x => x.id === id)?.label).filter(Boolean).join(", "))
+      }
       rows += `
         <div class="flex items-baseline justify-between gap-3 py-1.5 border-b border-border-warm/50 last:border-0">
           <span class="text-sm font-semibold text-ink">${this.escape(p.typeLabel)}</span>
@@ -415,7 +458,9 @@ export default class extends Controller {
 
     // Une seule série d'options pour le chantier (travaux et gamme sont communs).
     let opts = ""
-    if (this.projectHas("peinture")) opts += this.optionCheckbox("poncage_peinture", "Ponçage / préparation des supports", reno)
+    // Ponçage pré-coché en rénovation, SAUF si le client déclare des surfaces
+    // saines : il payait sinon une préparation dont il dit ne pas avoir besoin.
+    if (this.projectHas("peinture")) opts += this.optionCheckbox("poncage_peinture", "Ponçage / préparation des supports", reno && !this.surfacesSaines())
     if (this.projectHas("parquet")) {
       opts += this.optionCheckbox("depose_evacuation", "Dépose & évacuation de l'ancien revêtement", reno)
       opts += this.optionCheckbox("poncage", "Ponçage + vitrification du parquet", false)
@@ -435,11 +480,18 @@ export default class extends Controller {
   optionCheckbox(key, label, checked) {
     return `
       <label class="flex items-center gap-2.5 cursor-pointer text-sm text-ink-soft">
-        <input type="checkbox" data-opt-key="${key}" ${checked ? "checked" : ""}
+        <input type="checkbox" data-opt-key="${key}" ${checked ? "checked" : ""} data-action="change->wizard#optionChangee"
                class="w-4 h-4 rounded border-border-warm text-accent focus:ring-accent/40">
         ${this.escape(label)}
       </label>`
   }
+
+  surfacesSaines() {
+    return this.element.querySelector('[name="prec_etat"]')?.value === "Surfaces saines"
+  }
+
+  // Une option cochée ou décochée change le prix : on le recalcule.
+  optionChangee() { this.chargerDevis() }
 
   optionEnabled(key) {
     const cb = this.element.querySelector(`[data-opt-key="${key}"]`)
@@ -558,13 +610,14 @@ export default class extends Controller {
   async chargerDevis() {
     this._devis = null
     const lines = this.collectPieces().flatMap(p =>
-      this.selectedTravaux().map(id => {
+      p.travaux.map(id => {
         const t = this.constructor.TRAVAUX.find(x => x.id === id)
         if (!t) return null
         const surface = this.computeSurface(t.surface, p)
         if (!(surface > 0)) return null
-        return { prestation: this.resolvePrestation(t, this.chantier() === "renovation"),
-                 gamme: p.gamme, type_piece: p.type, mode_saisie: "surface", surface }
+        const prestation = this.resolvePrestation(t, this.chantier() === "renovation")
+        return { prestation, gamme: p.gamme, type_piece: p.type, mode_saisie: "surface", surface,
+                 poncage_peinture: (prestation.startsWith("peinture") && this.optionEnabled("poncage_peinture")) ? "1" : "0" }
       }).filter(Boolean))
     if (!lines.length) return
 
@@ -615,7 +668,7 @@ export default class extends Controller {
       })
       rows += `
         <div class="flex items-center justify-between gap-4 pt-3 mt-1">
-          <span class="font-display text-lg text-ink">Total estimé TTC</span>
+          <span class="font-display text-lg text-ink">Total estimé</span>
           <span class="font-display text-xl text-accent whitespace-nowrap">${eur(this._devis.total_ttc)}</span>
         </div>`
       // Balise le montant vu : croisée avec les non-envois, elle dit si c'est
@@ -683,11 +736,10 @@ export default class extends Controller {
   buildLines() {
     const reno = this.chantier() === "renovation"
     const pieces = this.collectPieces()
-    const travaux = this.selectedTravaux()
     this.linesTarget.innerHTML = ""
     let n = 0
     pieces.forEach(p => {
-      travaux.forEach(travailId => {
+      p.travaux.forEach(travailId => {
         const t = this.constructor.TRAVAUX.find(x => x.id === travailId)
         if (!t) return
         const surface = this.computeSurface(t.surface, p)
@@ -747,6 +799,7 @@ export default class extends Controller {
       type: step.dataset.pieceType || "autre",
       typeLabel: step.dataset.pieceLabel || "Pièce",
       gamme, gammeLabel,
+      travaux: this.travauxPiece(step),
       ...this.lireDimensions(step)
     }))
   }
@@ -795,8 +848,8 @@ export default class extends Controller {
     return p.solSurface || 0
   }
 
-  surfaceFlags() {
-    const kinds = this.selectedTravaux()
+  surfaceFlags(step = null) {
+    const kinds = (step ? this.travauxPiece(step) : this.selectedTravaux())
       .map(id => this.constructor.TRAVAUX.find(t => t.id === id)?.surface)
     return {
       hasFloor: kinds.some(k => k === "sol" || k === "plafond"),
@@ -810,7 +863,7 @@ export default class extends Controller {
   // surface au sol disparaît quand seule une cloison est à chiffrer (elle ne
   // sert à rien et sa question ferait hésiter).
   configureDimensions(step) {
-    const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags()
+    const { hasFloor, hasWalls, hasCloison } = this.surfaceFlags(step)
     step.dataset.saisie ||= "simple"
     step.querySelector('[data-champ="hauteur"]')?.classList.toggle("hidden", !hasWalls && !hasCloison)
     step.querySelector('[data-champ="cloison"]')?.classList.toggle("hidden", !hasCloison)
