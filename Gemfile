@@ -50,7 +50,7 @@ gem "prawn", "~> 2.5"
 gem "prawn-table", "~> 0.2"
 
 # SMS notifications (Twilio)
-gem "twilio-ruby", "~> 7.0"
+gem "twilio-ruby", "~> 7.10"
 
 # AI features: Claude vision analysis + Gemini image generation
 gem "anthropic", "~> 1.35"
