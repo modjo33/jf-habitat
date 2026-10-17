@@ -95,6 +95,7 @@ Rails.application.routes.draw do
         patch :statut              # changement de colonne kanban (drag-and-drop)
         get   :message             # écran de composition d'un message libre
         post  :message, action: :envoyer_message, as: :envoyer_message
+        post  :brouillon           # enregistrer le message sans l envoyer
       end
       resources :notes, only: [:create, :destroy], controller: "client_notes"
       resources :documents, only: [:create, :show, :destroy], controller: "client_documents"

@@ -1,5 +1,5 @@
 class Admin::ClientsController < Admin::BaseController
-  before_action :set_client, only: [:show, :update, :destroy, :statut, :message, :envoyer_message]
+  before_action :set_client, only: [:show, :update, :destroy, :statut, :message, :envoyer_message, :brouillon]
 
   def index
     @q          = params[:q].to_s.strip
@@ -72,8 +72,14 @@ class Admin::ClientsController < Admin::BaseController
     return redirect_to admin_client_path(@client),
                        alert: "Ce client n'a pas d'adresse e-mail." if @client.email.blank?
 
-    @sujet = params[:sujet].presence || "JF Habitat"
-    @corps = params[:corps].presence || gabarit_message
+    @sujet = params[:sujet].presence || @client.brouillon_sujet.presence || "JF Habitat"
+    @corps = params[:corps].presence || @client.brouillon_corps.presence || gabarit_message
+  end
+
+  # Enregistre le message sans l'envoyer : il reste sur la fiche, prêt à partir.
+  def brouillon
+    @client.update!(brouillon_sujet: params[:sujet].to_s.strip.presence, brouillon_corps: params[:corps].to_s.strip.presence)
+    redirect_to admin_client_path(@client), notice: "Brouillon enregistré sur la fiche."
   end
 
   # Envoi + trace dans la timeline : un message envoyé sans trace est un message
@@ -87,7 +93,7 @@ class Admin::ClientsController < Admin::BaseController
 
     LeadMailer.message_client(@client, sujet, corps).deliver_now
     @client.client_notes.create!(body: "Message envoyé le #{l(Date.current, format: '%d/%m/%Y')} — « #{sujet} »\n\n#{corps}")
-    @client.touch(:derniere_interaction_at)
+    @client.update!(derniere_interaction_at: Time.current, brouillon_sujet: nil, brouillon_corps: nil)
     redirect_to admin_client_path(@client), notice: "Message envoyé à #{@client.email}."
   rescue => e
     Rails.logger.error "[Clients#envoyer_message] #{e.class} · #{e.message}"

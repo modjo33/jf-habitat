@@ -17,7 +17,7 @@
 
     <div>
       <label class="label-field" for="corps">Message</label>
-      <%= text_area_tag :corps, @corps, id: "corps", rows: 18, class: "input-field font-mono text-sm leading-relaxed" %>
+      <%= text_area_tag :corps, @corps, id: "corps", rows: 18, class: "input-field text-[15px] leading-relaxed" %>
       <p class="text-[11px] text-ink-light mt-1">
         Texte simple : les retours à la ligne sont conservés tels quels dans le mail reçu.
       </p>
@@ -26,7 +26,7 @@
 
   <div class="card-premium p-5 border-l-4 border-ink/20">
     <p class="text-sm text-ink-soft">
-      Le message est <strong>archivé dans la timeline</strong> du client à l'envoi — dans un mois,
+      Le mail part aux couleurs de JF Habitat (logo, bandeau, pied de page). Le message est <strong>archivé dans la timeline</strong> du client à l'envoi — dans un mois,
       tu sauras encore ce qui lui a été dit. Une copie part sur ta boîte.
     </p>
   </div>
@@ -34,6 +34,8 @@
   <div class="flex items-center gap-3">
     <%= submit_tag "Envoyer le message", class: "btn-primary px-6 py-3",
           data: { turbo_confirm: "Envoyer ce message à #{@client.email} ?" } %>
+    <%= submit_tag "Enregistrer le brouillon", formaction: brouillon_admin_client_path(@client),
+          class: "btn-secondary px-5 py-3", formnovalidate: true %>
     <%= link_to "Annuler", admin_client_path(@client), class: "text-sm text-ink-light hover:text-accent" %>
   </div>
 <% end %>

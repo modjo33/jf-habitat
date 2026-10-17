@@ -43,6 +43,7 @@ class LeadMailer < ApplicationMailer
   def message_client(client, sujet, corps)
     @client = client
     @corps = corps.to_s
+    joindre_logo
     mail to: client.email,
          cc: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
          subject: sujet.presence || "JF Habitat"
