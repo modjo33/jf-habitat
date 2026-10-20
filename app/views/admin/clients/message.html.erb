@@ -24,6 +24,22 @@
     </div>
   </div>
 
+  <% if @documents.any? %>
+    <div class="card-premium p-7">
+      <div class="label-field mb-3">Pièces jointes</div>
+      <div class="space-y-2">
+        <% @documents.each do |d| %>
+          <label class="flex items-center gap-3 text-sm text-ink cursor-pointer">
+            <%= check_box_tag "document_ids[]", d.id, @documents_coches.include?(d.id), id: "doc_#{d.id}", class: "h-4 w-4 accent-[#E6752A]" %>
+            <span><%= d.titre %></span>
+            <% if d.taille %><span class="text-[11px] text-ink-light"><%= number_to_human_size(d.taille, locale: :fr) %></span><% end %>
+          </label>
+        <% end %>
+      </div>
+      <p class="text-[11px] text-ink-light mt-3">Documents de la fiche client. Ajoute un PDF ou une image depuis la fiche pour le joindre ici.</p>
+    </div>
+  <% end %>
+
   <div class="card-premium p-5 border-l-4 border-ink/20">
     <p class="text-sm text-ink-soft">
       Le mail part aux couleurs de JF Habitat (logo, bandeau, pied de page). Le message est <strong>archivé dans la timeline</strong> du client à l'envoi — dans un mois,

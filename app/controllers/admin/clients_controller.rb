@@ -74,11 +74,14 @@ class Admin::ClientsController < Admin::BaseController
 
     @sujet = params[:sujet].presence || @client.brouillon_sujet.presence || "JF Habitat"
     @corps = params[:corps].presence || @client.brouillon_corps.presence || gabarit_message
+    @documents = @client.client_documents.recents_dabord.select(:id, :titre, :nom_fichier, :taille, :created_at)
+    @documents_coches = Array(params[:document_ids].presence || @client.brouillon_document_ids).map(&:to_i)
   end
 
   # Enregistre le message sans l'envoyer : il reste sur la fiche, prêt à partir.
   def brouillon
-    @client.update!(brouillon_sujet: params[:sujet].to_s.strip.presence, brouillon_corps: params[:corps].to_s.strip.presence)
+    @client.update!(brouillon_sujet: params[:sujet].to_s.strip.presence, brouillon_corps: params[:corps].to_s.strip.presence,
+                    brouillon_document_ids: documents_choisis.map(&:id))
     redirect_to admin_client_path(@client), notice: "Brouillon enregistré sur la fiche."
   end
 
@@ -91,9 +94,11 @@ class Admin::ClientsController < Admin::BaseController
                          alert: "Le message ne peut pas être vide."
     end
 
-    LeadMailer.message_client(@client, sujet, corps).deliver_now
-    @client.client_notes.create!(body: "Message envoyé le #{l(Date.current, format: '%d/%m/%Y')} — « #{sujet} »\n\n#{corps}")
-    @client.update!(derniere_interaction_at: Time.current, brouillon_sujet: nil, brouillon_corps: nil)
+    documents = documents_choisis
+    LeadMailer.message_client(@client, sujet, corps, documents).deliver_now
+    pj = documents.any? ? "\n\nPièces jointes : #{documents.map(&:titre).join(' ; ')}" : ""
+    @client.client_notes.create!(body: "Message envoyé le #{l(Date.current, format: '%d/%m/%Y')} — « #{sujet} »\n\n#{corps}#{pj}")
+    @client.update!(derniere_interaction_at: Time.current, brouillon_sujet: nil, brouillon_corps: nil, brouillon_document_ids: [])
     redirect_to admin_client_path(@client), notice: "Message envoyé à #{@client.email}."
   rescue => e
     Rails.logger.error "[Clients#envoyer_message] #{e.class} · #{e.message}"
@@ -124,6 +129,11 @@ class Admin::ClientsController < Admin::BaseController
       #{ENV.fetch("BUSINESS_PHONE", "")}
       #{ENV.fetch("BUSINESS_EMAIL", "")}
     TXT
+  end
+
+  def documents_choisis
+    ids = Array(params[:document_ids]).map(&:to_i)
+    ids.any? ? @client.client_documents.where(id: ids).to_a : []
   end
 
   def set_client

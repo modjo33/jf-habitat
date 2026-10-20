@@ -33,6 +33,7 @@
       <div class="eyebrow mb-1">✉️ Message préparé, pas encore envoyé</div>
       <div class="font-semibold text-ink"><%= @client.brouillon_sujet.presence || "JF Habitat" %></div>
       <div class="text-sm text-ink-light mt-1"><%= truncate(@client.brouillon_corps.squish, length: 140) %></div>
+      <% if @client.brouillon_document_ids.any? %><div class="text-xs text-ink-light mt-1">📎 <%= pluralize(@client.brouillon_document_ids.size, "pièce jointe", plural: "pièces jointes") %></div><% end %>
     </div>
     <%= link_to "Relire et envoyer →", message_admin_client_path(@client), class: "btn-primary text-sm px-5 py-2.5" %>
   </div>
@@ -264,8 +265,8 @@
       <% end %>
       <%= form_with model: ClientDocument.new, url: admin_client_documents_path(@client), multipart: true, class: "space-y-2" do |f| %>
         <%= f.text_field :titre, placeholder: "Titre (facultatif) : contrat d'entretien…", class: "input-field text-sm" %>
-        <%= f.file_field :fichier, accept: "application/pdf", required: true, class: "block w-full text-xs text-ink-light" %>
-        <%= f.submit "📎 Ajouter le PDF", class: "w-full text-xs font-bold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition cursor-pointer" %>
+        <%= f.file_field :fichier, accept: "application/pdf,image/png,image/jpeg", required: true, class: "block w-full text-xs text-ink-light" %>
+        <%= f.submit "📎 Ajouter le document", class: "w-full text-xs font-bold border border-border-warm text-ink px-4 py-2.5 rounded-lg hover:bg-sand transition cursor-pointer" %>
       <% end %>
     </div>
   </div>

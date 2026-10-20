@@ -40,10 +40,14 @@ class LeadMailer < ApplicationMailer
   # l'admin savait envoyer un devis et une facture, mais pas répondre à un
   # prospect, refuser un chantier hors zone ou demander un avis — autant de
   # messages qui partaient jusqu'ici de la boîte perso, hors de toute trace.
-  def message_client(client, sujet, corps)
+  def message_client(client, sujet, corps, documents = [])
     @client = client
     @corps = corps.to_s
+    @documents = documents.to_a
     joindre_logo
+    @documents.each do |d|
+      attachments[d.nom_piece_jointe] = { mime_type: d.mime_type || "application/pdf", content: d.contenu }
+    end
     mail to: client.email,
          cc: ENV.fetch("LEAD_NOTIFICATION_EMAIL", "contact@jfhabitat.fr"),
          subject: sujet.presence || "JF Habitat"

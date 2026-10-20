@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -78,6 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_100000) do
   create_table "clients", force: :cascade do |t|
     t.string "adresse"
     t.text "brouillon_corps"
+    t.integer "brouillon_document_ids", default: [], null: false, array: true
     t.string "brouillon_sujet"
     t.string "code_postal"
     t.datetime "created_at", null: false

@@ -8,16 +8,16 @@ class Admin::ClientDocumentsController < Admin::BaseController
       redirect_to admin_client_path(@client), notice: "Document ajouté."
     else
       redirect_to admin_client_path(@client),
-                  alert: document.errors.full_messages.to_sentence.presence || "Choisissez un fichier PDF."
+                  alert: document.errors.full_messages.to_sentence.presence || "Choisissez un fichier PDF ou une image."
     end
   end
 
-  # PDF servi depuis la base, ouvert dans le navigateur.
+  # Document servi depuis la base, ouvert dans le navigateur.
   def show
     document = @client.client_documents.find(params[:id])
     send_data document.contenu,
-              filename: document.nom_fichier.presence || "#{document.titre.parameterize}.pdf",
-              type: "application/pdf", disposition: "inline"
+              filename: document.nom_piece_jointe,
+              type: document.mime_type || "application/pdf", disposition: "inline"
   end
 
   def destroy

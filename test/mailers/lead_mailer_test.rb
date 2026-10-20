@@ -54,4 +54,23 @@ class LeadMailerTest < ActionMailer::TestCase
     assert pdf.start_with?("%PDF")
     assert DevisLignePdfGenerator::MENTION_ESTIMATIF.include?("après visite du chantier")
   end
+
+  test "message libre aux couleurs JF Habitat, avec pièces jointes PDF et image" do
+    client = Client.create!(nom: "Client Test", email: "client@example.com")
+    pdf = client.client_documents.create!(titre: "Devis", nom_fichier: "devis.pdf", contenu: "%PDF-1.4 test")
+    png = client.client_documents.create!(titre: "Planche", contenu: "\x89PNG\r\n\x1a\n".b + "img")
+    mail = LeadMailer.message_client(client, "Objet", "Bonjour,\n\nTexte.", [pdf, png])
+    noms = mail.attachments.map(&:filename)
+    assert_includes noms, "devis.pdf"
+    assert_includes noms, "planche.png"
+    assert_includes noms, "logo.png"
+    assert_equal "image/png", mail.attachments["planche.png"].mime_type
+    assert_match "Pièces jointes", mail.html_part.body.decoded
+  end
+
+  test "un document qui n'est ni PDF ni image est refusé" do
+    client = Client.create!(nom: "Client Test", email: "client2@example.com")
+    doc = client.client_documents.build(titre: "Texte", contenu: "bonjour")
+    assert_not doc.valid?
+  end
 end
