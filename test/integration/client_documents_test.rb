@@ -39,7 +39,7 @@ class ClientDocumentsTest < ActionDispatch::IntegrationTest
       post admin_client_documents_path(@client), headers: AUTH,
            params: { client_document: { titre: "Faux", fichier: pdf("photo.pdf", "pas un pdf") } }
     end
-    assert_equal "Le fichier doit être un PDF.", flash[:alert]
+    assert_equal "Le fichier doit être un PDF ou une image (PNG, JPEG).", flash[:alert]
   end
 
   test "un document se supprime" do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,8 +89,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_100000) do
     t.text "notes_internes"
     t.text "prochaine_action"
     t.date "prochaine_action_date"
+    t.string "siret"
     t.string "statut", default: "nouveau", null: false, comment: "nouveau | contacte | rdv_pris | devis_envoye | gagne | perdu"
     t.string "telephone"
+    t.string "tva_intracom"
     t.datetime "updated_at", null: false
     t.string "ville"
     t.index ["derniere_interaction_at"], name: "index_clients_on_derniere_interaction_at"

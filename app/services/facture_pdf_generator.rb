@@ -68,10 +68,12 @@ class FacturePdfGenerator
     pdf.text c.nom.to_s.strip
     pdf.text c.adresse if c.adresse.present?
     pdf.text "#{c.code_postal} #{c.ville}".strip if c.code_postal.present? || c.ville.present?
+    ids_pro = [("SIRET #{c.siret}" if c.siret.present?), ("TVA #{c.tva_intracom}" if c.tva_intracom.present?)].compact
+    pdf.text ids_pro.join(" · "), size: 9.5 if ids_pro.any?
     if @facture.chantier_adresse.present? || @facture.objet.present?
       pdf.move_down 6
       pdf.font_size 9
-      detail = ["Chantier : #{@facture.chantier_adresse}".strip, @facture.objet].reject(&:blank?)
+      detail = [("Chantier : #{@facture.chantier_adresse}" if @facture.chantier_adresse.present?), @facture.objet].reject(&:blank?)
       pdf.text detail.join(" · ")
     end
     pdf.move_down 16
