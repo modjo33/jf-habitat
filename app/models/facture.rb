@@ -78,10 +78,27 @@ class Facture < ApplicationRecord
       estimation.devis_lignes.ordered.map do |l|
         { section: l.section, libelle: l.libelle, description: l.description,
           quantite: l.quantite, unite: l.unite, prix_unitaire: l.prix_unitaire }
-      end
+      end + lignes_frais_chantier(estimation)
     else
       lignes_depuis_murs(estimation)
     end
+  end
+
+  # Déplacement et consommables saisis à part sur le devis : ils comptent dans
+  # devis_total, donc la facture doit les reprendre (oubli constaté le 26/10/2026,
+  # facture M. James à 250 € au lieu de 300 €).
+  def self.lignes_frais_chantier(estimation)
+    lignes = []
+    if estimation.devis_trajet_total.to_d.positive?
+      lignes << { section: "Frais de chantier", libelle: "Déplacement",
+                  quantite: nil, unite: "forfait", prix_unitaire: estimation.devis_trajet_total }
+    end
+    if estimation.devis_consommables.to_d.positive?
+      lignes << { section: "Frais de chantier",
+                  libelle: estimation.devis_consommables_libelle.presence || "Consommables",
+                  quantite: nil, unite: "forfait", prix_unitaire: estimation.devis_consommables }
+    end
+    lignes
   end
 
   # Devis terrain : une ligne de peinture par mur + une ligne par forfait
@@ -106,16 +123,7 @@ class Facture < ApplicationRecord
         end
       end
     end
-    if estimation.devis_trajet_total.to_d.positive?
-      lignes << { section: "Frais de chantier", libelle: "Déplacement",
-                  quantite: nil, unite: "forfait", prix_unitaire: estimation.devis_trajet_total }
-    end
-    if estimation.devis_consommables.to_d.positive?
-      lignes << { section: "Frais de chantier",
-                  libelle: estimation.devis_consommables_libelle.presence || "Consommables",
-                  quantite: nil, unite: "forfait", prix_unitaire: estimation.devis_consommables }
-    end
-    lignes
+    lignes + lignes_frais_chantier(estimation)
   end
 
   # Message de remerciement pré-rempli dans l'écran d'envoi : ce que Johan voit
