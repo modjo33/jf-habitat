@@ -93,7 +93,16 @@ class EstimationsController < ApplicationController
     detail = [ "Téléphone laissé sur l'estimateur, avant l'affichage du prix · #{contexte}",
                total && "Devis affiché : #{total} € TTC",
                projet.presence && "Projet : #{projet}" ].compact.join("\n")
-    client.client_notes.create!(auteur: "Site", body: detail)
+    # Le projet complet (pièces, dimensions, travaux, précisions, lignes) part
+    # avec la note : c'est tout ce qui restera si le visiteur n'envoie pas le
+    # formulaire. Jamais bloquant : un détail illisible donne une note simple.
+    donnees = begin
+      ProjetEstimateur.normaliser(params[:details])
+    rescue => e
+      Rails.logger.error "[EstimationsController#telephone] détails ignorés : #{e.class} · #{e.message}"
+      nil
+    end
+    client.client_notes.create!(auteur: "Site", body: detail, donnees: donnees)
 
     suivre_etape("tel_donne", detail: total)
     resume = [ total && "devis vu #{total} € TTC", projet.presence ].compact.join(" · ")

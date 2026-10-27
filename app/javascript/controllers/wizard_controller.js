@@ -571,6 +571,7 @@ export default class extends Controller {
           telephone: tel,
           total: this._devis ? String(Math.round(this._devis.total_ttc)) : "",
           projet: this.resumeProjet(),
+          details: this.detailsProjet(),
           site_web: this.hasTelPiegeTarget ? this.telPiegeTarget.value : ""
         })
       })
@@ -602,6 +603,39 @@ export default class extends Controller {
         .map(t => this.constructor.TRAVAUX.find(x => x.id === t)?.label).filter(Boolean).join(", ")
       return [pieces, travaux, this.gammeLabel()].filter(Boolean).join(" · ")
     } catch (_) { return "" }
+  }
+
+  // Tous les critères saisis, envoyés avec le numéro. Sans eux, la fiche
+  // client n'avait que le prix et une ligne de résumé : si le visiteur
+  // repartait sans envoyer le formulaire, pièces, dimensions et précisions
+  // étaient perdues (27/10/2026). Jamais bloquant : null en cas d'erreur.
+  detailsProjet() {
+    try {
+      const val = name => this.element.querySelector(`[name="${name}"]`)?.value?.trim() || ""
+      const label = id => this.constructor.TRAVAUX.find(x => x.id === id)?.label || id
+      const devis = this._devis
+      return {
+        chantier: this.chantier(),
+        gamme: this.gamme(),
+        etage: val("estimation[etage]"),
+        code_postal: val("estimation[code_postal]"),
+        options: ["poncage", "poncage_peinture", "depose_evacuation"].filter(o => this.optionEnabled(o)),
+        pieces: this.collectPieces().map(p => ({
+          label: p.typeLabel, type: p.type, travaux: p.travaux.map(label), mode: p.mode,
+          surface_sol: p.surfaceSol || 0, hauteur: p.hauteur || 0,
+          murs: p.mursSurface || 0, sol: p.solSurface || 0, cloison: p.cloisonSurface || 0
+        })),
+        precisions: { etat: val("prec_etat"), peinture: val("prec_peinture"), teintes: val("prec_teintes"),
+                      sol: val("prec_sol"), profil: val("prec_profil"), source: val("prec_source") },
+        lignes: this.lignesEstimation(),
+        chiffrage: devis ? {
+          total_ttc: devis.total_ttc,
+          lignes: devis.lines.map(l => ({
+            libelle: [l.type_piece_label || l.piece, l.prestation_label].filter(Boolean).join(" · "),
+            surface: l.surface, total: l.total }))
+        } : null
+      }
+    } catch (_) { return null }
   }
 
   // Devis chiffré calculé PAR LE SERVEUR (le barème ne descend jamais dans le
@@ -734,11 +768,17 @@ export default class extends Controller {
   }
 
   buildLines() {
-    const reno = this.chantier() === "renovation"
-    const pieces = this.collectPieces()
     this.linesTarget.innerHTML = ""
-    let n = 0
-    pieces.forEach(p => {
+    this.lignesEstimation().forEach((attrs, n) => this.addLine(n, attrs))
+  }
+
+  // Les lignes de l'estimation telles qu'elles partent au serveur : une par
+  // pièce et par travail ayant une dimension saisie. Servent à l'envoi du
+  // formulaire ET au projet joint au numéro (detailsProjet).
+  lignesEstimation() {
+    const reno = this.chantier() === "renovation"
+    const lignes = []
+    this.collectPieces().forEach(p => {
       p.travaux.forEach(travailId => {
         const t = this.constructor.TRAVAUX.find(x => x.id === travailId)
         if (!t) return
@@ -747,7 +787,7 @@ export default class extends Controller {
         const prestation = this.resolvePrestation(t, reno)
         const isPeinture = prestation.startsWith("peinture")
         const isParquet = prestation.startsWith("parquet")
-        this.addLine(n, {
+        lignes.push({
           piece: p.typeLabel,
           type_piece: p.type,
           prestation: prestation,
@@ -758,9 +798,9 @@ export default class extends Controller {
           poncage_peinture: (isPeinture && this.optionEnabled("poncage_peinture")) ? "1" : "0",
           depose_evacuation: (isParquet && this.optionEnabled("depose_evacuation")) ? "1" : "0"
         })
-        n++
       })
     })
+    return lignes
   }
 
   addLine(i, attrs) {

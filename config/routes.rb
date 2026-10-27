@@ -97,7 +97,11 @@ Rails.application.routes.draw do
         post  :message, action: :envoyer_message, as: :envoyer_message
         post  :brouillon           # enregistrer le message sans l envoyer
       end
-      resources :notes, only: [:create, :destroy], controller: "client_notes"
+      resources :notes, only: [:create, :destroy], controller: "client_notes" do
+        # Projet laissé sur l'estimateur (numéro donné, formulaire non envoyé)
+        # → vraie estimation, d'un clic depuis la fiche client.
+        member { post :estimation }
+      end
       resources :documents, only: [:create, :show, :destroy], controller: "client_documents"
     end
 
