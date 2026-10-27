@@ -100,4 +100,36 @@ class ProjetEstimateurTest < ActionDispatch::IntegrationTest
     assert_equal "web", e.origine
     assert_equal "Marie Dupont", e.client.nom
   end
+
+  test "le PDF du devis vu à l'écran se génère sans rien enregistrer" do
+    client = laisser_numero
+    note = client.client_notes.last
+    assert_no_difference [ "Estimation.count", "EstimationLine.count" ] do
+      get devis_estimatif_admin_client_note_path(client, note, format: :pdf), headers: AUTH
+    end
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+    assert response.body.start_with?("%PDF")
+
+    get admin_client_path(client), headers: AUTH
+    assert_includes response.body, "Devis estimatif vu par le client (PDF)"
+  end
+
+  test "une estimation envoyée montre ses m², ses précisions et le PDF reçu par le client" do
+    client = Client.create!(nom: "Marie Dupont", telephone: "0612345678")
+    e = Estimation.create!(nom: "Marie Dupont", email: "marie@exemple.fr", telephone: "0612345678",
+                           code_postal: "33650", client: client,
+                           message: "— Précisions du formulaire —\n• État des surfaces : Fissures à reboucher",
+                           estimation_lines_attributes: [ { piece: "Salon", type_piece: "salon", prestation: "peinture_murs_reno",
+                                                            gamme: "milieu", mode_saisie: "surface", surface: 37.26 } ])
+    get admin_client_path(client), headers: AUTH
+    assert_includes response.body, "37,26 m²"
+    assert_includes response.body, "État des surfaces : Fissures à reboucher"
+    assert_includes response.body, "Devis estimatif reçu par le client (PDF)"
+    assert_includes response.body, "/estimation.pdf?reference=#{e.reference}"
+
+    get estimation_path(reference: e.reference, format: :pdf)
+    assert_response :success
+    assert response.body.start_with?("%PDF")
+  end
 end

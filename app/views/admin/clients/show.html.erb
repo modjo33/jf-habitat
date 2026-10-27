@@ -96,6 +96,24 @@
                 </div>
               <% end %>
 
+              <%# Ce que le client a saisi et reçu : m² par pièce, précisions
+                  (état des murs…), et le PDF joint à son e-mail. %>
+              <div class="px-3 pb-3 -mt-1 text-xs text-ink-soft space-y-1">
+                <% e.estimation_lines.each do |l| %>
+                  <div class="flex justify-between gap-3">
+                    <span><%= l.piece %> · <%= l.prestation_label %></span>
+                    <span class="whitespace-nowrap text-ink-light"><%= number_with_precision(l.surface, precision: 2, strip_insignificant_zeros: true, separator: ",") %> m²</span>
+                  </div>
+                <% end %>
+                <% if e.message.present? %>
+                  <div class="whitespace-pre-wrap pt-1 border-t border-border-warm/40"><%= e.message %></div>
+                <% end %>
+                <% unless e.manuel? %>
+                  <%= link_to "📄 Devis estimatif reçu par le client (PDF)", estimation_path(reference: e.reference, format: :pdf),
+                        target: "_blank", class: "inline-block pt-1 font-semibold text-accent hover:underline" %>
+                <% end %>
+              </div>
+
               <% if e.devis_signe? %>
                 <div class="flex items-center justify-between gap-2 px-3 py-2 border-t border-border-warm/40">
                   <span class="text-[11px] text-sauge font-semibold">✓ Devis signé le <%= e.devis_signe_at.strftime("%d/%m/%Y") %> · <%= eur(e.devis_total) %></span>

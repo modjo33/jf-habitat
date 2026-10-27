@@ -100,7 +100,10 @@ Rails.application.routes.draw do
       resources :notes, only: [:create, :destroy], controller: "client_notes" do
         # Projet laissé sur l'estimateur (numéro donné, formulaire non envoyé)
         # → vraie estimation, d'un clic depuis la fiche client.
-        member { post :estimation }
+        member do
+          post :estimation
+          get  :devis_estimatif   # PDF du devis vu à l'écran par le visiteur
+        end
       end
       resources :documents, only: [:create, :show, :destroy], controller: "client_documents"
     end

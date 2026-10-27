@@ -57,10 +57,16 @@
     </div>
   <% end %>
 
+  <div class="flex flex-wrap items-center gap-3">
+  <% if projet.lignes.any? %>
+    <%= link_to "📄 Devis estimatif vu par le client (PDF)", devis_estimatif_admin_client_note_path(client, note, format: :pdf),
+          target: "_blank", class: "text-xs font-semibold text-accent hover:underline" %>
+  <% end %>
   <% if (e = projet.estimation) %>
     <%= link_to "Voir l'estimation #{e.reference} →", admin_estimation_path(e), class: "text-xs font-semibold text-accent hover:underline" %>
   <% elsif projet.lignes.any? %>
     <%= button_to "Créer l'estimation à partir de ce projet", estimation_admin_client_note_path(client, note),
           class: "text-xs font-semibold bg-accent text-white px-3 py-1.5 rounded-full hover:bg-accent-dark" %>
   <% end %>
+  </div>
 </div>

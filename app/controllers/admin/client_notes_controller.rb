@@ -39,6 +39,19 @@ class Admin::ClientNotesController < Admin::BaseController
     end
   end
 
+  # PDF du devis estimatif affiché au visiteur qui a laissé son numéro sans
+  # envoyer le formulaire (aucun PDF ne lui a été envoyé).
+  def devis_estimatif
+    note = @client.client_notes.find(params[:id])
+    projet = ProjetEstimateur.new(note.donnees)
+    return redirect_to(admin_client_path(@client), alert: "Cette note ne contient pas de projet.") unless projet.lignes.any?
+
+    estimation = projet.estimation_pour_pdf(@client, note)
+    send_data DevisPdfGenerator.new(estimation).generate.render,
+              filename: "devis-estimatif-#{estimation.reference}.pdf",
+              type: "application/pdf", disposition: "inline"
+  end
+
   private
 
   def set_client

@@ -110,6 +110,21 @@ class ProjetEstimateur
     e
   end
 
+  # Le devis estimatif tel que le visiteur l'a vu à l'écran, reconstitué en
+  # mémoire (jamais enregistré) pour le PDF de la fiche client. Les prix sont
+  # recalculés avec le barème du jour : la fiche affiche à côté le prix vu.
+  def estimation_pour_pdf(client, note)
+    e = construire_estimation(client, note)
+    e.reference = "TEL-#{note.id}"
+    e.created_at = note.created_at
+    e.email = client.email.to_s
+    e.telephone = client.telephone.to_s
+    e.estimation_lines.each(&:valid?)
+    e.calculer_coefficients
+    e.recalculer_totaux
+    e
+  end
+
   private
 
   def message(note)
