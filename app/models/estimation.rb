@@ -411,7 +411,9 @@ class Estimation < ApplicationRecord
     return [] if rows.empty?
 
     total    = devis_total.to_d
-    attribue = rows.sum { |e| e["pct"].to_s.strip.present? ? (total * e["pct"].to_d / 100) : 0.to_d }
+    # Somme des montants ARRONDIS : sinon « le reste » s'arrondit à part et les
+    # versements dépassent le total d'un centime (40/30/30 sur 6 833,55 €, 03/11/2026).
+    attribue = rows.sum { |e| e["pct"].to_s.strip.present? ? (total * e["pct"].to_d / 100).round(2) : 0.to_d }
     rows.map do |e|
       pct_present = e["pct"].to_s.strip.present?
       {
