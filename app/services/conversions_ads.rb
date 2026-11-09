@@ -128,6 +128,14 @@ class ConversionsAds
       out
     end
 
+    # Flux lu automatiquement par Google (feuille Google Sheets reliée à
+    # Google Ads) : TOUS les leads de la fenêtre, déjà envoyés ou non. Google
+    # ignore un clic déjà compté (même gclid, même action, même heure), et
+    # personne n'a plus à cliquer « Marquer » pour que rien ne se perde.
+    def flux
+      dedoublonner(eligibles("lead").to_a + notes_eligibles("lead").to_a)
+    end
+
     def nom_fichier(type)
       "conversions-google-ads-#{type}-#{Date.current.strftime('%Y%m%d')}.csv"
     end

@@ -30,6 +30,11 @@ Rails.application.routes.draw do
   # page publique (bandeau mobile, hero des pages métier, écran contact du wizard).
   post "/rappel", to: "rappels#create", as: :rappel
 
+  # Flux des conversions Google Ads, lu chaque nuit par la feuille Google
+  # reliée à Google Ads (=IMPORTDATA). Protégé par un jeton secret.
+  get "/flux/conversions-ads/:jeton", to: "flux_conversions_ads#show", as: :flux_conversions_ads,
+                                      format: false
+
   # Balise de mesure du tunnel (agrégée, sans donnée personnelle).
   post "/suivi-tunnel", to: "tunnel#create", as: :suivi_tunnel
 
