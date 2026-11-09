@@ -37,7 +37,7 @@
     final, rien ne se passait, il partait. La validation du parcours est faite
     par `wizard_controller`, écran par écran, avec des messages lisibles. %>
 <%= form_with model: @estimation, url: estimation_path, method: :post, multipart: true,
-      data: { controller: "wizard", action: "keydown->wizard#onKeydown" },
+      data: { controller: "wizard", action: "keydown->wizard#onKeydown", ads_send_to: google_ads_lead_send_to },
       html: { novalidate: true },
       class: "wizard-shell" do |f| %>
 

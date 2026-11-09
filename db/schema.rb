@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_27_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,14 +66,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_090000) do
   end
 
   create_table "client_notes", force: :cascade do |t|
+    t.datetime "ads_export_lead_at"
     t.string "auteur", default: "Admin"
     t.text "body", null: false
     t.bigint "client_id", null: false
     t.datetime "created_at", null: false
     t.jsonb "donnees"
+    t.string "gclid"
     t.datetime "updated_at", null: false
     t.index ["client_id", "created_at"], name: "index_client_notes_on_client_id_and_created_at"
     t.index ["client_id"], name: "index_client_notes_on_client_id"
+    t.index ["gclid"], name: "index_client_notes_on_gclid"
   end
 
   create_table "clients", force: :cascade do |t|

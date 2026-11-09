@@ -102,7 +102,10 @@ class EstimationsController < ApplicationController
       Rails.logger.error "[EstimationsController#telephone] détails ignorés : #{e.class} · #{e.message}"
       nil
     end
-    client.client_notes.create!(auteur: "Site", body: detail, donnees: donnees)
+    # Le clic publicitaire part avec la note : sans lui, ce contact reste
+    # invisible pour Google (voir ConversionsAds).
+    client.client_notes.create!(auteur: "Site", body: detail, donnees: donnees,
+                                gclid: source_attributes["gclid"])
 
     suivre_etape("tel_donne", detail: total)
     resume = [ total && "devis vu #{total} € TTC", projet.presence ].compact.join(" · ")

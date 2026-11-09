@@ -589,9 +589,27 @@ export default class extends Controller {
 
     const champ = this.element.querySelector('[name="estimation[telephone]"]')
     if (champ) champ.value = tel
+    if (!this._telDonne) this.signalerLead()
     this._telDonne = true
     this.afficherDevis()
     this.devisTeaserTarget.scrollIntoView({ block: "start", behavior: "smooth" })
+  }
+
+  // Le numéro laissé est un lead : on le signale à GA4 et Google Ads par le même
+  // chemin que la page devis (fireLeadConversion, application.js). Sans ça,
+  // Google ne voyait que les formulaires complets, devenus rares depuis le 30/09.
+  // Jamais le numéro dans l'identifiant de transaction : pas de donnée
+  // personnelle chez Google.
+  signalerLead() {
+    if (typeof window.fireLeadConversion !== "function" || document.getElementById("lead-conversion-data")) return
+    const el = document.createElement("div")
+    el.id = "lead-conversion-data"
+    el.hidden = true
+    el.dataset.value = this._devis ? String(Math.round(this._devis.total_ttc)) : "0"
+    el.dataset.reference = `TEL-${Date.now()}`
+    if (this.element.dataset.adsSendTo) el.dataset.adsSendTo = this.element.dataset.adsSendTo
+    document.body.appendChild(el)
+    window.fireLeadConversion()
   }
 
   // « Salon, Chambre · Peinture des murs, Peinture du plafond · Milieu de gamme »

@@ -89,7 +89,7 @@
         <% @a_exporter.each do |e| %>
           <tr class="border-b border-border-warm/60">
             <td class="px-4 py-2">
-              <%= link_to (e.nom.presence || "Sans nom"), admin_estimation_path(e), class: "font-semibold text-ink hover:text-accent" %>
+              <%= link_to (e.nom.presence || "Sans nom"), (e.is_a?(ClientNote) ? admin_client_path(e.client) : admin_estimation_path(e)), class: "font-semibold text-ink hover:text-accent" %>
               <span class="text-ink-light text-xs block"><%= e.reference %></span>
             </td>
             <td class="px-4 py-2 text-ink-light"><%= l ConversionsAds.horodatage(e, @type), format: "%d/%m/%Y %H:%M" %></td>
@@ -126,7 +126,7 @@
         <% @exportees.each do |e| %>
           <tr class="border-b border-border-warm/60">
             <td class="px-4 py-2">
-              <%= link_to (e.nom.presence || "Sans nom"), admin_estimation_path(e), class: "text-ink hover:text-accent" %>
+              <%= link_to (e.nom.presence || "Sans nom"), (e.is_a?(ClientNote) ? admin_client_path(e.client) : admin_estimation_path(e)), class: "text-ink hover:text-accent" %>
               <span class="text-ink-light text-xs"><%= e.reference %></span>
             </td>
             <td class="px-4 py-2 text-ink-light"><%= l ConversionsAds.horodatage(e, @type), format: "%d/%m/%Y" %></td>

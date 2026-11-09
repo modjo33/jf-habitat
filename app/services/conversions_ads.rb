@@ -33,7 +33,7 @@ class ConversionsAds
 
   TYPES = {
     "lead"  => { action: ACTION_LEAD,  colonne: :ads_export_lead_at,
-                 libelle: "Devis demandés", description: "Toute estimation soumise depuis un clic publicitaire." },
+                 libelle: "Devis demandés", description: "Toute estimation soumise, numéro laissé ou rappel demandé depuis un clic publicitaire." },
     "vente" => { action: ACTION_VENTE, colonne: :ads_export_vente_at,
                  libelle: "Devis acceptés", description: "Les devis effectivement signés, avec leur montant réel." }
   }.freeze
@@ -50,15 +50,38 @@ class ConversionsAds
       scope.order(:created_at)
     end
 
-    def deja_exportees(type) = dedoublonner(eligibles(type).where.not(TYPES[type.to_s][:colonne] => nil))
-    def a_exporter(type)     = dedoublonner(eligibles(type).where(TYPES[type.to_s][:colonne] => nil))
+    # Numéros laissés depuis un clic publicitaire (estimateur avant le prix,
+    # demande de rappel) : premier canal de contact depuis le 30/09, ils
+    # n'apparaissaient nulle part ici et Google voyait zéro lead. Ce sont des
+    # leads, jamais des ventes.
+    def notes_eligibles(type)
+      return ClientNote.none unless type.to_s == "lead"
+
+      ClientNote.issues_de_google_ads.where("created_at >= ?", FENETRE_JOURS.days.ago).includes(:client)
+    end
+
+    def deja_exportees(type)
+      colonne = TYPES[type.to_s][:colonne]
+      dedoublonner(eligibles(type).where.not(colonne => nil).to_a +
+                   notes_eligibles(type).where.not(ads_export_lead_at: nil).to_a)
+    end
+
+    # Un clic déjà envoyé ne repart pas : le visiteur qui laisse son numéro
+    # puis envoie le formulaire le lendemain reste un seul lead.
+    def a_exporter(type)
+      colonne = TYPES[type.to_s][:colonne]
+      envoyes = deja_exportees(type).map(&:gclid)
+      candidats = eligibles(type).where(colonne => nil).to_a +
+                  notes_eligibles(type).where(ads_export_lead_at: nil).to_a
+      dedoublonner(candidats).reject { |l| envoyes.include?(l.gclid) }
+    end
 
     # Un clic publicitaire ne vaut qu'une conversion. Deux soumissions depuis le
     # même clic (cas vécu : le même visiteur a rempli le formulaire deux fois à
     # deux minutes d'intervalle) sont un seul lead — les envoyer toutes les deux
     # doublerait le compteur de Google et fausserait ses enchères.
     # On garde la première, l'ordre étant chronologique.
-    def dedoublonner(scope) = scope.to_a.uniq(&:gclid)
+    def dedoublonner(lignes) = lignes.to_a.sort_by(&:created_at).uniq(&:gclid)
 
     # Date retenue comme moment de la conversion : la soumission pour un lead,
     # l'acceptation du devis pour une vente.
@@ -116,7 +139,9 @@ class ConversionsAds
       gclids  = Array(estimations).map(&:gclid).compact_blank
       return 0 if gclids.empty?
 
-      Estimation.where(gclid: gclids).update_all(colonne => Time.current)
+      maintenant = Time.current
+      ClientNote.where(gclid: gclids).update_all(ads_export_lead_at: maintenant) if type.to_s == "lead"
+      Estimation.where(gclid: gclids).update_all(colonne => maintenant)
     end
 
     private

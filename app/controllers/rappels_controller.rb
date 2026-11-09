@@ -38,7 +38,8 @@ class RappelsController < ApplicationController
 
     travaux = saisie[:travaux].to_s.strip.first(500)
     contexte = contexte_lisible(saisie)
-    @client.client_notes.create!(auteur: "Site", body: [ "Demande de rappel · #{contexte}", travaux.presence && "Travaux : #{travaux}" ].compact.join("\n"))
+    @client.client_notes.create!(auteur: "Site", body: [ "Demande de rappel · #{contexte}", travaux.presence && "Travaux : #{travaux}" ].compact.join("\n"),
+                                 gclid: source_attributes["gclid"])
 
     suivre_etape("rappel", detail: saisie[:metier].presence || saisie[:page].to_s.presence)
     envoyer_sans_bloquer { LeadMailer.demande_rappel(@client, travaux, contexte).deliver_now }
